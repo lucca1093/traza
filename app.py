@@ -360,6 +360,8 @@ elif pagina == "Personas":
             "Persona guardada correctamente"
         )
 
+        st.rerun()
+
     st.divider()
 
     st.subheader(
@@ -380,11 +382,15 @@ elif pagina == "Personas":
 
     personas = cursor.fetchall()
 
-    if len(personas) > 0:
+    if len(personas) == 0:
 
-        import pandas as pd
+        st.info(
+            "Todavía no hay personas registradas."
+        )
 
-        df = pd.DataFrame(
+    else:
+
+        df_personas = pd.DataFrame(
             personas,
             columns=[
                 "ID",
@@ -396,9 +402,49 @@ elif pagina == "Personas":
         )
 
         st.dataframe(
-            df,
+            df_personas,
             use_container_width=True
         )
+
+        st.divider()
+
+        st.subheader(
+            "Eliminar persona"
+        )
+
+        opciones_borrar = {
+            f"{fila[1]} {fila[2]} (ID {fila[0]})": fila[0]
+            for fila in personas
+        }
+
+        persona_borrar = st.selectbox(
+            "Seleccionar persona a eliminar",
+            list(opciones_borrar.keys())
+        )
+
+        if st.button(
+            "🗑 Eliminar persona"
+        ):
+
+            cursor.execute(
+                """
+                DELETE FROM personas
+                WHERE id = ?
+                """,
+                (
+                    opciones_borrar[
+                        persona_borrar
+                    ],
+                )
+            )
+
+            conn.commit()
+
+            st.success(
+                "Persona eliminada correctamente"
+            )
+
+            st.rerun()
 
 # =========================
 # OBJETIVOS
