@@ -475,6 +475,12 @@ elif pagina == "Plan de Trabajo":
 
     else:
 
+        # =========================
+        # CREAR OBJETIVO
+        # =========================
+
+        st.subheader("Crear objetivo")
+
         if st.session_state.rol == "admin":
 
             empleado = st.selectbox(
@@ -552,7 +558,13 @@ elif pagina == "Plan de Trabajo":
                 "Objetivo guardado correctamente"
             )
 
+            st.rerun()
+
         st.divider()
+
+        # =========================
+        # VER OBJETIVOS
+        # =========================
 
         st.subheader(
             "Objetivos registrados"
@@ -564,6 +576,7 @@ elif pagina == "Plan de Trabajo":
             id,
             empleado,
             titulo,
+            descripcion,
             prioridad,
             fecha_limite,
             estado
@@ -573,7 +586,168 @@ elif pagina == "Plan de Trabajo":
 
         datos = cursor.fetchall()
 
-        st.table(datos)
+        if len(datos) == 0:
+
+            st.info(
+                "Todavía no hay objetivos registrados."
+            )
+
+        else:
+
+            df_objetivos = pd.DataFrame(
+                datos,
+                columns=[
+                    "ID",
+                    "Empleado",
+                    "Título",
+                    "Descripción",
+                    "Prioridad",
+                    "Fecha límite",
+                    "Estado"
+                ]
+            )
+
+            st.dataframe(
+                df_objetivos,
+                use_container_width=True
+            )
+
+            st.divider()
+
+            # =========================
+            # EDITAR OBJETIVO
+            # =========================
+
+            st.subheader(
+                "Editar objetivo"
+            )
+
+            opciones_editar = {
+                f"{fila[1]} - {fila[2]} (ID {fila[0]})": fila
+                for fila in datos
+            }
+
+            objetivo_editar = st.selectbox(
+                "Seleccionar objetivo a editar",
+                list(opciones_editar.keys())
+            )
+
+            objetivo = opciones_editar[
+                objetivo_editar
+            ]
+
+            nuevo_titulo = st.text_input(
+                "Nuevo título",
+                value=objetivo[2]
+            )
+
+            nueva_descripcion = st.text_area(
+                "Nueva descripción",
+                value=objetivo[3]
+            )
+
+            nueva_prioridad = st.selectbox(
+                "Nueva prioridad",
+                [
+                    "Alta",
+                    "Media",
+                    "Baja"
+                ],
+                index=[
+                    "Alta",
+                    "Media",
+                    "Baja"
+                ].index(objetivo[4])
+            )
+
+            nuevo_estado = st.selectbox(
+                "Nuevo estado",
+                [
+                    "Pendiente",
+                    "En progreso",
+                    "Completado"
+                ],
+                index=[
+                    "Pendiente",
+                    "En progreso",
+                    "Completado"
+                ].index(objetivo[6])
+            )
+
+            if st.button(
+                "Guardar cambios del objetivo"
+            ):
+
+                cursor.execute(
+                    """
+                    UPDATE objetivos
+                    SET
+                    titulo = ?,
+                    descripcion = ?,
+                    prioridad = ?,
+                    estado = ?
+                    WHERE id = ?
+                    """,
+                    (
+                        nuevo_titulo,
+                        nueva_descripcion,
+                        nueva_prioridad,
+                        nuevo_estado,
+                        objetivo[0]
+                    )
+                )
+
+                conn.commit()
+
+                st.success(
+                    "Objetivo actualizado correctamente"
+                )
+
+                st.rerun()
+
+            st.divider()
+
+            # =========================
+            # ELIMINAR OBJETIVO
+            # =========================
+
+            st.subheader(
+                "Eliminar objetivo"
+            )
+
+            opciones_borrar = {
+                f"{fila[1]} - {fila[2]} (ID {fila[0]})": fila[0]
+                for fila in datos
+            }
+
+            objetivo_borrar = st.selectbox(
+                "Seleccionar objetivo a eliminar",
+                list(opciones_borrar.keys())
+            )
+
+            if st.button(
+                "🗑 Eliminar objetivo"
+            ):
+
+                cursor.execute(
+                    """
+                    DELETE FROM objetivos
+                    WHERE id = ?
+                    """,
+                    (
+                        opciones_borrar[
+                            objetivo_borrar
+                        ],
+                    )
+                )
+
+                conn.commit()
+
+                st.success(
+                    "Objetivo eliminado correctamente"
+                )
+
+                st.rerun()
 
 # =========================
 # SUPERVISOR
