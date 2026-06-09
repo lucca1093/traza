@@ -308,74 +308,36 @@ elif pagina == "Personas":
 
     st.title("👥 Personas")
 
-    nombre = st.text_input(
-        "Nombre"
-    )
+    st.subheader("Crear persona")
 
-    apellido = st.text_input(
-        "Apellido"
-    )
+    nombre = st.text_input("Nombre")
+    apellido = st.text_input("Apellido")
+    cargo = st.text_input("Cargo")
+    area = st.text_input("Área")
+    supervisor = st.text_input("Supervisor")
 
-    cargo = st.text_input(
-        "Cargo"
-    )
-
-    area = st.text_input(
-        "Área"
-    )
-
-    supervisor = st.text_input(
-        "Supervisor"
-    )
-
-    if st.button(
-        "Guardar Persona"
-    ):
+    if st.button("Guardar Persona"):
 
         cursor.execute(
             """
             INSERT INTO personas
-            (
-                nombre,
-                apellido,
-                cargo,
-                area,
-                supervisor
-            )
-            VALUES
-            (?, ?, ?, ?, ?)
+            (nombre, apellido, cargo, area, supervisor)
+            VALUES (?, ?, ?, ?, ?)
             """,
-            (
-                nombre,
-                apellido,
-                cargo,
-                area,
-                supervisor
-            )
+            (nombre, apellido, cargo, area, supervisor)
         )
 
         conn.commit()
-
-        st.success(
-            "Persona guardada correctamente"
-        )
-
+        st.success("Persona guardada correctamente")
         st.rerun()
 
     st.divider()
 
-    st.subheader(
-        "Personas registradas"
-    )
+    st.subheader("Personas registradas")
 
     cursor.execute(
         """
-        SELECT
-        id,
-        nombre,
-        apellido,
-        cargo,
-        area
+        SELECT id, nombre, apellido, cargo, area, supervisor
         FROM personas
         """
     )
@@ -384,9 +346,7 @@ elif pagina == "Personas":
 
     if len(personas) == 0:
 
-        st.info(
-            "Todavía no hay personas registradas."
-        )
+        st.info("Todavía no hay personas registradas.")
 
     else:
 
@@ -397,20 +357,67 @@ elif pagina == "Personas":
                 "Nombre",
                 "Apellido",
                 "Cargo",
-                "Área"
+                "Área",
+                "Supervisor"
             ]
         )
 
-        st.dataframe(
-            df_personas,
-            use_container_width=True
-        )
+        st.dataframe(df_personas, use_container_width=True)
 
         st.divider()
 
-        st.subheader(
-            "Eliminar persona"
+        st.subheader("Editar persona")
+
+        opciones_editar = {
+            f"{fila[1]} {fila[2]} (ID {fila[0]})": fila
+            for fila in personas
+        }
+
+        persona_editar = st.selectbox(
+            "Seleccionar persona a editar",
+            list(opciones_editar.keys())
         )
+
+        persona = opciones_editar[persona_editar]
+
+        nuevo_cargo = st.text_input(
+            "Nuevo cargo",
+            value=persona[3]
+        )
+
+        nueva_area = st.text_input(
+            "Nueva área",
+            value=persona[4]
+        )
+
+        nuevo_supervisor = st.text_input(
+            "Nuevo supervisor",
+            value=persona[5]
+        )
+
+        if st.button("Guardar cambios"):
+
+            cursor.execute(
+                """
+                UPDATE personas
+                SET cargo = ?, area = ?, supervisor = ?
+                WHERE id = ?
+                """,
+                (
+                    nuevo_cargo,
+                    nueva_area,
+                    nuevo_supervisor,
+                    persona[0]
+                )
+            )
+
+            conn.commit()
+            st.success("Persona actualizada correctamente")
+            st.rerun()
+
+        st.divider()
+
+        st.subheader("Eliminar persona")
 
         opciones_borrar = {
             f"{fila[1]} {fila[2]} (ID {fila[0]})": fila[0]
@@ -422,28 +429,18 @@ elif pagina == "Personas":
             list(opciones_borrar.keys())
         )
 
-        if st.button(
-            "🗑 Eliminar persona"
-        ):
+        if st.button("🗑 Eliminar persona"):
 
             cursor.execute(
                 """
                 DELETE FROM personas
                 WHERE id = ?
                 """,
-                (
-                    opciones_borrar[
-                        persona_borrar
-                    ],
-                )
+                (opciones_borrar[persona_borrar],)
             )
 
             conn.commit()
-
-            st.success(
-                "Persona eliminada correctamente"
-            )
-
+            st.success("Persona eliminada correctamente")
             st.rerun()
 
 # =========================
