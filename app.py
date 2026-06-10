@@ -160,6 +160,7 @@ if rol == "admin":
         "Validación",
         "Analytics",
         "Perfil Profesional",
+        "🏆 Talent Card",
         "Reportes",
         "Guía"
     ]
@@ -170,6 +171,7 @@ elif rol == "empleado":
         "Inicio",
         "Plan de Trabajo",
         "Perfil Profesional",
+        "🏆 Talent Card",
         "Guía"
     ]
 
@@ -179,6 +181,7 @@ elif rol == "supervisor":
         "Inicio",
         "Validación",
         "Analytics",
+        "🏆 Talent Card",
         "Reportes",
         "Guía"
     ]
@@ -1714,6 +1717,233 @@ FROM objetivos
             file_name="reporte_traza.csv",
             mime="text/csv"
         )
+
+elif pagina == "🏆 Talent Card":
+
+    st.title("🏆 Talent Card")
+
+    cursor.execute(
+        """
+        SELECT
+        nombre,
+        apellido,
+        cargo,
+        area
+        FROM personas
+        """
+    )
+
+    personas = cursor.fetchall()
+
+    if len(personas) == 0:
+
+        st.warning(
+            "No hay personas registradas."
+        )
+
+    else:
+
+        opciones = {
+            f"{nombre} {apellido}": (
+                nombre,
+                apellido,
+                cargo,
+                area
+            )
+            for nombre, apellido, cargo, area in personas
+        }
+
+        persona_seleccionada = st.selectbox(
+            "Seleccionar colaborador",
+            list(opciones.keys())
+        )
+
+        nombre, apellido, cargo, area = opciones[
+            persona_seleccionada
+        ]
+
+        empleado = f"{nombre} {apellido}"
+
+        cursor.execute(
+            """
+            SELECT COUNT(*)
+            FROM objetivos
+            WHERE empleado = ?
+            """,
+            (empleado,)
+        )
+
+        total = cursor.fetchone()[0]
+
+        cursor.execute(
+            """
+            SELECT COUNT(*)
+            FROM objetivos
+            WHERE empleado = ?
+            AND estado = 'Completado'
+            """,
+            (empleado,)
+        )
+
+        completados = cursor.fetchone()[0]
+
+        cursor.execute(
+            """
+            SELECT COUNT(*)
+            FROM objetivos
+            WHERE empleado = ?
+            AND validacion = 'De acuerdo'
+            """,
+            (empleado,)
+        )
+
+        positivos = cursor.fetchone()[0]
+
+        cumplimiento = 0
+
+        if total > 0:
+
+            cumplimiento = round(
+                completados / total * 100,
+                1
+            )
+
+        puntos = (
+            completados * 10
+            + positivos * 10
+        )
+
+        max_puntos = total * 20
+
+        indice = 0
+
+        if max_puntos > 0:
+
+            indice = round(
+                puntos / max_puntos * 100,
+                1
+            )
+
+        st.markdown(
+            f"""
+            <div style="
+                background-color:#F8FAFC;
+                border:1px solid #E5E7EB;
+                border-radius:18px;
+                padding:30px;
+                margin-top:10px;
+            ">
+                <h1>{empleado}</h1>
+                <h3>{cargo}</h3>
+                <p>{area}</p>
+                <hr>
+                <h2>Índice Traza: {indice}/100</h2>
+                <h3>Cumplimiento: {cumplimiento}%</h3>
+                <h3>Validaciones positivas: {positivos}</h3>
+                <h3>Objetivos completados: {completados}</h3>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+        st.divider()
+
+        st.subheader(
+            "🏅 Logros destacados"
+        )
+
+        cursor.execute(
+            """
+            SELECT titulo
+            FROM objetivos
+            WHERE empleado = ?
+            AND estado = 'Completado'
+            LIMIT 5
+            """,
+            (empleado,)
+        )
+
+        logros = cursor.fetchall()
+
+        if len(logros) == 0:
+
+            st.info(
+                "Todavía no hay logros registrados."
+            )
+
+        else:
+
+            for logro in logros:
+
+                st.success(
+                    logro[0]
+                )
+
+        st.divider()
+
+        st.subheader(
+            "📎 Evidencias"
+        )
+
+        cursor.execute(
+            """
+            SELECT evidencia
+            FROM objetivos
+            WHERE empleado = ?
+            AND evidencia IS NOT NULL
+            AND evidencia <> ''
+            LIMIT 5
+            """,
+            (empleado,)
+        )
+
+        evidencias = cursor.fetchall()
+
+        if len(evidencias) == 0:
+
+            st.info(
+                "Todavía no hay evidencias registradas."
+            )
+
+        else:
+
+            for evidencia in evidencias:
+
+                st.write(
+                    evidencia[0]
+                )
+
+        st.divider()
+
+        st.subheader(
+            "💬 Último feedback"
+        )
+
+        cursor.execute(
+            """
+            SELECT comentario_supervisor
+            FROM objetivos
+            WHERE empleado = ?
+            AND comentario_supervisor IS NOT NULL
+            ORDER BY id DESC
+            LIMIT 1
+            """,
+            (empleado,)
+        )
+
+        feedback = cursor.fetchone()
+
+        if feedback:
+
+            st.info(
+                feedback[0]
+            )
+
+        else:
+
+            st.info(
+                "Todavía no hay feedback registrado."
+            )
 
 elif pagina == "Guía":
 
