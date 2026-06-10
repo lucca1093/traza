@@ -1912,9 +1912,9 @@ elif pagina == "🏆 Talent Card":
 
             for evidencia in evidencias:
 
-                st.write(
-                    evidencia[0]
-                )
+    st.markdown(
+        f"[📎 Ver evidencia]({evidencia[0]})"
+    )
 
         st.divider()
 
