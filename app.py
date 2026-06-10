@@ -107,7 +107,11 @@ st.sidebar.markdown(
     """
     # 📈 TRAZA
 
-    **Desempeño profesional verificable**
+    ### Performance Intelligence Platform
+
+    ---
+    
+    Construí, validá y visualizá desempeño profesional basado en resultados verificables.
     """
 )
 
@@ -1865,17 +1869,17 @@ elif pagina == "🏆 Talent Card":
 
         if indice >= 85:
 
-            nivel = "Oro"
+            nivel = "Profesional"
             mensaje_nivel = "Desempeño destacado y altamente validado."
 
         elif indice >= 65:
 
-            nivel = "Plata"
+            nivel = "Avanzado"
             mensaje_nivel = "Desempeño sólido con buen nivel de avance."
 
         elif indice >= 40:
 
-            nivel = "Bronce"
+            nivel = "Elite"
             mensaje_nivel = "Desempeño en desarrollo con oportunidades de mejora."
 
         else:
@@ -1937,7 +1941,29 @@ elif pagina == "🏆 Talent Card":
         st.progress(
             indice / 100
         )
+    if indice >= 85:
 
+    st.success(
+        "💪 Fortaleza principal: ejecución consistente y resultados validados."
+    )
+
+elif indice >= 65:
+
+    st.info(
+        "💪 Fortaleza principal: cumplimiento sostenido de objetivos."
+    )
+
+elif indice >= 40:
+
+    st.warning(
+        "💪 Fortaleza principal: potencial de desarrollo identificado."
+    )
+
+else:
+
+    st.error(
+        "💪 Requiere acompañamiento y seguimiento."
+    )
         col1, col2, col3, col4 = st.columns(4)
 
         with col1:
@@ -2125,3 +2151,9 @@ elif pagina == "Guía":
     st.success(
         "Objetivo final: transformar trabajo realizado en evidencia profesional verificable."
     )        
+
+    st.divider()
+
+st.caption(
+    "Traza © 2026 • Professional Performance Intelligence Platform"
+)
