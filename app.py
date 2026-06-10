@@ -215,23 +215,30 @@ if st.sidebar.button("Cerrar sesión"):
 
 if pagina == "Inicio":
 
-    st.title("📈 TRAZA")
-
-    st.subheader(
-        "Desempeño profesional verificable"
-    )
-
-    st.write(
+    st.markdown(
         """
-        Centralizá objetivos, validaciones y evidencia de desempeño
-        en una única plataforma.
-
-        Traza transforma el trabajo realizado en información medible,
-        validada y trazable para colaboradores, supervisores y organizaciones.
-        """
+        <div style="
+            background-color:#F8FAFC;
+            border:1px solid #E5E7EB;
+            border-radius:18px;
+            padding:32px;
+            margin-bottom:24px;
+        ">
+            <h1 style="margin-bottom:8px; color:#0F4C81;">
+                📈 TRAZA
+            </h1>
+            <h3 style="margin-top:0; color:#1F2937;">
+                Desempeño profesional verificable
+            </h3>
+            <p style="font-size:18px; color:#4B5563; max-width:850px;">
+                Centralizá objetivos, validaciones y evidencia de desempeño
+                en una única plataforma. Traza transforma el trabajo realizado
+                en información medible, validada y trazable.
+            </p>
+        </div>
+        """,
+        unsafe_allow_html=True
     )
-
-    st.divider()
 
     cursor.execute(
         "SELECT COUNT(*) FROM personas"
@@ -292,9 +299,22 @@ if pagina == "Inicio":
 
     st.divider()
 
-    st.success(
-        "Construí un historial profesional verificable basado en resultados y validaciones."
-    )
+    col_a, col_b, col_c = st.columns(3)
+
+    with col_a:
+        st.info(
+            "🎯 Registrá objetivos claros, medibles y trazables."
+        )
+
+    with col_b:
+        st.success(
+            "✅ Validá resultados con supervisores."
+        )
+
+    with col_c:
+        st.warning(
+            "🏆 Construí un historial profesional verificable."
+        )
 
     st.caption(
         "Versión MVP • Traza Performance Platform"
