@@ -33,6 +33,7 @@ def tiene_acceso(pagina, rol):
             "Validación",
             "Analytics",
             "Perfil Profesional",
+            "🏆 Talent Card",
             "Reportes",
             "Guía"
         ],
@@ -40,12 +41,14 @@ def tiene_acceso(pagina, rol):
             "Inicio",
             "Plan de Trabajo",
             "Perfil Profesional",
+            "🏆 Talent Card",
             "Guía"
         ],
         "supervisor": [
             "Inicio",
             "Validación",
             "Analytics",
+            "🏆 Talent Card",
             "Reportes",
             "Guía"
         ]
