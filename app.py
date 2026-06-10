@@ -1725,6 +1725,10 @@ elif pagina == "🏆 Talent Card":
 
     st.title("🏆 Talent Card")
 
+    st.caption(
+        "Ficha ejecutiva del colaborador basada en desempeño, validaciones y evidencias."
+    )
+
     cursor.execute(
         """
         SELECT
@@ -1802,6 +1806,30 @@ elif pagina == "🏆 Talent Card":
 
         positivos = cursor.fetchone()[0]
 
+        cursor.execute(
+            """
+            SELECT COUNT(*)
+            FROM objetivos
+            WHERE empleado = ?
+            AND validacion = 'Parcialmente de acuerdo'
+            """,
+            (empleado,)
+        )
+
+        parciales = cursor.fetchone()[0]
+
+        cursor.execute(
+            """
+            SELECT COUNT(*)
+            FROM objetivos
+            WHERE empleado = ?
+            AND validacion = 'En desacuerdo'
+            """,
+            (empleado,)
+        )
+
+        negativos = cursor.fetchone()[0]
+
         cumplimiento = 0
 
         if total > 0:
@@ -1814,6 +1842,8 @@ elif pagina == "🏆 Talent Card":
         puntos = (
             completados * 10
             + positivos * 10
+            + parciales * 5
+            - negativos * 10
         )
 
         max_puntos = total * 20
@@ -1827,27 +1857,112 @@ elif pagina == "🏆 Talent Card":
                 1
             )
 
+        if indice < 0:
+            indice = 0
+
+        if indice > 100:
+            indice = 100
+
+        if indice >= 85:
+
+            nivel = "Oro"
+            mensaje_nivel = "Desempeño destacado y altamente validado."
+
+        elif indice >= 65:
+
+            nivel = "Plata"
+            mensaje_nivel = "Desempeño sólido con buen nivel de avance."
+
+        elif indice >= 40:
+
+            nivel = "Bronce"
+            mensaje_nivel = "Desempeño en desarrollo con oportunidades de mejora."
+
+        else:
+
+            nivel = "Inicial"
+            mensaje_nivel = "Historial aún en construcción."
+
         st.markdown(
             f"""
             <div style="
-                background-color:#F8FAFC;
+                background: linear-gradient(135deg, #F8FAFC 0%, #EEF2F7 100%);
                 border:1px solid #E5E7EB;
-                border-radius:18px;
-                padding:30px;
-                margin-top:10px;
+                border-radius:22px;
+                padding:34px;
+                margin-top:12px;
+                margin-bottom:22px;
             ">
-                <h1>{empleado}</h1>
-                <h3>{cargo}</h3>
-                <p>{area}</p>
+                <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                    <div>
+                        <p style="font-size:14px; color:#64748B; margin-bottom:6px;">
+                            TALENT CARD
+                        </p>
+                        <h1 style="margin:0; color:#0F4C81;">
+                            {empleado}
+                        </h1>
+                        <h3 style="margin-top:8px; color:#1F2937;">
+                            {cargo}
+                        </h3>
+                        <p style="font-size:16px; color:#4B5563;">
+                            {area}
+                        </p>
+                    </div>
+                    <div style="
+                        background-color:white;
+                        border:1px solid #E5E7EB;
+                        border-radius:16px;
+                        padding:18px;
+                        min-width:180px;
+                        text-align:center;
+                    ">
+                        <p style="margin:0; color:#64748B;">
+                            Índice Traza
+                        </p>
+                        <h1 style="margin:6px 0; color:#0F4C81;">
+                            {indice}/100
+                        </h1>
+                        <strong>Nivel {nivel}</strong>
+                    </div>
+                </div>
                 <hr>
-                <h2>Índice Traza: {indice}/100</h2>
-                <h3>Cumplimiento: {cumplimiento}%</h3>
-                <h3>Validaciones positivas: {positivos}</h3>
-                <h3>Objetivos completados: {completados}</h3>
+                <p style="font-size:16px; color:#374151;">
+                    {mensaje_nivel}
+                </p>
             </div>
             """,
             unsafe_allow_html=True
         )
+
+        st.progress(
+            indice / 100
+        )
+
+        col1, col2, col3, col4 = st.columns(4)
+
+        with col1:
+            st.metric(
+                "🎯 Objetivos",
+                total
+            )
+
+        with col2:
+            st.metric(
+                "✅ Completados",
+                completados
+            )
+
+        with col3:
+            st.metric(
+                "📈 Cumplimiento",
+                f"{cumplimiento}%"
+            )
+
+        with col4:
+            st.metric(
+                "⭐ Validaciones +",
+                positivos
+            )
 
         st.divider()
 
@@ -1879,18 +1994,18 @@ elif pagina == "🏆 Talent Card":
             for logro in logros:
 
                 st.success(
-                    logro[0]
+                    f"✅ {logro[0]}"
                 )
 
         st.divider()
 
         st.subheader(
-            "📎 Evidencias"
+            "📎 Evidencias recientes"
         )
 
         cursor.execute(
             """
-            SELECT evidencia
+            SELECT titulo, evidencia
             FROM objetivos
             WHERE empleado = ?
             AND evidencia IS NOT NULL
@@ -1910,10 +2025,10 @@ elif pagina == "🏆 Talent Card":
 
         else:
 
-            for evidencia in evidencias:
+            for titulo_evidencia, link_evidencia in evidencias:
 
                 st.markdown(
-                    f"[📎 Ver evidencia]({evidencia[0]})"
+                    f"**{titulo_evidencia}** — [📎 Ver evidencia]({link_evidencia})"
                 )
 
         st.divider()
@@ -1928,6 +2043,7 @@ elif pagina == "🏆 Talent Card":
             FROM objetivos
             WHERE empleado = ?
             AND comentario_supervisor IS NOT NULL
+            AND comentario_supervisor <> ''
             ORDER BY id DESC
             LIMIT 1
             """,
