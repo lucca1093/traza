@@ -829,15 +829,16 @@ elif pagina == "Analytics":
     st.title("📈 Analytics Organizacional")
 
     st.caption(
-        "Indicadores consolidados de desempeño y cumplimiento."
+        "Indicadores consolidados de desempeño, cumplimiento y validación."
     )
 
-    # KPIs
+    # =========================
+    # KPIs PRINCIPALES
+    # =========================
 
     cursor.execute(
         "SELECT COUNT(*) FROM objetivos"
     )
-
     total_objetivos = cursor.fetchone()[0]
 
     cursor.execute(
@@ -847,7 +848,6 @@ elif pagina == "Analytics":
         WHERE estado='Completado'
         """
     )
-
     completados = cursor.fetchone()[0]
 
     cursor.execute(
@@ -857,7 +857,6 @@ elif pagina == "Analytics":
         WHERE validacion='De acuerdo'
         """
     )
-
     aprobados = cursor.fetchone()[0]
 
     cursor.execute(
@@ -866,47 +865,19 @@ elif pagina == "Analytics":
         FROM personas
         """
     )
-
     total_personas = cursor.fetchone()[0]
 
     cumplimiento = 0
 
     if total_objetivos > 0:
-
         cumplimiento = round(
             aprobados / total_objetivos * 100,
             1
         )
 
-    col1, col2, col3, col4 = st.columns(4)
-
-    with col1:
-        st.metric(
-            "🎯 Objetivos",
-            total_objetivos
-        )
-
-    with col2:
-        st.metric(
-            "✅ Completados",
-            completados
-        )
-
-    with col3:
-        st.metric(
-            "📈 Cumplimiento",
-            f"{cumplimiento}%"
-        )
-
-    with col4:
-        st.metric(
-            "👥 Personas",
-            total_personas
-        )
-
-    # Top Performer
-
-        # Top Performer normalizado
+    # =========================
+    # ÍNDICE ORGANIZACIONAL
+    # =========================
 
     cursor.execute(
         """
@@ -935,17 +906,86 @@ elif pagina == "Analytics":
         """
     )
 
-    top_raw = cursor.fetchall()
+    empleados_score = cursor.fetchall()
+
+    indice_organizacional = 0
+
+    if len(empleados_score) > 0:
+
+        suma_indices = 0
+
+        for empleado, total_objetivos_empleado, puntos in empleados_score:
+
+            if puntos is None:
+                puntos = 0
+
+            max_puntos = total_objetivos_empleado * 20
+
+            indice = 0
+
+            if max_puntos > 0:
+                indice = (puntos / max_puntos) * 100
+
+            if indice < 0:
+                indice = 0
+
+            if indice > 100:
+                indice = 100
+
+            suma_indices += indice
+
+        indice_organizacional = round(
+            suma_indices / len(empleados_score),
+            1
+        )
+
+    col1, col2, col3, col4, col5 = st.columns(5)
+
+    with col1:
+        st.metric(
+            "🎯 Objetivos",
+            total_objetivos
+        )
+
+    with col2:
+        st.metric(
+            "✅ Completados",
+            completados
+        )
+
+    with col3:
+        st.metric(
+            "📈 Cumplimiento",
+            f"{cumplimiento}%"
+        )
+
+    with col4:
+        st.metric(
+            "👥 Personas",
+            total_personas
+        )
+
+    with col5:
+        st.metric(
+            "🏢 Índice Org.",
+            f"{indice_organizacional}/100"
+        )
+
+    st.divider()
+
+    # =========================
+    # TOP PERFORMER
+    # =========================
 
     top_empleado = None
     top_indice = 0
 
-    for empleado, total_objetivos, puntos in top_raw:
+    for empleado, total_objetivos_empleado, puntos in empleados_score:
 
         if puntos is None:
             puntos = 0
 
-        max_puntos = total_objetivos * 20
+        max_puntos = total_objetivos_empleado * 20
 
         indice = 0
 
@@ -967,28 +1007,102 @@ elif pagina == "Analytics":
 
     if top_empleado is not None:
 
-           st.markdown("### 🏆 Top Performer")
+        st.markdown("### 🏆 Top Performer")
 
-    st.markdown(
-        f"""
-        <div style="
-            background-color:#F8FAFC;
-            border:1px solid #E5E7EB;
-            border-radius:16px;
-            padding:24px;
-            margin-top:10px;
-            margin-bottom:20px;
-        ">
-            <h2 style="margin-bottom:4px;">{top_empleado}</h2>
-            <p style="font-size:18px; color:#4B5563;">
-                Índice Traza
-            </p>
-            <h1 style="color:#0F4C81; margin-top:0;">
-                {top_indice}/100
-            </h1>
-        </div>
-        """,
-        unsafe_allow_html=True
+        st.markdown(
+            f"""
+            <div style="
+                background-color:#F8FAFC;
+                border:1px solid #E5E7EB;
+                border-radius:16px;
+                padding:24px;
+                margin-top:10px;
+                margin-bottom:20px;
+            ">
+                <h2 style="margin-bottom:4px;">{top_empleado}</h2>
+                <p style="font-size:18px; color:#4B5563;">
+                    Índice Traza
+                </p>
+                <h1 style="color:#0F4C81; margin-top:0;">
+                    {top_indice}/100
+                </h1>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+    # =========================
+    # RECONOCIMIENTOS
+    # =========================
+
+    st.subheader("🏅 Reconocimientos")
+
+    cursor.execute(
+        """
+        SELECT
+            empleado,
+            COUNT(*) as completados
+        FROM objetivos
+        WHERE estado = 'Completado'
+        GROUP BY empleado
+        ORDER BY completados DESC
+        LIMIT 1
+        """
+    )
+    mayor_cumplimiento = cursor.fetchone()
+
+    cursor.execute(
+        """
+        SELECT
+            empleado,
+            COUNT(*) as positivas
+        FROM objetivos
+        WHERE validacion = 'De acuerdo'
+        GROUP BY empleado
+        ORDER BY positivas DESC
+        LIMIT 1
+        """
+    )
+    mas_positivas = cursor.fetchone()
+
+    col_a, col_b = st.columns(2)
+
+    with col_a:
+
+        if mayor_cumplimiento:
+
+            st.info(
+                f"📈 Mayor cumplimiento: {mayor_cumplimiento[0]} ({mayor_cumplimiento[1]} objetivos completados)"
+            )
+
+        else:
+
+            st.info(
+                "📈 Mayor cumplimiento: sin datos suficientes"
+            )
+
+    with col_b:
+
+        if mas_positivas:
+
+            st.success(
+                f"⭐ Más validaciones positivas: {mas_positivas[0]} ({mas_positivas[1]} validaciones)"
+            )
+
+        else:
+
+            st.success(
+                "⭐ Más validaciones positivas: sin datos suficientes"
+            )
+
+    st.divider()
+
+    # =========================
+    # ESTADO DE OBJETIVOS
+    # =========================
+
+    st.subheader(
+        "📌 Estado de Objetivos"
     )
 
     cursor.execute(
@@ -1017,7 +1131,17 @@ elif pagina == "Analytics":
             )
         )
 
+    else:
+
+        st.info(
+            "Todavía no hay objetivos registrados."
+        )
+
     st.divider()
+
+    # =========================
+    # DISTRIBUCIÓN PRIORIDADES
+    # =========================
 
     st.subheader(
         "📊 Distribución de Prioridades"
@@ -1051,7 +1175,17 @@ elif pagina == "Analytics":
             )
         )
 
-        st.divider()
+    else:
+
+        st.info(
+            "Todavía no hay prioridades registradas."
+        )
+
+    st.divider()
+
+    # =========================
+    # DISTRIBUCIÓN VALIDACIONES
+    # =========================
 
     st.subheader(
         "✅ Distribución de Validaciones"
@@ -1092,52 +1226,24 @@ elif pagina == "Analytics":
             "Todavía no hay validaciones registradas."
         )
 
-    # Ranking
+    st.divider()
 
-    # Ranking Traza
+    # =========================
+    # RANKING TRAZA
+    # =========================
 
     st.subheader(
         "🏆 Ranking Traza"
     )
 
-    cursor.execute(
-        """
-        SELECT
-            empleado,
-            COUNT(*) as total_objetivos,
-
-            SUM(
-                CASE
-                    WHEN estado='Completado'
-                    THEN 10
-                    ELSE 0
-                END
-                +
-                CASE
-                    WHEN validacion='De acuerdo'
-                    THEN 10
-                    WHEN validacion='Parcialmente de acuerdo'
-                    THEN 5
-                    WHEN validacion='En desacuerdo'
-                    THEN -10
-                    ELSE 0
-                END
-            ) as puntos
-        FROM objetivos
-        GROUP BY empleado
-        """
-    )
-
-    ranking_raw = cursor.fetchall()
-
     ranking = []
 
-    for empleado, total_objetivos, puntos in ranking_raw:
+    for empleado, total_objetivos_empleado, puntos in empleados_score:
 
         if puntos is None:
             puntos = 0
 
-        max_puntos = total_objetivos * 20
+        max_puntos = total_objetivos_empleado * 20
 
         indice = 0
 
@@ -1156,7 +1262,7 @@ elif pagina == "Analytics":
         ranking.append(
             (
                 empleado,
-                total_objetivos,
+                total_objetivos_empleado,
                 indice
             )
         )
@@ -1183,7 +1289,17 @@ elif pagina == "Analytics":
             use_container_width=True
         )
 
-    # Últimos objetivos
+    else:
+
+        st.info(
+            "Todavía no hay datos para construir el ranking."
+        )
+
+    st.divider()
+
+    # =========================
+    # ÚLTIMOS OBJETIVOS
+    # =========================
 
     st.subheader(
         "📋 Últimos Objetivos"
@@ -1204,9 +1320,28 @@ elif pagina == "Analytics":
 
     ultimos = cursor.fetchall()
 
-    st.table(
-        ultimos
-    )
+    if len(ultimos) > 0:
+
+        df_ultimos = pd.DataFrame(
+            ultimos,
+            columns=[
+                "Empleado",
+                "Objetivo",
+                "Estado",
+                "Validación"
+            ]
+        )
+
+        st.dataframe(
+            df_ultimos,
+            use_container_width=True
+        )
+
+    else:
+
+        st.info(
+            "Todavía no hay objetivos recientes."
+        )
 
 elif pagina == "Perfil Profesional":
 
