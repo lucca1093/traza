@@ -1638,15 +1638,16 @@ elif pagina == "Reportes":
     cursor.execute(
         """
         SELECT
-            empleado,
-            titulo,
-            descripcion,
-            prioridad,
-            fecha_limite,
-            estado,
-            validacion,
-            comentario_supervisor
-        FROM objetivos
+empleado,
+titulo,
+descripcion,
+prioridad,
+fecha_limite,
+estado,
+validacion,
+comentario_supervisor,
+evidencia
+FROM objetivos
         """
     )
 
@@ -1670,7 +1671,8 @@ elif pagina == "Reportes":
                 "Fecha límite",
                 "Estado",
                 "Validación",
-                "Comentario supervisor"
+                "Comentario supervisor",
+                "Evidencia"
             ]
         )
 
