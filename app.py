@@ -1910,16 +1910,10 @@ elif pagina == "🏆 Talent Card":
 
         else:
 
-            for evidencia in evidencias:
+    for evidencia in evidencias:
 
         st.markdown(
-        f"[📎 Ver evidencia]({evidencia[0]})"
-    )
-
-        st.divider()
-
-        st.subheader(
-            "💬 Último feedback"
+            f"[📎 Ver evidencia]({evidencia[0]})"
         )
 
         cursor.execute(
