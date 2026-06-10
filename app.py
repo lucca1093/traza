@@ -1594,7 +1594,8 @@ elif pagina == "Perfil Profesional":
             SELECT
             titulo,
             validacion,
-            comentario_supervisor
+            comentario_supervisor,
+            evidencia
             FROM objetivos
             WHERE empleado = ?
             AND comentario_supervisor IS NOT NULL
@@ -1614,17 +1615,19 @@ elif pagina == "Perfil Profesional":
 
         else:
 
-            for titulo, validacion, comentario in comentarios:
+            for titulo, validacion, comentario, evidencia in comentarios:
 
                 st.markdown(
-                    f"""
-                    **{titulo}**
+    f"""
+    **{titulo}**
 
-                    Validación: {validacion}
+    Validación: {validacion}
 
-                    _{comentario}_
-                    """
-                )
+    _{comentario}_
+
+    Evidencia: {evidencia}
+    """
+)
 
                 st.divider()
 elif pagina == "Reportes":
