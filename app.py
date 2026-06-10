@@ -1433,6 +1433,50 @@ elif pagina == "Perfil Profesional":
                 "Nivel de desempeño bajo."
             )
 
+        st.divider()
+
+        st.subheader(
+            "💬 Últimas validaciones recibidas"
+        )
+
+        cursor.execute(
+            """
+            SELECT
+            titulo,
+            validacion,
+            comentario_supervisor
+            FROM objetivos
+            WHERE empleado = ?
+            AND comentario_supervisor IS NOT NULL
+            ORDER BY id DESC
+            LIMIT 5
+            """,
+            (empleado,)
+        )
+
+        comentarios = cursor.fetchall()
+
+        if len(comentarios) == 0:
+
+            st.info(
+                "Todavía no hay comentarios del supervisor."
+            )
+
+        else:
+
+            for titulo, validacion, comentario in comentarios:
+
+                st.markdown(
+                    f"""
+                    **{titulo}**
+
+                    Validación: {validacion}
+
+                    _{comentario}_
+                    """
+                )
+
+                st.divider()
 elif pagina == "Reportes":
 
     st.title("📄 Reportes")
