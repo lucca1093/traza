@@ -1869,7 +1869,7 @@ elif pagina == "🏆 Talent Card":
 
         if indice >= 85:
 
-            nivel = "Profesional"
+            nivel = "Elite"
             mensaje_nivel = "Desempeño destacado y altamente validado."
 
         elif indice >= 65:
@@ -1879,7 +1879,7 @@ elif pagina == "🏆 Talent Card":
 
         elif indice >= 40:
 
-            nivel = "Elite"
+            nivel = "Profesional"
             mensaje_nivel = "Desempeño en desarrollo con oportunidades de mejora."
 
         else:
@@ -1941,29 +1941,31 @@ elif pagina == "🏆 Talent Card":
         st.progress(
             indice / 100
         )
-    if indice >= 85:
 
-    st.success(
-        "💪 Fortaleza principal: ejecución consistente y resultados validados."
-    )
+        if indice >= 85:
 
-elif indice >= 65:
+            st.success(
+                "💪 Fortaleza principal: ejecución consistente y resultados validados."
+            )
 
-    st.info(
-        "💪 Fortaleza principal: cumplimiento sostenido de objetivos."
-    )
+        elif indice >= 65:
 
-elif indice >= 40:
+            st.info(
+                "💪 Fortaleza principal: cumplimiento sostenido de objetivos."
+            )
 
-    st.warning(
-        "💪 Fortaleza principal: potencial de desarrollo identificado."
-    )
+        elif indice >= 40:
 
-else:
+            st.warning(
+                "💪 Fortaleza principal: potencial de desarrollo identificado."
+            )
 
-    st.error(
-        "💪 Requiere acompañamiento y seguimiento."
-    )
+        else:
+
+            st.error(
+                "💪 Requiere acompañamiento y seguimiento."
+            )
+
         col1, col2, col3, col4 = st.columns(4)
 
         with col1:
