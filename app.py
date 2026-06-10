@@ -526,6 +526,10 @@ elif pagina == "Plan de Trabajo":
             ]
         )
 
+        evidencia = st.text_input(
+            "Link de evidencia"
+        )
+
         if st.button("Guardar Objetivo"):
 
             cursor.execute(
@@ -537,10 +541,11 @@ elif pagina == "Plan de Trabajo":
                     descripcion,
                     prioridad,
                     fecha_limite,
-                    estado
+                    estado,
+                    evidencia
                 )
                 VALUES
-                (?, ?, ?, ?, ?, ?)
+                (?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     empleado,
@@ -548,7 +553,8 @@ elif pagina == "Plan de Trabajo":
                     descripcion,
                     prioridad,
                     str(fecha_limite),
-                    estado
+                    estado,
+                    evidencia
                 )
             )
 
@@ -579,7 +585,8 @@ elif pagina == "Plan de Trabajo":
             descripcion,
             prioridad,
             fecha_limite,
-            estado
+            estado,
+            evidencia
             FROM objetivos
             """
         )
@@ -603,7 +610,8 @@ elif pagina == "Plan de Trabajo":
                     "Descripción",
                     "Prioridad",
                     "Fecha límite",
-                    "Estado"
+                    "Estado",
+                    "Evidencia"
                 ]
             )
 
@@ -674,6 +682,11 @@ elif pagina == "Plan de Trabajo":
                 ].index(objetivo[6])
             )
 
+            nueva_evidencia = st.text_input(
+                "Nuevo link de evidencia",
+                value=objetivo[7] if objetivo[7] else ""
+            )
+
             if st.button(
                 "Guardar cambios del objetivo"
             ):
@@ -685,7 +698,8 @@ elif pagina == "Plan de Trabajo":
                     titulo = ?,
                     descripcion = ?,
                     prioridad = ?,
-                    estado = ?
+                    estado = ?,
+                    evidencia = ?
                     WHERE id = ?
                     """,
                     (
@@ -693,6 +707,7 @@ elif pagina == "Plan de Trabajo":
                         nueva_descripcion,
                         nueva_prioridad,
                         nuevo_estado,
+                        nueva_evidencia,
                         objetivo[0]
                     )
                 )
