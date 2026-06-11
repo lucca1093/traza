@@ -832,7 +832,7 @@ elif pagina == "Plan de Trabajo":
                     "Objetivo eliminado correctamente"
                 )
 
-                st.rerun()
+            
 
 # =========================
 # SUPERVISOR
