@@ -1091,54 +1091,19 @@ elif pagina == "Analytics":
             top_indice = indice
             top_empleado = empleado
 
-    if top_empleado is not None:
+        if top_empleado is not None:
 
-            st.markdown(
+        st.markdown(
             f"""
-            <div style="
-                background: linear-gradient(135deg, #0F4C81 0%, #1E3A5F 100%);
-                color:white;
-                border-radius:20px;
-                padding:30px;
-                margin-top:10px;
-                margin-bottom:25px;
-                box-shadow: 0 10px 25px rgba(15,76,129,0.25);
-            ">
-                <p style="
-                    font-size:14px;
-                    opacity:0.85;
-                    margin-bottom:8px;
-                    color:white;
-                ">
-                    TOP PERFORMER
-                </p>
-
-                <h1 style="
-                    margin:0;
-                    color:white;
-                ">
-                    🏆 {top_empleado}
-                </h1>
-
-                <p style="
-                    font-size:18px;
-                    margin-top:10px;
-                    opacity:0.9;
-                    color:white;
-                ">
-                    Mejor desempeño registrado en la organización
-                </p>
-
-                <h2 style="
-                    color:white;
-                    margin-top:20px;
-                ">
-                    Índice Traza: {top_indice}/100
-                </h2>
+            <div style="background:#0F4C81; color:white; border-radius:20px; padding:30px; margin-bottom:25px;">
+                <p style="color:white;">TOP PERFORMER</p>
+                <h1 style="color:white;">🏆 {top_empleado}</h1>
+                <p style="color:white;">Mejor desempeño registrado en la organización</p>
+                <h2 style="color:white;">Índice Traza: {top_indice}/100</h2>
             </div>
             """,
             unsafe_allow_html=True
-        )    
+        )
 
     # =========================
     # RECONOCIMIENTOS
