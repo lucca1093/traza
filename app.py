@@ -2033,6 +2033,22 @@ elif pagina == "🏆 Talent Card":
             "🏅 Logros destacados"
         )
 
+        st.subheader(
+    "📌 Resumen profesional"
+)
+
+st.write(
+    f"""
+    {empleado} se desempeña en el área de {area} como {cargo}.
+
+    Actualmente posee un Índice Traza de {indice}/100,
+    con un nivel de desempeño {nivel.lower()} y un cumplimiento
+    de objetivos del {cumplimiento}%.
+    """
+)
+
+st.divider()
+
         cursor.execute(
             """
             SELECT titulo
