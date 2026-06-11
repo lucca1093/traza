@@ -1840,7 +1840,8 @@ elif pagina == "🏆 Talent Card":
             FROM objetivos
             WHERE empleado = ?
             AND estado = 'Completado'
-            """,
+            """
+            ,
             (empleado,)
         )
 
@@ -1917,27 +1918,27 @@ elif pagina == "🏆 Talent Card":
 
         if indice >= 85:
 
-    nivel = "Elite"
-    badge = "🏆 Elite Performer"
-    mensaje_nivel = "Desempeño destacado y altamente validado."
+            nivel = "Elite"
+            badge = "🏆 Elite Performer"
+            mensaje_nivel = "Desempeño destacado y altamente validado."
 
-elif indice >= 65:
+        elif indice >= 65:
 
-    nivel = "Avanzado"
-    badge = "⭐ High Performer"
-    mensaje_nivel = "Desempeño sólido con buen nivel de avance."
+            nivel = "Avanzado"
+            badge = "⭐ High Performer"
+            mensaje_nivel = "Desempeño sólido con buen nivel de avance."
 
-elif indice >= 40:
+        elif indice >= 40:
 
-    nivel = "Profesional"
-    badge = "🚀 Growth Professional"
-    mensaje_nivel = "Desempeño en desarrollo con oportunidades de mejora."
+            nivel = "Profesional"
+            badge = "🚀 Growth Professional"
+            mensaje_nivel = "Desempeño en desarrollo con oportunidades de mejora."
 
-else:
+        else:
 
-    nivel = "Inicial"
-    badge = "🌱 En Desarrollo"
-    mensaje_nivel = "Historial aún en construcción."
+            nivel = "Inicial"
+            badge = "🌱 En Desarrollo"
+            mensaje_nivel = "Historial aún en construcción."
 
         st.markdown(
             f"""
@@ -1979,16 +1980,16 @@ else:
                             {indice}/100
                         </h1>
                         <strong>Nivel {nivel}</strong>
-<br><br>
-<span style="
-    background-color:#0F4C81;
-    color:white;
-    padding:6px 12px;
-    border-radius:20px;
-    font-size:13px;
-">
-    {badge}
-</span>
+                        <br><br>
+                        <span style="
+                            background-color:#0F4C81;
+                            color:white;
+                            padding:6px 12px;
+                            border-radius:20px;
+                            font-size:13px;
+                        ">
+                            {badge}
+                        </span>
                     </div>
                 </div>
                 <hr>
@@ -2103,7 +2104,7 @@ else:
                     f"✅ {logro[0]}"
                 )
 
-                st.divider()
+        st.divider()
 
         st.subheader(
             "📎 Evidencias recientes"
