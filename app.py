@@ -1091,11 +1091,17 @@ elif pagina == "Analytics":
             top_indice = indice
             top_empleado = empleado
 
-        if top_empleado is not None:
+    if top_empleado is not None:
 
         st.markdown(
             f"""
-            <div style="background:#0F4C81; color:white; border-radius:20px; padding:30px; margin-bottom:25px;">
+            <div style="
+                background:#0F4C81;
+                color:white;
+                border-radius:20px;
+                padding:30px;
+                margin-bottom:25px;
+            ">
                 <p style="color:white;">TOP PERFORMER</p>
                 <h1 style="color:white;">🏆 {top_empleado}</h1>
                 <p style="color:white;">Mejor desempeño registrado en la organización</p>
