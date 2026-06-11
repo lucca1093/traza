@@ -898,11 +898,25 @@ elif pagina == "Validación":
 
 elif pagina == "Analytics":
 
-    st.title("📈 Analytics Organizacional")
-
-    st.caption(
-        "Indicadores consolidados de desempeño, cumplimiento y validación."
-    )
+    st.markdown(
+    """
+    <div style="
+        background-color:#F8FAFC;
+        border:1px solid #E5E7EB;
+        border-radius:18px;
+        padding:28px;
+        margin-bottom:24px;
+    ">
+        <h1 style="margin-bottom:6px; color:#0F4C81;">
+            📈 Analytics Organizacional
+        </h1>
+        <p style="font-size:17px; color:#4B5563;">
+            Indicadores consolidados de desempeño, cumplimiento, validaciones e Índice Traza.
+        </p>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
 
     # =========================
     # KPIs PRINCIPALES
