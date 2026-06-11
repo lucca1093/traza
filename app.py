@@ -2,6 +2,11 @@ import streamlit as st
 import sqlite3
 import pandas as pd
 import os
+
+from reportlab.lib.pagesizes import A4
+from reportlab.pdfgen import canvas
+from io import BytesIO
+
 usuarios = {
 
     "lucca": {
@@ -246,6 +251,121 @@ if st.sidebar.button("Cerrar sesión"):
     st.session_state.login = False
 
     st.rerun()
+
+def generar_pdf_talent_card(
+    empleado,
+    cargo,
+    area,
+    indice,
+    nivel,
+    cumplimiento,
+    total,
+    completados,
+    positivos
+):
+
+    buffer = BytesIO()
+
+    pdf = canvas.Canvas(
+        buffer,
+        pagesize=A4
+    )
+
+    pdf.setTitle(
+        f"Talent Card - {empleado}"
+    )
+
+    pdf.setFont(
+        "Helvetica-Bold",
+        20
+    )
+
+    pdf.drawString(
+        50,
+        780,
+        "TRAZA - Talent Card"
+    )
+
+    pdf.setFont(
+        "Helvetica-Bold",
+        16
+    )
+
+    pdf.drawString(
+        50,
+        730,
+        empleado
+    )
+
+    pdf.setFont(
+        "Helvetica",
+        12
+    )
+
+    pdf.drawString(
+        50,
+        705,
+        f"Cargo: {cargo}"
+    )
+
+    pdf.drawString(
+        50,
+        685,
+        f"Área: {area}"
+    )
+
+    pdf.drawString(
+        50,
+        650,
+        f"Índice Traza: {indice}/100"
+    )
+
+    pdf.drawString(
+        50,
+        630,
+        f"Nivel: {nivel}"
+    )
+
+    pdf.drawString(
+        50,
+        610,
+        f"Cumplimiento: {cumplimiento}%"
+    )
+
+    pdf.drawString(
+        50,
+        590,
+        f"Objetivos totales: {total}"
+    )
+
+    pdf.drawString(
+        50,
+        570,
+        f"Objetivos completados: {completados}"
+    )
+
+    pdf.drawString(
+        50,
+        550,
+        f"Validaciones positivas: {positivos}"
+    )
+
+    pdf.setFont(
+        "Helvetica-Oblique",
+        10
+    )
+
+    pdf.drawString(
+        50,
+        500,
+        "Generado automáticamente por Traza Performance Intelligence Platform."
+    )
+
+    pdf.save()
+
+    buffer.seek(0)
+
+    return buffer
 
 # =========================
 # INICIO
@@ -1840,8 +1960,7 @@ elif pagina == "🏆 Talent Card":
             FROM objetivos
             WHERE empleado = ?
             AND estado = 'Completado'
-            """
-            ,
+            """,
             (empleado,)
         )
 
@@ -2069,6 +2188,25 @@ elif pagina == "🏆 Talent Card":
             con un nivel de desempeño {nivel.lower()} y un cumplimiento
             de objetivos del {cumplimiento}%.
             """
+        )
+
+        pdf_talent_card = generar_pdf_talent_card(
+            empleado,
+            cargo,
+            area,
+            indice,
+            nivel,
+            cumplimiento,
+            total,
+            completados,
+            positivos
+        )
+
+        st.download_button(
+            label="📄 Descargar Talent Card PDF",
+            data=pdf_talent_card,
+            file_name=f"talent_card_{empleado.replace(' ', '_')}.pdf",
+            mime="application/pdf"
         )
 
         st.divider()
