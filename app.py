@@ -2029,25 +2029,25 @@ elif pagina == "🏆 Talent Card":
 
         st.divider()
 
-        st.subheader(
+                st.subheader(
             "🏅 Logros destacados"
         )
 
         st.subheader(
-    "📌 Resumen profesional"
-)
+            "📌 Resumen profesional"
+        )
 
-st.write(
-    f"""
-    {empleado} se desempeña en el área de {area} como {cargo}.
+        st.write(
+            f"""
+            {empleado} se desempeña en el área de {area} como {cargo}.
 
-    Actualmente posee un Índice Traza de {indice}/100,
-    con un nivel de desempeño {nivel.lower()} y un cumplimiento
-    de objetivos del {cumplimiento}%.
-    """
-)
+            Actualmente posee un Índice Traza de {indice}/100,
+            con un nivel de desempeño {nivel.lower()} y un cumplimiento
+            de objetivos del {cumplimiento}%.
+            """
+        )
 
-st.divider()
+        st.divider()
 
         cursor.execute(
             """
@@ -2059,7 +2059,6 @@ st.divider()
             """,
             (empleado,)
         )
-
         logros = cursor.fetchall()
 
         if len(logros) == 0:
