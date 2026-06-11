@@ -2029,10 +2029,6 @@ elif pagina == "🏆 Talent Card":
 
         st.divider()
 
-                st.subheader(
-            "🏅 Logros destacados"
-        )
-
         st.subheader(
             "📌 Resumen profesional"
         )
@@ -2049,6 +2045,10 @@ elif pagina == "🏆 Talent Card":
 
         st.divider()
 
+        st.subheader(
+            "🏅 Logros destacados"
+        )
+
         cursor.execute(
             """
             SELECT titulo
@@ -2059,6 +2059,7 @@ elif pagina == "🏆 Talent Card":
             """,
             (empleado,)
         )
+
         logros = cursor.fetchall()
 
         if len(logros) == 0:
