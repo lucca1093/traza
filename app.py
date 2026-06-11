@@ -76,28 +76,55 @@ st.markdown("""
     padding-top: 1rem;
 }
 
+.block-container {
+    padding-top: 2rem;
+    padding-bottom: 3rem;
+}
+
 h1 {
     color: #0F4C81;
-    font-weight: 700;
+    font-weight: 800;
+    letter-spacing: -0.5px;
 }
 
 h2, h3 {
     color: #1F2937;
+    font-weight: 700;
+}
+
+p {
+    color: #4B5563;
 }
 
 [data-testid="stSidebar"] {
-    background-color: #F8FAFC;
+    background: linear-gradient(180deg, #F8FAFC 0%, #EEF2F7 100%);
+    border-right: 1px solid #E5E7EB;
 }
 
 div[data-testid="metric-container"] {
     border: 1px solid #E5E7EB;
-    padding: 20px;
-    border-radius: 12px;
+    padding: 22px;
+    border-radius: 16px;
     background-color: white;
+    box-shadow: 0 8px 20px rgba(15, 76, 129, 0.06);
 }
 
 .stAlert {
-    border-radius: 12px;
+    border-radius: 14px;
+}
+
+[data-testid="stDataFrame"] {
+    border-radius: 14px;
+    overflow: hidden;
+}
+
+button {
+    border-radius: 10px !important;
+}
+
+hr {
+    margin-top: 28px;
+    margin-bottom: 28px;
 }
 
 </style>
