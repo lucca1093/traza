@@ -132,13 +132,13 @@ hr {
 
 st.sidebar.markdown(
     """
-    # 📈 TRAZA
+    # TRAZA
 
-    ### Performance Intelligence Platform
+    **Performance Intelligence Platform**
+
+    Sistema de desempeño profesional basado en objetivos, validaciones y evidencia verificable.
 
     ---
-    
-    Construí, validá y visualizá desempeño profesional basado en resultados verificables.
     """
 )
 
