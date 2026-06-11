@@ -2089,9 +2089,9 @@ elif pagina == "🏆 Talent Card":
                     f"✅ {logro[0]}"
                 )
 
-        st.divider()
+                st.divider()
 
-               st.subheader(
+        st.subheader(
             "📎 Evidencias recientes"
         )
 
