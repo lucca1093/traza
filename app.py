@@ -2091,7 +2091,7 @@ elif pagina == "🏆 Talent Card":
 
         st.divider()
 
-        st.subheader(
+               st.subheader(
             "📎 Evidencias recientes"
         )
 
@@ -2117,11 +2117,29 @@ elif pagina == "🏆 Talent Card":
 
         else:
 
-            for titulo_evidencia, link_evidencia in evidencias:
+            for titulo_evidencia, evidencia in evidencias:
 
                 st.markdown(
-                    f"**{titulo_evidencia}** — [📎 Ver evidencia]({link_evidencia})"
+                    f"**{titulo_evidencia}**"
                 )
+
+                if evidencia.startswith("evidencias/"):
+
+                    st.success(
+                        f"📄 Archivo registrado: {os.path.basename(evidencia)}"
+                    )
+
+                elif evidencia.startswith("http"):
+
+                    st.markdown(
+                        f"[📎 Ver evidencia]({evidencia})"
+                    )
+
+                else:
+
+                    st.write(
+                        evidencia
+                    )
 
         st.divider()
 
