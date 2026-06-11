@@ -1,6 +1,7 @@
 import streamlit as st
 import sqlite3
 import pandas as pd
+import os
 usuarios = {
 
     "lucca": {
@@ -591,10 +592,21 @@ elif pagina == "Plan de Trabajo":
         )
 
         evidencia = evidencia_link
-
         if evidencia_archivo is not None:
 
-            evidencia = f"Archivo cargado: {evidencia_archivo.name}"
+    ruta_archivo = os.path.join(
+        "evidencias",
+        evidencia_archivo.name
+    )
+
+    with open(ruta_archivo, "wb") as archivo:
+
+        archivo.write(
+            evidencia_archivo.getbuffer()
+        )
+
+    evidencia = ruta_archivo
+        
 
         if st.button("Guardar Objetivo"):
 
