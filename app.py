@@ -592,21 +592,25 @@ elif pagina == "Plan de Trabajo":
         )
 
         evidencia = evidencia_link
+
         if evidencia_archivo is not None:
 
-    ruta_archivo = os.path.join(
-        "evidencias",
-        evidencia_archivo.name
-    )
+            if not os.path.exists("evidencias"):
 
-    with open(ruta_archivo, "wb") as archivo:
+                os.makedirs("evidencias")
 
-        archivo.write(
-            evidencia_archivo.getbuffer()
-        )
+            ruta_archivo = os.path.join(
+                "evidencias",
+                evidencia_archivo.name
+            )
 
-    evidencia = ruta_archivo
-        
+            with open(ruta_archivo, "wb") as archivo:
+
+                archivo.write(
+                    evidencia_archivo.getbuffer()
+                )
+
+            evidencia = ruta_archivo
 
         if st.button("Guardar Objetivo"):
 
