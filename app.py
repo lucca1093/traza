@@ -532,10 +532,6 @@ elif pagina == "Plan de Trabajo":
 
     else:
 
-        # =========================
-        # CREAR OBJETIVO
-        # =========================
-
         st.subheader("Crear objetivo")
 
         if st.session_state.rol == "admin":
@@ -553,13 +549,9 @@ elif pagina == "Plan de Trabajo":
                 f"Empleado: {empleado}"
             )
 
-        titulo = st.text_input(
-            "Título del objetivo"
-        )
+        titulo = st.text_input("Título del objetivo")
 
-        descripcion = st.text_area(
-            "Descripción"
-        )
+        descripcion = st.text_area("Descripción")
 
         prioridad = st.selectbox(
             "Prioridad",
@@ -570,9 +562,7 @@ elif pagina == "Plan de Trabajo":
             ]
         )
 
-        fecha_limite = st.date_input(
-            "Fecha límite"
-        )
+        fecha_limite = st.date_input("Fecha límite")
 
         estado = st.selectbox(
             "Estado",
@@ -583,9 +573,28 @@ elif pagina == "Plan de Trabajo":
             ]
         )
 
-        evidencia = st.text_input(
+        evidencia_link = st.text_input(
             "Link de evidencia"
         )
+
+        evidencia_archivo = st.file_uploader(
+            "Subir archivo de evidencia",
+            type=[
+                "pdf",
+                "png",
+                "jpg",
+                "jpeg",
+                "xlsx",
+                "csv",
+                "docx"
+            ]
+        )
+
+        evidencia = evidencia_link
+
+        if evidencia_archivo is not None:
+
+            evidencia = f"Archivo cargado: {evidencia_archivo.name}"
 
         if st.button("Guardar Objetivo"):
 
@@ -624,10 +633,6 @@ elif pagina == "Plan de Trabajo":
             st.rerun()
 
         st.divider()
-
-        # =========================
-        # VER OBJETIVOS
-        # =========================
 
         st.subheader(
             "Objetivos registrados"
@@ -678,10 +683,6 @@ elif pagina == "Plan de Trabajo":
             )
 
             st.divider()
-
-            # =========================
-            # EDITAR OBJETIVO
-            # =========================
 
             st.subheader(
                 "Editar objetivo"
@@ -740,7 +741,7 @@ elif pagina == "Plan de Trabajo":
             )
 
             nueva_evidencia = st.text_input(
-                "Nuevo link de evidencia",
+                "Nuevo link o referencia de evidencia",
                 value=objetivo[7] if objetivo[7] else ""
             )
 
@@ -778,10 +779,6 @@ elif pagina == "Plan de Trabajo":
                 st.rerun()
 
             st.divider()
-
-            # =========================
-            # ELIMINAR OBJETIVO
-            # =========================
 
             st.subheader(
                 "Eliminar objetivo"
