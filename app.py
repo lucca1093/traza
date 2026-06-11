@@ -1093,29 +1093,50 @@ elif pagina == "Analytics":
 
     if top_empleado is not None:
 
-        st.markdown("### 🏆 Top Performer")
+      st.markdown(
+    f"""
+    <div style="
+        background: linear-gradient(135deg, #0F4C81 0%, #1E3A5F 100%);
+        color:white;
+        border-radius:20px;
+        padding:30px;
+        margin-top:10px;
+        margin-bottom:25px;
+        box-shadow: 0 10px 25px rgba(15,76,129,0.25);
+    ">
+        <p style="
+            font-size:14px;
+            opacity:0.85;
+            margin-bottom:8px;
+        ">
+            TOP PERFORMER
+        </p>
 
-        st.markdown(
-            f"""
-            <div style="
-                background-color:#F8FAFC;
-                border:1px solid #E5E7EB;
-                border-radius:16px;
-                padding:24px;
-                margin-top:10px;
-                margin-bottom:20px;
-            ">
-                <h2 style="margin-bottom:4px;">{top_empleado}</h2>
-                <p style="font-size:18px; color:#4B5563;">
-                    Índice Traza
-                </p>
-                <h1 style="color:#0F4C81; margin-top:0;">
-                    {top_indice}/100
-                </h1>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
+        <h1 style="
+            margin:0;
+            color:white;
+        ">
+            🏆 {top_empleado}
+        </h1>
+
+        <p style="
+            font-size:18px;
+            margin-top:10px;
+            opacity:0.9;
+        ">
+            Mejor desempeño registrado en la organización
+        </p>
+
+        <h2 style="
+            color:white;
+            margin-top:20px;
+        ">
+            Índice Traza: {top_indice}/100
+        </h2>
+    </div>
+    """,
+    unsafe_allow_html=True
+)  
 
     # =========================
     # RECONOCIMIENTOS
