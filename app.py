@@ -1591,20 +1591,45 @@ elif pagina == "Analytics":
 
     if len(ranking) > 0:
 
-        df_ranking = pd.DataFrame(
-            ranking,
-            columns=[
-                "Empleado",
-                "Objetivos",
-                "Índice Traza"
-            ]
-        )
+    st.markdown("### 🥇 Ranking visual")
 
-        st.dataframe(
-            df_ranking,
-            use_container_width=True
-        )
+    for posicion, fila in enumerate(ranking, start=1):
 
+        empleado = fila[0]
+        objetivos = fila[1]
+        indice = fila[2]
+
+        if posicion == 1:
+            medalla = "🥇"
+
+        elif posicion == 2:
+            medalla = "🥈"
+
+        elif posicion == 3:
+            medalla = "🥉"
+
+        else:
+            medalla = "🏅"
+
+        st.markdown(
+            f"""
+            <div style="
+                background-color:#FFFFFF;
+                border:1px solid #E5E7EB;
+                border-radius:14px;
+                padding:18px;
+                margin-bottom:12px;
+            ">
+                <h3 style="margin:0;">
+                    {medalla} {empleado}
+                </h3>
+                <p style="margin:4px 0 0 0;">
+                    Índice Traza: <strong>{indice}/100</strong> · Objetivos: {objetivos}
+                </p>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
     else:
 
         st.info(
