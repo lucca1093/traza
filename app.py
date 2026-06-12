@@ -1311,6 +1311,23 @@ elif pagina == "Analytics":
     st.divider()
 
     # =========================
+    # PERSONAS A SEGUIMIENTO
+    # =========================
+
+    st.subheader(
+        "⚠️ Personas que requieren seguimiento"
+    )
+
+    personas_riesgo = []
+
+    for empleado, total_objetivos_empleado, puntos in empleados_score:
+
+        if puntos is None:
+            puntos = 0
+
+        max_p
+
+    # =========================
     # ESTADO DE OBJETIVOS
     # =========================
 
