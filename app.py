@@ -1245,6 +1245,61 @@ elif pagina == "Analytics":
         )
 
     # =========================
+    # DASHBOARD EJECUTIVO
+    # =========================
+
+    st.subheader(
+        "🏢 Dashboard Ejecutivo"
+    )
+
+    personas_riesgo = 0
+
+    for empleado, total_objetivos_empleado, puntos in empleados_score:
+
+        if puntos is None:
+            puntos = 0
+
+        max_puntos = total_objetivos_empleado * 20
+
+        indice = 0
+
+        if max_puntos > 0:
+
+            indice = round(
+                (puntos / max_puntos) * 100,
+                1
+            )
+
+        if indice < 40:
+
+            personas_riesgo += 1
+
+    col_a, col_b, col_c = st.columns(3)
+
+    with col_a:
+
+        st.metric(
+            "🏆 Top Performer",
+            top_empleado if top_empleado else "-"
+        )
+
+    with col_b:
+
+        st.metric(
+            "⚠️ Personas en riesgo",
+            personas_riesgo
+        )
+
+    with col_c:
+
+        st.metric(
+            "🏢 Índice Organizacional",
+            f"{indice_organizacional}/100"
+        )
+
+    st.divider()
+
+    # =========================
     # RECONOCIMIENTOS
     # =========================
 
