@@ -1589,7 +1589,7 @@ elif pagina == "Analytics":
         reverse=True
     )
 
-        if len(ranking) > 0:
+    if len(ranking) > 0:
 
         st.markdown("### 🥇 Ranking visual")
 
