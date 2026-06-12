@@ -1325,7 +1325,7 @@ elif pagina == "Analytics":
         if puntos is None:
             puntos = 0
 
-        max_p
+        max_puntos 
 
     # =========================
     # ESTADO DE OBJETIVOS
