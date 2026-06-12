@@ -1314,7 +1314,7 @@ elif pagina == "Analytics":
     # PERSONAS A SEGUIMIENTO
     # =========================
 
-        st.subheader(
+    st.subheader(
         "⚠️ Personas que requieren seguimiento"
     )
 
