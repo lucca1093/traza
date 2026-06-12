@@ -2336,6 +2336,36 @@ elif pagina == "🏆 Talent Card":
             file_name=f"talent_card_{empleado.replace(' ', '_')}.pdf",
             mime="application/pdf"
         )
+        st.divider()
+
+        st.subheader(
+            "📈 Evolución del desempeño"
+        )
+
+        historial = pd.DataFrame(
+            {
+                "Mes": [
+                    "Ene",
+                    "Feb",
+                    "Mar",
+                    "Abr",
+                    "May",
+                    "Jun"
+                ],
+                "Índice": [
+                    max(indice - 25, 0),
+                    max(indice - 20, 0),
+                    max(indice - 15, 0),
+                    max(indice - 10, 0),
+                    max(indice - 5, 0),
+                    indice
+                ]
+            }
+        )
+
+        st.line_chart(
+            historial.set_index("Mes")
+        )
 
         st.divider()
 
