@@ -1314,7 +1314,7 @@ elif pagina == "Analytics":
     # PERSONAS A SEGUIMIENTO
     # =========================
 
-    st.subheader(
+        st.subheader(
         "⚠️ Personas que requieren seguimiento"
     )
 
@@ -1325,7 +1325,38 @@ elif pagina == "Analytics":
         if puntos is None:
             puntos = 0
 
-        max_puntos 
+        max_puntos = total_objetivos_empleado * 20
+
+        indice = 0
+
+        if max_puntos > 0:
+
+            indice = round(
+                (puntos / max_puntos) * 100,
+                1
+            )
+
+        if indice < 40:
+
+            personas_riesgo.append(
+                (empleado, indice)
+            )
+
+    if len(personas_riesgo) == 0:
+
+        st.success(
+            "No hay colaboradores que requieran seguimiento."
+        )
+
+    else:
+
+        for empleado, indice in personas_riesgo:
+
+            st.warning(
+                f"{empleado} • Índice Traza: {indice}/100"
+            )
+
+    st.divider()
 
     # =========================
     # ESTADO DE OBJETIVOS
