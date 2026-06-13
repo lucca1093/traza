@@ -5,6 +5,18 @@ conn = sqlite3.connect("performance.db")
 cursor = conn.cursor()
 
 # =========================
+# TABLA EMPRESAS
+# =========================
+
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS empresas (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    nombre TEXT,
+    rubro TEXT
+)
+""")
+
+# =========================
 # TABLA OBJETIVOS
 # =========================
 
@@ -22,12 +34,18 @@ CREATE TABLE IF NOT EXISTS objetivos (
 )
 """)
 
-# Agregar columna evidencia si todavía no existe
-
 try:
     cursor.execute("""
     ALTER TABLE objetivos
     ADD COLUMN evidencia TEXT
+    """)
+except sqlite3.OperationalError:
+    pass
+
+try:
+    cursor.execute("""
+    ALTER TABLE objetivos
+    ADD COLUMN empresa TEXT
     """)
 except sqlite3.OperationalError:
     pass
@@ -46,6 +64,14 @@ CREATE TABLE IF NOT EXISTS personas (
     supervisor TEXT
 )
 """)
+
+try:
+    cursor.execute("""
+    ALTER TABLE personas
+    ADD COLUMN empresa TEXT
+    """)
+except sqlite3.OperationalError:
+    pass
 
 conn.commit()
 

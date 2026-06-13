@@ -35,6 +35,7 @@ def tiene_acceso(pagina, rol):
     permisos = {
         "admin": [
             "Inicio",
+            "Empresas",
             "Personas",
             "Plan de Trabajo",
             "Validación",
@@ -196,6 +197,7 @@ if rol == "admin":
 
     opciones_menu = [
         "Inicio",
+        "Empresas",
         "Personas",
         "Plan de Trabajo",
         "Validación",
@@ -478,6 +480,74 @@ if pagina == "Inicio":
     st.caption(
         "Versión MVP • Traza Performance Platform"
     )
+
+elif pagina == "Empresas":
+
+    st.title("🏢 Empresas")
+
+    st.subheader("Crear empresa")
+
+    nombre_empresa = st.text_input("Nombre de la empresa")
+
+    rubro = st.text_input("Rubro")
+
+    if st.button("Guardar Empresa"):
+
+        cursor.execute(
+            """
+            INSERT INTO empresas
+            (
+                nombre,
+                rubro
+            )
+            VALUES
+            (?, ?)
+            """,
+            (
+                nombre_empresa,
+                rubro
+            )
+        )
+
+        conn.commit()
+
+        st.success("Empresa guardada correctamente")
+
+    st.divider()
+
+    st.subheader("Empresas registradas")
+
+    cursor.execute(
+        """
+        SELECT
+        id,
+        nombre,
+        rubro
+        FROM empresas
+        """
+    )
+
+    empresas = cursor.fetchall()
+
+    if len(empresas) == 0:
+
+        st.info("Todavía no hay empresas registradas.")
+
+    else:
+
+        df_empresas = pd.DataFrame(
+            empresas,
+            columns=[
+                "ID",
+                "Empresa",
+                "Rubro"
+            ]
+        )
+
+        st.dataframe(
+            df_empresas,
+            use_container_width=True
+        )
 
 # =========================
 # PERSONAS
