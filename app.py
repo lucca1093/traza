@@ -1089,6 +1089,25 @@ elif pagina == "Analytics":
     unsafe_allow_html=True
 )
 
+    cursor.execute(
+        """
+        SELECT DISTINCT area
+        FROM personas
+        WHERE area IS NOT NULL
+        AND area <> ''
+        """
+    )
+
+    areas_disponibles = [
+        fila[0]
+        for fila in cursor.fetchall()
+    ]
+
+    filtro_area = st.selectbox(
+        "Filtrar por área",
+        ["Todas"] + areas_disponibles
+    )
+
     # =========================
     # KPIs PRINCIPALES
     # =========================
