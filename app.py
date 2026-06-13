@@ -1108,6 +1108,38 @@ elif pagina == "Analytics":
         ["Todas"] + areas_disponibles
     )
 
+    if filtro_area != "Todas":
+
+        st.info(
+            f"Mostrando información del área: {filtro_area}"
+        )
+
+    else:
+
+        st.info(
+            "Mostrando información de toda la organización"
+        )    
+
+    empleados_area = []
+
+    if filtro_area != "Todas":
+
+        cursor.execute(
+            """
+            SELECT
+            nombre,
+            apellido
+            FROM personas
+            WHERE area = ?
+            """,
+            (filtro_area,)
+        )
+
+        empleados_area = [
+            f"{nombre} {apellido}"
+            for nombre, apellido in cursor.fetchall()
+        ]
+
     # =========================
     # KPIs PRINCIPALES
     # =========================
