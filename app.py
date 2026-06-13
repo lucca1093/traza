@@ -6,6 +6,7 @@ import os
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 from io import BytesIO
+from datetime import date
 
 usuarios = {
 
@@ -812,6 +813,43 @@ elif pagina == "Plan de Trabajo":
                     "Evidencia"
                 ]
             )
+
+            hoy = date.today()
+
+            estados_vencimiento = []
+
+            for _, fila in df_objetivos.iterrows():
+
+                try:
+
+                    fecha = pd.to_datetime(
+                        fila["Fecha límite"]
+                    ).date()
+
+                    if (
+                        fecha < hoy
+                        and fila["Estado"] != "Completado"
+                    ):
+
+                        estados_vencimiento.append(
+                            "⚠️ Vencido"
+                        )
+
+                    else:
+
+                        estados_vencimiento.append(
+                            "OK"
+                        )
+
+                except:
+
+                    estados_vencimiento.append(
+                        "-"
+                    )
+
+            df_objetivos[
+                "Vencimiento"
+            ] = estados_vencimiento
 
             st.dataframe(
                 df_objetivos,
