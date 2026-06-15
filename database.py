@@ -75,6 +75,21 @@ except sqlite3.OperationalError:
 
 conn.commit()
 
+cursor.execute(
+    """
+    UPDATE objetivos
+    SET empresa = (
+        SELECT personas.empresa
+        FROM personas
+        WHERE objetivos.empleado = personas.nombre || ' ' || personas.apellido
+    )
+    WHERE empresa IS NULL
+    OR empresa = ''
+    """
+)
+
+conn.commit()
+
 conn.close()
 
 print("Base actualizada correctamente")
