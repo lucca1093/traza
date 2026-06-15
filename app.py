@@ -557,140 +557,207 @@ elif pagina == "Personas":
 
     st.title("👥 Personas")
 
-    st.subheader("Crear persona")
-
-    nombre = st.text_input("Nombre")
-    apellido = st.text_input("Apellido")
-    cargo = st.text_input("Cargo")
-    area = st.text_input("Área")
-    supervisor = st.text_input("Supervisor")
-
-    if st.button("Guardar Persona"):
-
-        cursor.execute(
-            """
-            INSERT INTO personas
-            (nombre, apellido, cargo, area, supervisor)
-            VALUES (?, ?, ?, ?, ?)
-            """,
-            (nombre, apellido, cargo, area, supervisor)
-        )
-
-        conn.commit()
-        st.success("Persona guardada correctamente")
-        st.rerun()
-
-    st.divider()
-
-    st.subheader("Personas registradas")
+    # Buscar empresas registradas
 
     cursor.execute(
         """
-        SELECT id, nombre, apellido, cargo, area, supervisor
-        FROM personas
+        SELECT nombre
+        FROM empresas
+        ORDER BY nombre
         """
     )
 
-    personas = cursor.fetchall()
+    empresas = [
+        fila[0]
+        for fila in cursor.fetchall()
+    ]
 
-    if len(personas) == 0:
+    if len(empresas) == 0:
 
-        st.info("Todavía no hay personas registradas.")
+        st.warning(
+            "Primero debes crear una empresa en la sección Empresas."
+        )
 
     else:
 
-        df_personas = pd.DataFrame(
-            personas,
-            columns=[
-                "ID",
-                "Nombre",
-                "Apellido",
-                "Cargo",
-                "Área",
-                "Supervisor"
-            ]
+        st.subheader("Crear persona")
+
+        empresa = st.selectbox(
+            "Empresa",
+            empresas
         )
 
-        st.dataframe(df_personas, use_container_width=True)
+        nombre = st.text_input("Nombre")
+        apellido = st.text_input("Apellido")
+        cargo = st.text_input("Cargo")
+        area = st.text_input("Área")
+        supervisor = st.text_input("Supervisor")
 
-        st.divider()
-
-        st.subheader("Editar persona")
-
-        opciones_editar = {
-            f"{fila[1]} {fila[2]} (ID {fila[0]})": fila
-            for fila in personas
-        }
-
-        persona_editar = st.selectbox(
-            "Seleccionar persona a editar",
-            list(opciones_editar.keys())
-        )
-
-        persona = opciones_editar[persona_editar]
-
-        nuevo_cargo = st.text_input(
-            "Nuevo cargo",
-            value=persona[3]
-        )
-
-        nueva_area = st.text_input(
-            "Nueva área",
-            value=persona[4]
-        )
-
-        nuevo_supervisor = st.text_input(
-            "Nuevo supervisor",
-            value=persona[5]
-        )
-
-        if st.button("Guardar cambios"):
+        if st.button("Guardar Persona"):
 
             cursor.execute(
                 """
-                UPDATE personas
-                SET cargo = ?, area = ?, supervisor = ?
-                WHERE id = ?
+                INSERT INTO personas
+                (
+                    nombre,
+                    apellido,
+                    cargo,
+                    area,
+                    supervisor,
+                    empresa
+                )
+                VALUES
+                (?, ?, ?, ?, ?, ?)
                 """,
                 (
-                    nuevo_cargo,
-                    nueva_area,
-                    nuevo_supervisor,
-                    persona[0]
+                    nombre,
+                    apellido,
+                    cargo,
+                    area,
+                    supervisor,
+                    empresa
                 )
             )
 
             conn.commit()
-            st.success("Persona actualizada correctamente")
+            st.success("Persona guardada correctamente")
             st.rerun()
 
         st.divider()
 
-        st.subheader("Eliminar persona")
+        st.subheader("Personas registradas")
 
-        opciones_borrar = {
-            f"{fila[1]} {fila[2]} (ID {fila[0]})": fila[0]
-            for fila in personas
-        }
-
-        persona_borrar = st.selectbox(
-            "Seleccionar persona a eliminar",
-            list(opciones_borrar.keys())
+        cursor.execute(
+            """
+            SELECT
+            id,
+            empresa,
+            nombre,
+            apellido,
+            cargo,
+            area,
+            supervisor
+            FROM personas
+            """
         )
 
-        if st.button("🗑 Eliminar persona"):
+        personas = cursor.fetchall()
 
-            cursor.execute(
-                """
-                DELETE FROM personas
-                WHERE id = ?
-                """,
-                (opciones_borrar[persona_borrar],)
+        if len(personas) == 0:
+
+            st.info("Todavía no hay personas registradas.")
+
+        else:
+
+            df_personas = pd.DataFrame(
+                personas,
+                columns=[
+                    "ID",
+                    "Empresa",
+                    "Nombre",
+                    "Apellido",
+                    "Cargo",
+                    "Área",
+                    "Supervisor"
+                ]
             )
 
-            conn.commit()
-            st.success("Persona eliminada correctamente")
-            st.rerun()
+            st.dataframe(
+                df_personas,
+                use_container_width=True
+            )
+
+            st.divider()
+
+            st.subheader("Editar persona")
+
+            opciones_editar = {
+                f"{fila[2]} {fila[3]} - {fila[1]} (ID {fila[0]})": fila
+                for fila in personas
+            }
+
+            persona_editar = st.selectbox(
+                "Seleccionar persona a editar",
+                list(opciones_editar.keys())
+            )
+
+            persona = opciones_editar[
+                persona_editar
+            ]
+
+            nueva_empresa = st.selectbox(
+                "Nueva empresa",
+                empresas,
+                index=empresas.index(persona[1]) if persona[1] in empresas else 0
+            )
+
+            nuevo_cargo = st.text_input(
+                "Nuevo cargo",
+                value=persona[4]
+            )
+
+            nueva_area = st.text_input(
+                "Nueva área",
+                value=persona[5]
+            )
+
+            nuevo_supervisor = st.text_input(
+                "Nuevo supervisor",
+                value=persona[6]
+            )
+
+            if st.button("Guardar cambios"):
+
+                cursor.execute(
+                    """
+                    UPDATE personas
+                    SET
+                    empresa = ?,
+                    cargo = ?,
+                    area = ?,
+                    supervisor = ?
+                    WHERE id = ?
+                    """,
+                    (
+                        nueva_empresa,
+                        nuevo_cargo,
+                        nueva_area,
+                        nuevo_supervisor,
+                        persona[0]
+                    )
+                )
+
+                conn.commit()
+                st.success("Persona actualizada correctamente")
+                st.rerun()
+
+            st.divider()
+
+            st.subheader("Eliminar persona")
+
+            opciones_borrar = {
+                f"{fila[2]} {fila[3]} - {fila[1]} (ID {fila[0]})": fila[0]
+                for fila in personas
+            }
+
+            persona_borrar = st.selectbox(
+                "Seleccionar persona a eliminar",
+                list(opciones_borrar.keys())
+            )
+
+            if st.button("🗑 Eliminar persona"):
+
+                cursor.execute(
+                    """
+                    DELETE FROM personas
+                    WHERE id = ?
+                    """,
+                    (opciones_borrar[persona_borrar],)
+                )
+
+                conn.commit()
+                st.success("Persona eliminada correctamente")
+                st.rerun()
 
 # =========================
 # OBJETIVOS
