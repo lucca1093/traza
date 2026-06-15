@@ -771,7 +771,8 @@ elif pagina == "Plan de Trabajo":
         """
         SELECT
         nombre,
-        apellido
+        apellido,
+        empresa
         FROM personas
         """
     )
@@ -780,8 +781,13 @@ elif pagina == "Plan de Trabajo":
 
     lista_personas = [
         f"{nombre} {apellido}"
-        for nombre, apellido in personas
+        for nombre, apellido, empresa in personas
     ]
+
+    empresas_por_persona = {
+        f"{nombre} {apellido}": empresa
+        for nombre, apellido, empresa in personas
+    }
 
     if len(lista_personas) == 0:
 
@@ -807,6 +813,15 @@ elif pagina == "Plan de Trabajo":
             st.info(
                 f"Empleado: {empleado}"
             )
+
+        empresa_objetivo = empresas_por_persona.get(
+            empleado,
+            ""
+        )
+
+        st.info(
+            f"Empresa: {empresa_objetivo}"
+        )
 
         titulo = st.text_input("Título del objetivo")
 
@@ -876,6 +891,7 @@ elif pagina == "Plan de Trabajo":
                 """
                 INSERT INTO objetivos
                 (
+                    empresa,
                     empleado,
                     titulo,
                     descripcion,
@@ -885,9 +901,10 @@ elif pagina == "Plan de Trabajo":
                     evidencia
                 )
                 VALUES
-                (?, ?, ?, ?, ?, ?, ?)
+                (?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
+                    empresa_objetivo,
                     empleado,
                     titulo,
                     descripcion,
@@ -904,8 +921,6 @@ elif pagina == "Plan de Trabajo":
                 "Objetivo guardado correctamente"
             )
 
-            st.rerun()
-
         st.divider()
 
         st.subheader(
@@ -916,6 +931,7 @@ elif pagina == "Plan de Trabajo":
             """
             SELECT
             id,
+            empresa,
             empleado,
             titulo,
             descripcion,
@@ -941,6 +957,7 @@ elif pagina == "Plan de Trabajo":
                 datos,
                 columns=[
                     "ID",
+                    "Empresa",
                     "Empleado",
                     "Título",
                     "Descripción",
@@ -1000,7 +1017,7 @@ elif pagina == "Plan de Trabajo":
             )
 
             opciones_editar = {
-                f"{fila[1]} - {fila[2]} (ID {fila[0]})": fila
+                f"{fila[2]} - {fila[3]} (ID {fila[0]})": fila
                 for fila in datos
             }
 
@@ -1013,14 +1030,18 @@ elif pagina == "Plan de Trabajo":
                 objetivo_editar
             ]
 
+            st.info(
+                f"Empresa: {objetivo[1]}"
+            )
+
             nuevo_titulo = st.text_input(
                 "Nuevo título",
-                value=objetivo[2]
+                value=objetivo[3]
             )
 
             nueva_descripcion = st.text_area(
                 "Nueva descripción",
-                value=objetivo[3]
+                value=objetivo[4]
             )
 
             nueva_prioridad = st.selectbox(
@@ -1034,7 +1055,7 @@ elif pagina == "Plan de Trabajo":
                     "Alta",
                     "Media",
                     "Baja"
-                ].index(objetivo[4])
+                ].index(objetivo[5])
             )
 
             nuevo_estado = st.selectbox(
@@ -1048,12 +1069,12 @@ elif pagina == "Plan de Trabajo":
                     "Pendiente",
                     "En progreso",
                     "Completado"
-                ].index(objetivo[6])
+                ].index(objetivo[7])
             )
 
             nueva_evidencia = st.text_input(
                 "Nuevo link o referencia de evidencia",
-                value=objetivo[7] if objetivo[7] else ""
+                value=objetivo[8] if objetivo[8] else ""
             )
 
             if st.button(
@@ -1087,8 +1108,6 @@ elif pagina == "Plan de Trabajo":
                     "Objetivo actualizado correctamente"
                 )
 
-                st.rerun()
-
             st.divider()
 
             st.subheader(
@@ -1096,7 +1115,7 @@ elif pagina == "Plan de Trabajo":
             )
 
             opciones_borrar = {
-                f"{fila[1]} - {fila[2]} (ID {fila[0]})": fila[0]
+                f"{fila[2]} - {fila[3]} (ID {fila[0]})": fila[0]
                 for fila in datos
             }
 
@@ -1126,7 +1145,6 @@ elif pagina == "Plan de Trabajo":
                 st.success(
                     "Objetivo eliminado correctamente"
                 )
-
             
 
 # =========================
