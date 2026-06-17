@@ -1344,45 +1344,91 @@ elif pagina == "Analytics":
     # KPIs PRINCIPALES
     # =========================
 
-    cursor.execute(
-        "SELECT COUNT(*) FROM objetivos"
-    )
-    total_objetivos = cursor.fetchone()[0]
+    if filtro_empresa != "Todas":
 
-    cursor.execute(
-        """
-        SELECT COUNT(*)
-        FROM objetivos
-        WHERE estado='Completado'
-        """
-    )
-    completados = cursor.fetchone()[0]
+        cursor.execute(
+            """
+            SELECT COUNT(*)
+            FROM objetivos
+            WHERE empresa = ?
+            """,
+            (filtro_empresa,)
+        )
+        total_objetivos = cursor.fetchone()[0]
 
-    cursor.execute(
-        """
-        SELECT COUNT(*)
-        FROM objetivos
-        WHERE validacion='De acuerdo'
-        """
-    )
-    aprobados = cursor.fetchone()[0]
+        cursor.execute(
+            """
+            SELECT COUNT(*)
+            FROM objetivos
+            WHERE empresa = ?
+            AND estado='Completado'
+            """,
+            (filtro_empresa,)
+        )
+        completados = cursor.fetchone()[0]
 
-    cursor.execute(
-        """
-        SELECT COUNT(*)
-        FROM personas
-        """
-    )
-    total_personas = cursor.fetchone()[0]
+        cursor.execute(
+            """
+            SELECT COUNT(*)
+            FROM objetivos
+            WHERE empresa = ?
+            AND validacion='De acuerdo'
+            """,
+            (filtro_empresa,)
+        )
+        aprobados = cursor.fetchone()[0]
+
+        cursor.execute(
+            """
+            SELECT COUNT(*)
+            FROM personas
+            WHERE empresa = ?
+            """,
+            (filtro_empresa,)
+        )
+        total_personas = cursor.fetchone()[0]
+
+    else:
+
+        cursor.execute(
+            "SELECT COUNT(*) FROM objetivos"
+        )
+        total_objetivos = cursor.fetchone()[0]
+
+        cursor.execute(
+            """
+            SELECT COUNT(*)
+            FROM objetivos
+            WHERE estado='Completado'
+            """
+        )
+        completados = cursor.fetchone()[0]
+
+        cursor.execute(
+            """
+            SELECT COUNT(*)
+            FROM objetivos
+            WHERE validacion='De acuerdo'
+            """
+        )
+        aprobados = cursor.fetchone()[0]
+
+        cursor.execute(
+            """
+            SELECT COUNT(*)
+            FROM personas
+            """
+        )
+        total_personas = cursor.fetchone()[0]
 
     cumplimiento = 0
 
     if total_objetivos > 0:
+
         cumplimiento = round(
             aprobados / total_objetivos * 100,
             1
         )
-
     # =========================
     # ÍNDICE ORGANIZACIONAL
     # =========================
