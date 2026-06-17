@@ -2559,7 +2559,7 @@ elif pagina == "🏆 Talent Card":
 
     empleado = f"{nombre} {apellido}"
 
-        cursor.execute(
+    cursor.execute(
             """
             SELECT COUNT(*)
             FROM objetivos
