@@ -2053,18 +2053,37 @@ elif pagina == "Analytics":
         "📋 Últimos Objetivos"
     )
 
-    cursor.execute(
-        """
-        SELECT
-        empleado,
-        titulo,
-        estado,
-        validacion
-        FROM objetivos
-        ORDER BY id DESC
-        LIMIT 10
-        """
-    )
+    if filtro_empresa != "Todas":
+
+        cursor.execute(
+            """
+            SELECT
+            empleado,
+            titulo,
+            estado,
+            validacion
+            FROM objetivos
+            WHERE empresa = ?
+            ORDER BY id DESC
+            LIMIT 10
+            """,
+            (filtro_empresa,)
+        )
+
+    else:
+
+        cursor.execute(
+            """
+            SELECT
+            empleado,
+            titulo,
+            estado,
+            validacion
+            FROM objetivos
+            ORDER BY id DESC
+            LIMIT 10
+            """
+        )
 
     ultimos = cursor.fetchall()
 
