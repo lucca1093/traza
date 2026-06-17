@@ -2497,13 +2497,34 @@ elif pagina == "🏆 Talent Card":
 
     cursor.execute(
         """
+        SELECT nombre
+        FROM empresas
+        ORDER BY nombre
+        """
+    )
+
+    empresas_disponibles = [
+        fila[0]
+        for fila in cursor.fetchall()
+    ]
+
+    filtro_empresa = st.selectbox(
+        "🏢 Empresa",
+        empresas_disponibles
+    )
+
+    cursor.execute(
+        """
         SELECT
         nombre,
         apellido,
         cargo,
-        area
+        area,
+        empresa
         FROM personas
-        """
+        WHERE empresa = ?
+        """,
+        (filtro_empresa,)
     )
 
     personas = cursor.fetchall()
@@ -2516,24 +2537,25 @@ elif pagina == "🏆 Talent Card":
 
     else:
 
-        opciones = {
-            f"{nombre} {apellido}": (
-                nombre,
-                apellido,
-                cargo,
-                area
-            )
-            for nombre, apellido, cargo, area in personas
-        }
+    opciones = {
+    f"{nombre} {apellido}": (
+        nombre,
+        apellido,
+        cargo,
+        area,
+        empresa
+    )
+    for nombre, apellido, cargo, area, empresa in personas
+}
 
         persona_seleccionada = st.selectbox(
             "Seleccionar colaborador",
             list(opciones.keys())
         )
 
-        nombre, apellido, cargo, area = opciones[
-            persona_seleccionada
-        ]
+    nombre, apellido, cargo, area, empresa = opciones[
+    persona_seleccionada
+]   
 
         empleado = f"{nombre} {apellido}"
 
@@ -2677,6 +2699,9 @@ elif pagina == "🏆 Talent Card":
                         <p style="font-size:16px; color:#4B5563;">
                             {area}
                         </p>
+                        <p style="font-size:15px; color:#64748B;">
+    🏢 {empresa}
+</p>
                     </div>
                     <div style="
                         background-color:white;
