@@ -90,6 +90,23 @@ cursor.execute(
 
 conn.commit()
 
+try:
+    cursor.execute("""
+    ALTER TABLE objetivos
+    ADD COLUMN tipo_objetivo TEXT
+    """)
+except sqlite3.OperationalError:
+    pass
+
+cursor.execute(
+    """
+    UPDATE objetivos
+    SET tipo_objetivo = 'Personal'
+    WHERE tipo_objetivo IS NULL
+    OR tipo_objetivo = ''
+    """
+)
+
 conn.close()
 
 print("Base actualizada correctamente")

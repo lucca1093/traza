@@ -797,151 +797,210 @@ elif pagina == "Plan de Trabajo":
 
     else:
 
-        st.subheader("Crear objetivo")
+        # =========================
+        # CREAR OBJETIVO
+        # =========================
 
-        if st.session_state.rol == "admin":
+        with st.expander("➕ Crear nuevo objetivo", expanded=False):
 
-            empleado = st.selectbox(
-                "Empleado",
-                lista_personas
+            if st.session_state.rol == "admin":
+
+                empleado = st.selectbox(
+                    "Empleado",
+                    lista_personas
+                )
+
+                tipo_objetivo = st.selectbox(
+                    "Tipo de objetivo",
+                    [
+                        "Asignado",
+                        "Personal"
+                    ]
+                )
+
+            elif st.session_state.rol == "supervisor":
+
+                empleado = st.selectbox(
+                    "Empleado",
+                    lista_personas
+                )
+
+                tipo_objetivo = "Asignado"
+
+                st.info(
+                    "Como supervisor, este objetivo se cargará como asignado."
+                )
+
+            else:
+
+                empleado = st.session_state.persona
+
+                tipo_objetivo = "Personal"
+
+                st.info(
+                    f"Empleado: {empleado}"
+                )
+
+                st.info(
+                    "Como empleado, este objetivo se cargará como personal."
+                )
+
+            empresa_objetivo = empresas_por_persona.get(
+                empleado,
+                ""
+            )
+
+            st.info(
+                f"Empresa: {empresa_objetivo}"
+            )
+
+            titulo = st.text_input("Título del objetivo")
+
+            descripcion = st.text_area("Descripción")
+
+            prioridad = st.selectbox(
+                "Prioridad",
+                [
+                    "Alta",
+                    "Media",
+                    "Baja"
+                ]
+            )
+
+            fecha_limite = st.date_input("Fecha límite")
+
+            estado = st.selectbox(
+                "Estado",
+                [
+                    "Pendiente",
+                    "En progreso",
+                    "Completado"
+                ]
+            )
+
+            evidencia_link = st.text_input(
+                "Link de evidencia"
+            )
+
+            evidencia_archivo = st.file_uploader(
+                "Subir archivo de evidencia",
+                type=[
+                    "pdf",
+                    "png",
+                    "jpg",
+                    "jpeg",
+                    "xlsx",
+                    "csv",
+                    "docx"
+                ]
+            )
+
+            evidencia = evidencia_link
+
+            if evidencia_archivo is not None:
+
+                if not os.path.exists("evidencias"):
+
+                    os.makedirs("evidencias")
+
+                ruta_archivo = os.path.join(
+                    "evidencias",
+                    evidencia_archivo.name
+                )
+
+                with open(ruta_archivo, "wb") as archivo:
+
+                    archivo.write(
+                        evidencia_archivo.getbuffer()
+                    )
+
+                evidencia = ruta_archivo
+
+            if st.button("Guardar Objetivo"):
+
+                cursor.execute(
+                    """
+                    INSERT INTO objetivos
+                    (
+                        empresa,
+                        empleado,
+                        titulo,
+                        descripcion,
+                        prioridad,
+                        fecha_limite,
+                        estado,
+                        evidencia,
+                        tipo_objetivo
+                    )
+                    VALUES
+                    (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        empresa_objetivo,
+                        empleado,
+                        titulo,
+                        descripcion,
+                        prioridad,
+                        str(fecha_limite),
+                        estado,
+                        evidencia,
+                        tipo_objetivo
+                    )
+                )
+
+                conn.commit()
+
+                st.success(
+                    "Objetivo guardado correctamente"
+                )
+
+        st.divider()
+
+        # =========================
+        # FILTRAR OBJETIVOS POR ROL
+        # =========================
+
+        if st.session_state.rol == "empleado":
+
+            cursor.execute(
+                """
+                SELECT
+                id,
+                empresa,
+                empleado,
+                titulo,
+                descripcion,
+                prioridad,
+                fecha_limite,
+                estado,
+                evidencia,
+                tipo_objetivo
+                FROM objetivos
+                WHERE empleado = ?
+                ORDER BY fecha_limite ASC
+                """,
+                (st.session_state.persona,)
             )
 
         else:
 
-            empleado = st.session_state.persona
-
-            st.info(
-                f"Empleado: {empleado}"
-            )
-
-        empresa_objetivo = empresas_por_persona.get(
-            empleado,
-            ""
-        )
-
-        st.info(
-            f"Empresa: {empresa_objetivo}"
-        )
-
-        titulo = st.text_input("Título del objetivo")
-
-        descripcion = st.text_area("Descripción")
-
-        prioridad = st.selectbox(
-            "Prioridad",
-            [
-                "Alta",
-                "Media",
-                "Baja"
-            ]
-        )
-
-        fecha_limite = st.date_input("Fecha límite")
-
-        estado = st.selectbox(
-            "Estado",
-            [
-                "Pendiente",
-                "En progreso",
-                "Completado"
-            ]
-        )
-
-        evidencia_link = st.text_input(
-            "Link de evidencia"
-        )
-
-        evidencia_archivo = st.file_uploader(
-            "Subir archivo de evidencia",
-            type=[
-                "pdf",
-                "png",
-                "jpg",
-                "jpeg",
-                "xlsx",
-                "csv",
-                "docx"
-            ]
-        )
-
-        evidencia = evidencia_link
-
-        if evidencia_archivo is not None:
-
-            if not os.path.exists("evidencias"):
-
-                os.makedirs("evidencias")
-
-            ruta_archivo = os.path.join(
-                "evidencias",
-                evidencia_archivo.name
-            )
-
-            with open(ruta_archivo, "wb") as archivo:
-
-                archivo.write(
-                    evidencia_archivo.getbuffer()
-                )
-
-            evidencia = ruta_archivo
-
-        if st.button("Guardar Objetivo"):
-
             cursor.execute(
                 """
-                INSERT INTO objetivos
-                (
-                    empresa,
-                    empleado,
-                    titulo,
-                    descripcion,
-                    prioridad,
-                    fecha_limite,
-                    estado,
-                    evidencia
-                )
-                VALUES
-                (?, ?, ?, ?, ?, ?, ?, ?)
-                """,
-                (
-                    empresa_objetivo,
-                    empleado,
-                    titulo,
-                    descripcion,
-                    prioridad,
-                    str(fecha_limite),
-                    estado,
-                    evidencia
-                )
+                SELECT
+                id,
+                empresa,
+                empleado,
+                titulo,
+                descripcion,
+                prioridad,
+                fecha_limite,
+                estado,
+                evidencia,
+                tipo_objetivo
+                FROM objetivos
+                ORDER BY fecha_limite ASC
+                """
             )
-
-            conn.commit()
-
-            st.success(
-                "Objetivo guardado correctamente"
-            )
-
-        st.divider()
-
-        st.subheader(
-            "Objetivos registrados"
-        )
-
-        cursor.execute(
-            """
-            SELECT
-            id,
-            empresa,
-            empleado,
-            titulo,
-            descripcion,
-            prioridad,
-            fecha_limite,
-            estado,
-            evidencia
-            FROM objetivos
-            """
-        )
 
         datos = cursor.fetchall()
 
@@ -964,7 +1023,8 @@ elif pagina == "Plan de Trabajo":
                     "Prioridad",
                     "Fecha límite",
                     "Estado",
-                    "Evidencia"
+                    "Evidencia",
+                    "Tipo"
                 ]
             )
 
@@ -1005,146 +1065,327 @@ elif pagina == "Plan de Trabajo":
                 "Vencimiento"
             ] = estados_vencimiento
 
-            st.dataframe(
-                df_objetivos,
-                use_container_width=True
+            # =========================
+            # RESUMEN
+            # =========================
+
+            pendientes = len(
+                df_objetivos[
+                    df_objetivos["Estado"] != "Completado"
+                ]
             )
+
+            completados = len(
+                df_objetivos[
+                    df_objetivos["Estado"] == "Completado"
+                ]
+            )
+
+            vencidos = len(
+                df_objetivos[
+                    df_objetivos["Vencimiento"] == "⚠️ Vencido"
+                ]
+            )
+
+            col1, col2, col3 = st.columns(3)
+
+            with col1:
+                st.metric(
+                    "Pendientes",
+                    pendientes
+                )
+
+            with col2:
+                st.metric(
+                    "Completados",
+                    completados
+                )
+
+            with col3:
+                st.metric(
+                    "Vencidos",
+                    vencidos
+                )
 
             st.divider()
 
+            # =========================
+            # TARJETAS VISUALES
+            # =========================
+
             st.subheader(
-                "Editar objetivo"
+                "📥 Objetivos asignados"
             )
 
-            opciones_editar = {
-                f"{fila[2]} - {fila[3]} (ID {fila[0]})": fila
-                for fila in datos
-            }
-
-            objetivo_editar = st.selectbox(
-                "Seleccionar objetivo a editar",
-                list(opciones_editar.keys())
-            )
-
-            objetivo = opciones_editar[
-                objetivo_editar
+            df_asignados = df_objetivos[
+                df_objetivos["Tipo"] == "Asignado"
             ]
 
-            st.info(
-                f"Empresa: {objetivo[1]}"
-            )
+            if len(df_asignados) == 0:
 
-            nuevo_titulo = st.text_input(
-                "Nuevo título",
-                value=objetivo[3]
-            )
+                st.info(
+                    "No hay objetivos asignados."
+                )
 
-            nueva_descripcion = st.text_area(
-                "Nueva descripción",
-                value=objetivo[4]
-            )
+            else:
 
-            nueva_prioridad = st.selectbox(
-                "Nueva prioridad",
-                [
-                    "Alta",
-                    "Media",
-                    "Baja"
-                ],
-                index=[
-                    "Alta",
-                    "Media",
-                    "Baja"
-                ].index(objetivo[5])
-            )
+                for _, fila in df_asignados.iterrows():
 
-            nuevo_estado = st.selectbox(
-                "Nuevo estado",
-                [
-                    "Pendiente",
-                    "En progreso",
-                    "Completado"
-                ],
-                index=[
-                    "Pendiente",
-                    "En progreso",
-                    "Completado"
-                ].index(objetivo[7])
-            )
+                    if fila["Estado"] == "Completado":
+                        icono_estado = "🟢"
 
-            nueva_evidencia = st.text_input(
-                "Nuevo link o referencia de evidencia",
-                value=objetivo[8] if objetivo[8] else ""
-            )
+                    elif fila["Estado"] == "En progreso":
+                        icono_estado = "🟡"
 
-            if st.button(
-                "Guardar cambios del objetivo"
-            ):
+                    else:
+                        icono_estado = "🔴"
 
-                cursor.execute(
-                    """
-                    UPDATE objetivos
-                    SET
-                    titulo = ?,
-                    descripcion = ?,
-                    prioridad = ?,
-                    estado = ?,
-                    evidencia = ?
-                    WHERE id = ?
-                    """,
-                    (
-                        nuevo_titulo,
-                        nueva_descripcion,
-                        nueva_prioridad,
-                        nuevo_estado,
-                        nueva_evidencia,
-                        objetivo[0]
+                    st.markdown(
+                        f"""
+                        <div style="
+                            background-color:#FFFFFF;
+                            border:1px solid #E5E7EB;
+                            border-radius:14px;
+                            padding:18px;
+                            margin-bottom:12px;
+                        ">
+                            <h4 style="margin:0;">
+                                {icono_estado} {fila["Título"]}
+                            </h4>
+                            <p style="margin:6px 0;">
+                                {fila["Descripción"]}
+                            </p>
+                            <p style="margin:0; color:#6B7280;">
+                                Empresa: {fila["Empresa"]} · Empleado: {fila["Empleado"]} · Prioridad: {fila["Prioridad"]} · Vence: {fila["Fecha límite"]}
+                            </p>
+                        </div>
+                        """,
+                        unsafe_allow_html=True
                     )
-                )
-
-                conn.commit()
-
-                st.success(
-                    "Objetivo actualizado correctamente"
-                )
 
             st.divider()
 
             st.subheader(
-                "Eliminar objetivo"
+                "📌 Objetivos personales"
             )
 
-            opciones_borrar = {
-                f"{fila[2]} - {fila[3]} (ID {fila[0]})": fila[0]
-                for fila in datos
-            }
+            df_personales = df_objetivos[
+                df_objetivos["Tipo"] == "Personal"
+            ]
 
-            objetivo_borrar = st.selectbox(
-                "Seleccionar objetivo a eliminar",
-                list(opciones_borrar.keys())
-            )
+            if len(df_personales) == 0:
 
-            if st.button(
-                "🗑 Eliminar objetivo"
-            ):
+                st.info(
+                    "No hay objetivos personales."
+                )
 
-                cursor.execute(
-                    """
-                    DELETE FROM objetivos
-                    WHERE id = ?
-                    """,
-                    (
-                        opciones_borrar[
-                            objetivo_borrar
-                        ],
+            else:
+
+                for _, fila in df_personales.iterrows():
+
+                    if fila["Estado"] == "Completado":
+                        icono_estado = "🟢"
+
+                    elif fila["Estado"] == "En progreso":
+                        icono_estado = "🟡"
+
+                    else:
+                        icono_estado = "🔴"
+
+                    st.markdown(
+                        f"""
+                        <div style="
+                            background-color:#FFFFFF;
+                            border:1px solid #E5E7EB;
+                            border-radius:14px;
+                            padding:18px;
+                            margin-bottom:12px;
+                        ">
+                            <h4 style="margin:0;">
+                                {icono_estado} {fila["Título"]}
+                            </h4>
+                            <p style="margin:6px 0;">
+                                {fila["Descripción"]}
+                            </p>
+                            <p style="margin:0; color:#6B7280;">
+                                Empresa: {fila["Empresa"]} · Empleado: {fila["Empleado"]} · Prioridad: {fila["Prioridad"]} · Vence: {fila["Fecha límite"]}
+                            </p>
+                        </div>
+                        """,
+                        unsafe_allow_html=True
                     )
+
+            st.divider()
+
+            # =========================
+            # TABLA ADMINISTRATIVA
+            # =========================
+
+            with st.expander("📋 Ver tabla administrativa", expanded=False):
+
+                st.dataframe(
+                    df_objetivos,
+                    use_container_width=True
                 )
 
-                conn.commit()
+            # =========================
+            # EDITAR / ELIMINAR
+            # =========================
 
-                st.success(
-                    "Objetivo eliminado correctamente"
+            if st.session_state.rol != "empleado":
+
+                st.divider()
+
+                st.subheader(
+                    "Editar objetivo"
                 )
+
+                opciones_editar = {
+                    f"{fila[2]} - {fila[3]} (ID {fila[0]})": fila
+                    for fila in datos
+                }
+
+                objetivo_editar = st.selectbox(
+                    "Seleccionar objetivo a editar",
+                    list(opciones_editar.keys())
+                )
+
+                objetivo = opciones_editar[
+                    objetivo_editar
+                ]
+
+                st.info(
+                    f"Empresa: {objetivo[1]}"
+                )
+
+                nuevo_titulo = st.text_input(
+                    "Nuevo título",
+                    value=objetivo[3]
+                )
+
+                nueva_descripcion = st.text_area(
+                    "Nueva descripción",
+                    value=objetivo[4]
+                )
+
+                nueva_prioridad = st.selectbox(
+                    "Nueva prioridad",
+                    [
+                        "Alta",
+                        "Media",
+                        "Baja"
+                    ],
+                    index=[
+                        "Alta",
+                        "Media",
+                        "Baja"
+                    ].index(objetivo[5])
+                )
+
+                nuevo_estado = st.selectbox(
+                    "Nuevo estado",
+                    [
+                        "Pendiente",
+                        "En progreso",
+                        "Completado"
+                    ],
+                    index=[
+                        "Pendiente",
+                        "En progreso",
+                        "Completado"
+                    ].index(objetivo[7])
+                )
+
+                nuevo_tipo = st.selectbox(
+                    "Nuevo tipo",
+                    [
+                        "Asignado",
+                        "Personal"
+                    ],
+                    index=[
+                        "Asignado",
+                        "Personal"
+                    ].index(objetivo[9]) if objetivo[9] in [
+                        "Asignado",
+                        "Personal"
+                    ] else 0
+                )
+
+                nueva_evidencia = st.text_input(
+                    "Nuevo link o referencia de evidencia",
+                    value=objetivo[8] if objetivo[8] else ""
+                )
+
+                if st.button(
+                    "Guardar cambios del objetivo"
+                ):
+
+                    cursor.execute(
+                        """
+                        UPDATE objetivos
+                        SET
+                        titulo = ?,
+                        descripcion = ?,
+                        prioridad = ?,
+                        estado = ?,
+                        evidencia = ?,
+                        tipo_objetivo = ?
+                        WHERE id = ?
+                        """,
+                        (
+                            nuevo_titulo,
+                            nueva_descripcion,
+                            nueva_prioridad,
+                            nuevo_estado,
+                            nueva_evidencia,
+                            nuevo_tipo,
+                            objetivo[0]
+                        )
+                    )
+
+                    conn.commit()
+
+                    st.success(
+                        "Objetivo actualizado correctamente"
+                    )
+
+                st.divider()
+
+                st.subheader(
+                    "Eliminar objetivo"
+                )
+
+                opciones_borrar = {
+                    f"{fila[2]} - {fila[3]} (ID {fila[0]})": fila[0]
+                    for fila in datos
+                }
+
+                objetivo_borrar = st.selectbox(
+                    "Seleccionar objetivo a eliminar",
+                    list(opciones_borrar.keys())
+                )
+
+                if st.button(
+                    "🗑 Eliminar objetivo"
+                ):
+
+                    cursor.execute(
+                        """
+                        DELETE FROM objetivos
+                        WHERE id = ?
+                        """,
+                        (
+                            opciones_borrar[
+                                objetivo_borrar
+                            ],
+                        )
+                    )
+
+                    conn.commit()
+
+                    st.success(
+                        "Objetivo eliminado correctamente"
+                    )
             
 
 # =========================
