@@ -1246,12 +1246,57 @@ elif pagina == "Analytics":
 
     cursor.execute(
         """
-        SELECT DISTINCT area
-        FROM personas
-        WHERE area IS NOT NULL
-        AND area <> ''
+        SELECT nombre
+        FROM empresas
+        ORDER BY nombre
         """
     )
+
+    empresas_disponibles = [
+        fila[0]
+        for fila in cursor.fetchall()
+    ]
+
+    filtro_empresa = st.selectbox(
+        "🏢 Empresa",
+        ["Todas"] + empresas_disponibles
+    )
+
+    if filtro_empresa != "Todas":
+
+        st.success(
+            f"Empresa seleccionada: {filtro_empresa}"
+        )
+
+    else:
+
+        st.info(
+            "Mostrando todas las empresas"
+        )
+
+    if filtro_empresa != "Todas":
+
+        cursor.execute(
+            """
+            SELECT DISTINCT area
+            FROM personas
+            WHERE empresa = ?
+            AND area IS NOT NULL
+            AND area <> ''
+            """,
+            (filtro_empresa,)
+        )
+
+    else:
+
+        cursor.execute(
+            """
+            SELECT DISTINCT area
+            FROM personas
+            WHERE area IS NOT NULL
+            AND area <> ''
+            """
+        )
 
     areas_disponibles = [
         fila[0]
