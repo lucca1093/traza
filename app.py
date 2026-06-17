@@ -1671,34 +1671,74 @@ elif pagina == "Analytics":
     # RECONOCIMIENTOS
     # =========================
 
-    st.subheader("🏅 Reconocimientos")
+     st.subheader("🏅 Reconocimientos")
 
-    cursor.execute(
-        """
-        SELECT
-            empleado,
-            COUNT(*) as completados
-        FROM objetivos
-        WHERE estado = 'Completado'
-        GROUP BY empleado
-        ORDER BY completados DESC
-        LIMIT 1
-        """
-    )
+    if filtro_empresa != "Todas":
+
+        cursor.execute(
+            """
+            SELECT
+                empleado,
+                COUNT(*) as completados
+            FROM objetivos
+            WHERE empresa = ?
+            AND estado = 'Completado'
+            GROUP BY empleado
+            ORDER BY completados DESC
+            LIMIT 1
+            """,
+            (filtro_empresa,)
+        )
+
+    else:
+
+        cursor.execute(
+            """
+            SELECT
+                empleado,
+                COUNT(*) as completados
+            FROM objetivos
+            WHERE estado = 'Completado'
+            GROUP BY empleado
+            ORDER BY completados DESC
+            LIMIT 1
+            """
+        )
+
     mayor_cumplimiento = cursor.fetchone()
 
-    cursor.execute(
-        """
-        SELECT
-            empleado,
-            COUNT(*) as positivas
-        FROM objetivos
-        WHERE validacion = 'De acuerdo'
-        GROUP BY empleado
-        ORDER BY positivas DESC
-        LIMIT 1
-        """
-    )
+    if filtro_empresa != "Todas":
+
+        cursor.execute(
+            """
+            SELECT
+                empleado,
+                COUNT(*) as positivas
+            FROM objetivos
+            WHERE empresa = ?
+            AND validacion = 'De acuerdo'
+            GROUP BY empleado
+            ORDER BY positivas DESC
+            LIMIT 1
+            """,
+            (filtro_empresa,)
+        )
+
+    else:
+
+        cursor.execute(
+            """
+            SELECT
+                empleado,
+                COUNT(*) as positivas
+            FROM objetivos
+            WHERE validacion = 'De acuerdo'
+            GROUP BY empleado
+            ORDER BY positivas DESC
+            LIMIT 1
+            """
+        )
+
     mas_positivas = cursor.fetchone()
 
     col_a, col_b = st.columns(2)
@@ -1731,7 +1771,7 @@ elif pagina == "Analytics":
                 "⭐ Más validaciones positivas: sin datos suficientes"
             )
 
-    st.divider()
+    st.divider()   
 
     # =========================
     # PERSONAS A SEGUIMIENTO
