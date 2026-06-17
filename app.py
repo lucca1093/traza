@@ -2568,9 +2568,9 @@ elif pagina == "🏆 Talent Card":
             (empleado,)
         )
 
-        total = cursor.fetchone()[0]
+    total = cursor.fetchone()[0]
 
-        cursor.execute(
+    cursor.execute(
             """
             SELECT COUNT(*)
             FROM objetivos
