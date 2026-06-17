@@ -1789,13 +1789,27 @@ elif pagina == "Analytics":
         "📌 Estado de Objetivos"
     )
 
-    cursor.execute(
-        """
-        SELECT estado, COUNT(*)
-        FROM objetivos
-        GROUP BY estado
-        """
-    )
+    if filtro_empresa != "Todas":
+
+        cursor.execute(
+            """
+            SELECT estado, COUNT(*)
+            FROM objetivos
+            WHERE empresa = ?
+            GROUP BY estado
+            """,
+            (filtro_empresa,)
+        )
+
+    else:
+
+        cursor.execute(
+            """
+            SELECT estado, COUNT(*)
+            FROM objetivos
+            GROUP BY estado
+            """
+        )
 
     estados = cursor.fetchall()
 
@@ -1831,15 +1845,27 @@ elif pagina == "Analytics":
         "📊 Distribución de Prioridades"
     )
 
-    cursor.execute(
-        """
-        SELECT
-        prioridad,
-        COUNT(*)
-        FROM objetivos
-        GROUP BY prioridad
-        """
-    )
+    if filtro_empresa != "Todas":
+
+        cursor.execute(
+            """
+            SELECT prioridad, COUNT(*)
+            FROM objetivos
+            WHERE empresa = ?
+            GROUP BY prioridad
+            """,
+            (filtro_empresa,)
+        )
+
+    else:
+
+        cursor.execute(
+            """
+            SELECT prioridad, COUNT(*)
+            FROM objetivos
+            GROUP BY prioridad
+            """
+        )
 
     prioridades = cursor.fetchall()
 
@@ -1875,16 +1901,29 @@ elif pagina == "Analytics":
         "✅ Distribución de Validaciones"
     )
 
-    cursor.execute(
-        """
-        SELECT
-        validacion,
-        COUNT(*)
-        FROM objetivos
-        WHERE validacion IS NOT NULL
-        GROUP BY validacion
-        """
-    )
+    if filtro_empresa != "Todas":
+
+        cursor.execute(
+            """
+            SELECT validacion, COUNT(*)
+            FROM objetivos
+            WHERE empresa = ?
+            AND validacion IS NOT NULL
+            GROUP BY validacion
+            """,
+            (filtro_empresa,)
+        )
+
+    else:
+
+        cursor.execute(
+            """
+            SELECT validacion, COUNT(*)
+            FROM objetivos
+            WHERE validacion IS NOT NULL
+            GROUP BY validacion
+            """
+        )
 
     validaciones = cursor.fetchall()
 
