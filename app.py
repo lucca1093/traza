@@ -2557,7 +2557,7 @@ elif pagina == "🏆 Talent Card":
     persona_seleccionada
 ]   
 
-        empleado = f"{nombre} {apellido}"
+    empleado = f"{nombre} {apellido}"
 
         cursor.execute(
             """
