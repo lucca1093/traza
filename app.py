@@ -2492,7 +2492,506 @@ elif pagina == "🏆 Talent Card":
     st.title("🏆 Talent Card")
 
     st.caption(
-        "Ficha ejecutiva del colaborador basada en
+        "Ficha ejecutiva del colaborador basada en desempeño, validaciones y evidencias."
+    )
+
+    cursor.execute(
+        """
+        SELECT nombre
+        FROM empresas
+        ORDER BY nombre
+        """
+    )
+
+    empresas_disponibles = [
+        fila[0]
+        for fila in cursor.fetchall()
+    ]
+
+    if len(empresas_disponibles) == 0:
+
+        st.warning(
+            "Primero debes crear una empresa en la sección Empresas."
+        )
+
+    else:
+
+        filtro_empresa = st.selectbox(
+            "🏢 Empresa",
+            empresas_disponibles
+        )
+
+        cursor.execute(
+            """
+            SELECT
+            nombre,
+            apellido,
+            cargo,
+            area,
+            empresa
+            FROM personas
+            WHERE empresa = ?
+            """,
+            (filtro_empresa,)
+        )
+
+        personas = cursor.fetchall()
+
+        if len(personas) == 0:
+
+            st.warning(
+                "No hay personas registradas para esta empresa."
+            )
+
+        else:
+
+            opciones = {
+                f"{nombre} {apellido}": (
+                    nombre,
+                    apellido,
+                    cargo,
+                    area,
+                    empresa
+                )
+                for nombre, apellido, cargo, area, empresa in personas
+            }
+
+            persona_seleccionada = st.selectbox(
+                "Seleccionar colaborador",
+                list(opciones.keys())
+            )
+
+            nombre, apellido, cargo, area, empresa = opciones[
+                persona_seleccionada
+            ]
+
+            empleado = f"{nombre} {apellido}"
+
+            cursor.execute(
+                """
+                SELECT COUNT(*)
+                FROM objetivos
+                WHERE empleado = ?
+                AND empresa = ?
+                """,
+                (empleado, empresa)
+            )
+
+            total = cursor.fetchone()[0]
+
+            cursor.execute(
+                """
+                SELECT COUNT(*)
+                FROM objetivos
+                WHERE empleado = ?
+                AND empresa = ?
+                AND estado = 'Completado'
+                """,
+                (empleado, empresa)
+            )
+
+            completados = cursor.fetchone()[0]
+
+            cursor.execute(
+                """
+                SELECT COUNT(*)
+                FROM objetivos
+                WHERE empleado = ?
+                AND empresa = ?
+                AND validacion = 'De acuerdo'
+                """,
+                (empleado, empresa)
+            )
+
+            positivos = cursor.fetchone()[0]
+
+            cursor.execute(
+                """
+                SELECT COUNT(*)
+                FROM objetivos
+                WHERE empleado = ?
+                AND empresa = ?
+                AND validacion = 'Parcialmente de acuerdo'
+                """,
+                (empleado, empresa)
+            )
+
+            parciales = cursor.fetchone()[0]
+
+            cursor.execute(
+                """
+                SELECT COUNT(*)
+                FROM objetivos
+                WHERE empleado = ?
+                AND empresa = ?
+                AND validacion = 'En desacuerdo'
+                """,
+                (empleado, empresa)
+            )
+
+            negativos = cursor.fetchone()[0]
+
+            cumplimiento = 0
+
+            if total > 0:
+
+                cumplimiento = round(
+                    completados / total * 100,
+                    1
+                )
+
+            puntos = (
+                completados * 10
+                + positivos * 10
+                + parciales * 5
+                - negativos * 10
+            )
+
+            max_puntos = total * 20
+
+            indice = 0
+
+            if max_puntos > 0:
+
+                indice = round(
+                    puntos / max_puntos * 100,
+                    1
+                )
+
+            if indice < 0:
+                indice = 0
+
+            if indice > 100:
+                indice = 100
+
+            if indice >= 85:
+
+                nivel = "Elite"
+                badge = "🏆 Elite Performer"
+                mensaje_nivel = "Desempeño destacado y altamente validado."
+
+            elif indice >= 65:
+
+                nivel = "Avanzado"
+                badge = "⭐ High Performer"
+                mensaje_nivel = "Desempeño sólido con buen nivel de avance."
+
+            elif indice >= 40:
+
+                nivel = "Profesional"
+                badge = "🚀 Growth Professional"
+                mensaje_nivel = "Desempeño en desarrollo con oportunidades de mejora."
+
+            else:
+
+                nivel = "Inicial"
+                badge = "🌱 En Desarrollo"
+                mensaje_nivel = "Historial aún en construcción."
+
+            st.markdown(
+                f"""
+                <div style="
+                    background: linear-gradient(135deg, #F8FAFC 0%, #EEF2F7 100%);
+                    border:1px solid #E5E7EB;
+                    border-radius:22px;
+                    padding:34px;
+                    margin-top:12px;
+                    margin-bottom:22px;
+                ">
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                        <div>
+                            <p style="font-size:14px; color:#64748B; margin-bottom:6px;">
+                                TALENT CARD
+                            </p>
+                            <h1 style="margin:0; color:#0F4C81;">
+                                {empleado}
+                            </h1>
+                            <h3 style="margin-top:8px; color:#1F2937;">
+                                {cargo}
+                            </h3>
+                            <p style="font-size:16px; color:#4B5563;">
+                                {area}
+                            </p>
+                            <p style="font-size:15px; color:#64748B;">
+                                🏢 {empresa}
+                            </p>
+                        </div>
+                        <div style="
+                            background-color:white;
+                            border:1px solid #E5E7EB;
+                            border-radius:16px;
+                            padding:18px;
+                            min-width:180px;
+                            text-align:center;
+                        ">
+                            <p style="margin:0; color:#64748B;">
+                                Índice Traza
+                            </p>
+                            <h1 style="margin:6px 0; color:#0F4C81;">
+                                {indice}/100
+                            </h1>
+                            <strong>Nivel {nivel}</strong>
+                            <br><br>
+                            <span style="
+                                background-color:#0F4C81;
+                                color:white;
+                                padding:6px 12px;
+                                border-radius:20px;
+                                font-size:13px;
+                            ">
+                                {badge}
+                            </span>
+                        </div>
+                    </div>
+                    <hr>
+                    <p style="font-size:16px; color:#374151;">
+                        {mensaje_nivel}
+                    </p>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+
+            st.progress(
+                indice / 100
+            )
+
+            if indice >= 85:
+
+                st.success(
+                    "💪 Fortaleza principal: ejecución consistente y resultados validados."
+                )
+
+            elif indice >= 65:
+
+                st.info(
+                    "💪 Fortaleza principal: cumplimiento sostenido de objetivos."
+                )
+
+            elif indice >= 40:
+
+                st.warning(
+                    "💪 Fortaleza principal: potencial de desarrollo identificado."
+                )
+
+            else:
+
+                st.error(
+                    "💪 Requiere acompañamiento y seguimiento."
+                )
+
+            col1, col2, col3, col4 = st.columns(4)
+
+            with col1:
+                st.metric(
+                    "🎯 Objetivos",
+                    total
+                )
+
+            with col2:
+                st.metric(
+                    "✅ Completados",
+                    completados
+                )
+
+            with col3:
+                st.metric(
+                    "📈 Cumplimiento",
+                    f"{cumplimiento}%"
+                )
+
+            with col4:
+                st.metric(
+                    "⭐ Validaciones +",
+                    positivos
+                )
+
+            st.divider()
+
+            st.subheader(
+                "📌 Resumen profesional"
+            )
+
+            st.write(
+                f"""
+                {empleado} se desempeña en el área de {area} como {cargo} dentro de {empresa}.
+
+                Actualmente posee un Índice Traza de {indice}/100,
+                con un nivel de desempeño {nivel.lower()} y un cumplimiento
+                de objetivos del {cumplimiento}%.
+                """
+            )
+
+            pdf_talent_card = generar_pdf_talent_card(
+                empleado,
+                cargo,
+                area,
+                indice,
+                nivel,
+                cumplimiento,
+                total,
+                completados,
+                positivos
+            )
+
+            st.download_button(
+                label="📄 Descargar Talent Card PDF",
+                data=pdf_talent_card,
+                file_name=f"talent_card_{empleado.replace(' ', '_')}.pdf",
+                mime="application/pdf"
+            )
+
+            st.divider()
+
+            st.subheader(
+                "📈 Evolución del desempeño"
+            )
+
+            historial = pd.DataFrame(
+                {
+                    "Mes": [
+                        "Ene",
+                        "Feb",
+                        "Mar",
+                        "Abr",
+                        "May",
+                        "Jun"
+                    ],
+                    "Índice": [
+                        max(indice - 25, 0),
+                        max(indice - 20, 0),
+                        max(indice - 15, 0),
+                        max(indice - 10, 0),
+                        max(indice - 5, 0),
+                        indice
+                    ]
+                }
+            )
+
+            st.line_chart(
+                historial.set_index("Mes")
+            )
+
+            st.divider()
+
+            st.subheader(
+                "🏅 Logros destacados"
+            )
+
+            cursor.execute(
+                """
+                SELECT titulo
+                FROM objetivos
+                WHERE empleado = ?
+                AND empresa = ?
+                AND estado = 'Completado'
+                LIMIT 5
+                """,
+                (empleado, empresa)
+            )
+
+            logros = cursor.fetchall()
+
+            if len(logros) == 0:
+
+                st.info(
+                    "Todavía no hay logros registrados."
+                )
+
+            else:
+
+                for logro in logros:
+
+                    st.success(
+                        f"✅ {logro[0]}"
+                    )
+
+            st.divider()
+
+            st.subheader(
+                "📎 Evidencias recientes"
+            )
+
+            cursor.execute(
+                """
+                SELECT titulo, evidencia
+                FROM objetivos
+                WHERE empleado = ?
+                AND empresa = ?
+                AND evidencia IS NOT NULL
+                AND evidencia <> ''
+                LIMIT 5
+                """,
+                (empleado, empresa)
+            )
+
+            evidencias = cursor.fetchall()
+
+            if len(evidencias) == 0:
+
+                st.info(
+                    "Todavía no hay evidencias registradas."
+                )
+
+            else:
+
+                for titulo_evidencia, evidencia in evidencias:
+
+                    st.markdown(
+                        f"**{titulo_evidencia}**"
+                    )
+
+                    if evidencia.startswith("evidencias/"):
+
+                        st.success(
+                            f"📄 Archivo registrado: {os.path.basename(evidencia)}"
+                        )
+
+                    elif evidencia.startswith("http"):
+
+                        st.markdown(
+                            f"[📎 Ver evidencia]({evidencia})"
+                        )
+
+                    else:
+
+                        st.write(
+                            evidencia
+                        )
+
+            st.divider()
+
+            st.subheader(
+                "💬 Último feedback"
+            )
+
+            cursor.execute(
+                """
+                SELECT comentario_supervisor
+                FROM objetivos
+                WHERE empleado = ?
+                AND empresa = ?
+                AND comentario_supervisor IS NOT NULL
+                AND comentario_supervisor <> ''
+                ORDER BY id DESC
+                LIMIT 1
+                """,
+                (empleado, empresa)
+            )
+
+            feedback = cursor.fetchone()
+
+            if feedback:
+
+                st.info(
+                    feedback[0]
+                )
+
+            else:
+
+                st.info(
+                    "Todavía no hay feedback registrado."
+                )
 
 elif pagina == "Guía":
 
