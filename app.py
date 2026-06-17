@@ -1671,7 +1671,7 @@ elif pagina == "Analytics":
     # RECONOCIMIENTOS
     # =========================
 
-     st.subheader("🏅 Reconocimientos")
+    st.subheader("🏅 Reconocimientos")
 
     if filtro_empresa != "Todas":
 
