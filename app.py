@@ -1433,32 +1433,65 @@ elif pagina == "Analytics":
     # ÍNDICE ORGANIZACIONAL
     # =========================
 
-    cursor.execute(
-        """
-        SELECT
-            empleado,
-            COUNT(*) as total_objetivos,
-            SUM(
-                CASE
-                    WHEN estado='Completado'
-                    THEN 10
-                    ELSE 0
-                END
-                +
-                CASE
-                    WHEN validacion='De acuerdo'
-                    THEN 10
-                    WHEN validacion='Parcialmente de acuerdo'
-                    THEN 5
-                    WHEN validacion='En desacuerdo'
-                    THEN -10
-                    ELSE 0
-                END
-            ) as puntos
-        FROM objetivos
-        GROUP BY empleado
-        """
-    )
+    if filtro_empresa != "Todas":
+
+        cursor.execute(
+            """
+            SELECT
+                empleado,
+                COUNT(*) as total_objetivos,
+                SUM(
+                    CASE
+                        WHEN estado='Completado'
+                        THEN 10
+                        ELSE 0
+                    END
+                    +
+                    CASE
+                        WHEN validacion='De acuerdo'
+                        THEN 10
+                        WHEN validacion='Parcialmente de acuerdo'
+                        THEN 5
+                        WHEN validacion='En desacuerdo'
+                        THEN -10
+                        ELSE 0
+                    END
+                ) as puntos
+            FROM objetivos
+            WHERE empresa = ?
+            GROUP BY empleado
+            """,
+            (filtro_empresa,)
+        )
+
+    else:
+
+        cursor.execute(
+            """
+            SELECT
+                empleado,
+                COUNT(*) as total_objetivos,
+                SUM(
+                    CASE
+                        WHEN estado='Completado'
+                        THEN 10
+                        ELSE 0
+                    END
+                    +
+                    CASE
+                        WHEN validacion='De acuerdo'
+                        THEN 10
+                        WHEN validacion='Parcialmente de acuerdo'
+                        THEN 5
+                        WHEN validacion='En desacuerdo'
+                        THEN -10
+                        ELSE 0
+                    END
+                ) as puntos
+            FROM objetivos
+            GROUP BY empleado
+            """
+        )
 
     empleados_score = cursor.fetchall()
 
