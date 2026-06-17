@@ -2537,7 +2537,7 @@ elif pagina == "🏆 Talent Card":
 
     else:
 
-    opciones = {
+        opciones = {
     f"{nombre} {apellido}": (
         nombre,
         apellido,
