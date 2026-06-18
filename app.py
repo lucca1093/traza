@@ -37,7 +37,7 @@ def tiene_acceso(pagina, rol):
             "Inicio",
             "Empresas",
             "Personas",
-            "M Trabajo",
+            "Mi Trabajo",
             "Gestión de Objetivos",
             "Validación",
             "Analytics",
