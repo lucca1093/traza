@@ -775,6 +775,73 @@ elif pagina == "Mi Trabajo":
 
     st.title("🎯 Mi Trabajo")
 
+        with st.expander("➕ Crear objetivo personal", expanded=False):
+
+        titulo_personal = st.text_input(
+            "Título del objetivo personal"
+        )
+
+        descripcion_personal = st.text_area(
+            "Descripción"
+        )
+
+        prioridad_personal = st.selectbox(
+            "Prioridad",
+            [
+                "Alta",
+                "Media",
+                "Baja"
+            ]
+        )
+
+        fecha_personal = st.date_input(
+            "Fecha límite"
+        )
+
+        if st.button(
+            "Guardar objetivo personal"
+        ):
+
+            cursor.execute(
+                """
+                INSERT INTO objetivos
+                (
+                    empresa,
+                    empleado,
+                    titulo,
+                    descripcion,
+                    prioridad,
+                    fecha_limite,
+                    estado,
+                    evidencia,
+                    tipo_objetivo
+                )
+                VALUES
+                (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    "",
+                    st.session_state.persona,
+                    titulo_personal,
+                    descripcion_personal,
+                    prioridad_personal,
+                    str(fecha_personal),
+                    "Pendiente",
+                    "",
+                    "Personal"
+                )
+            )
+
+            conn.commit()
+
+            st.success(
+                "Objetivo personal creado correctamente"
+            )
+
+            st.rerun()
+
+    st.divider()
+
     cursor.execute(
         """
         SELECT
