@@ -783,7 +783,7 @@ elif pagina == "Mi Trabajo":
     """
 )
 
-objetivos_debug = cursor.fetchall()
+    objetivos_debug = cursor.fetchall()
 
     st.write("Objetivos en la base:")
     st.write(objetivos_debug) 
