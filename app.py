@@ -54,8 +54,11 @@ def tiene_acceso(pagina, rol):
         ],
         "supervisor": [
             "Inicio",
+            "Mi Trabajo",
+            "Gestión de Objetivos",
             "Validación",
             "Analytics",
+            "Perfil Profesional",
             "🏆 Talent Card",
             "Reportes",
             "Guía"
@@ -199,7 +202,8 @@ if rol == "admin":
         "Inicio",
         "Empresas",
         "Personas",
-        "Plan de Trabajo",
+        "Mi Trabajo",
+        "Gestión de Objetivos",
         "Validación",
         "Analytics",
         "Perfil Profesional",
@@ -212,7 +216,7 @@ elif rol == "empleado":
 
     opciones_menu = [
         "Inicio",
-        "Plan de Trabajo",
+        "Mi Trabajo",
         "Perfil Profesional",
         "🏆 Talent Card",
         "Guía"
@@ -222,8 +226,11 @@ elif rol == "supervisor":
 
     opciones_menu = [
         "Inicio",
+        "Mi Trabajo",
+        "Gestión de Objetivos",
         "Validación",
         "Analytics",
+        "Perfil Profesional",
         "🏆 Talent Card",
         "Reportes",
         "Guía"
