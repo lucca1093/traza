@@ -775,19 +775,6 @@ elif pagina == "Mi Trabajo":
 
     st.title("🎯 Mi Trabajo")
 
-    st.write("Persona logueada:", st.session_state.persona)
-    cursor.execute(
-    """
-    SELECT id, empleado, titulo
-    FROM objetivos
-    """
-)
-
-    objetivos_debug = cursor.fetchall()
-
-    st.write("Objetivos en la base:")
-    st.write(objetivos_debug) 
-
     cursor.execute(
         """
         SELECT
@@ -915,112 +902,71 @@ elif pagina == "Mi Trabajo":
             else:
                 icono_estado = "🔴"
 
-            st.markdown(
-                f"""
-                <div style="
-                    background-color:#FFFFFF;
-                    border:1px solid #E5E7EB;
-                    border-radius:14px;
-                    padding:18px;
-                    margin-bottom:12px;
-                ">
-                    <h4 style="margin:0;">
-                        {icono_estado} {fila["Título"]}
-                    </h4>
-                    <p style="margin:6px 0;">
-                        {fila["Descripción"]}
-                    </p>
-                    <p style="margin:0; color:#6B7280;">
-                        Prioridad: {fila["Prioridad"]} · Vence: {fila["Fecha límite"]} · {fila["Vencimiento"]}
-                    </p>
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
+            with st.container():
 
-            nuevo_estado = st.selectbox(
-                "Actualizar estado",
-                [
-                    "Pendiente",
-                    "En progreso",
-                    "Completado"
-                ],
-                index=[
-                    "Pendiente",
-                    "En progreso",
-                    "Completado"
-                ].index(fila["Estado"]),
-                key=f"estado_{prefijo}_{fila['ID']}"
-            )
-
-            nueva_evidencia_link = st.text_input(
-                "Link de evidencia",
-                value=fila["Evidencia"] if fila["Evidencia"] else "",
-                key=f"link_{prefijo}_{fila['ID']}"
-            )
-
-            nueva_evidencia_archivo = st.file_uploader(
-                "Subir archivo de evidencia",
-                type=[
-                    "pdf",
-                    "png",
-                    "jpg",
-                    "jpeg",
-                    "xlsx",
-                    "csv",
-                    "docx"
-                ],
-                key=f"archivo_{prefijo}_{fila['ID']}"
-            )
-
-            evidencia_final = nueva_evidencia_link
-
-            if nueva_evidencia_archivo is not None:
-
-                if not os.path.exists("evidencias"):
-
-                    os.makedirs("evidencias")
-
-                ruta_archivo = os.path.join(
-                    "evidencias",
-                    nueva_evidencia_archivo.name
+                st.subheader(
+                    f"{icono_estado} {fila['Título']}"
                 )
 
-                with open(ruta_archivo, "wb") as archivo:
-
-                    archivo.write(
-                        nueva_evidencia_archivo.getbuffer()
+                if fila["Descripción"]:
+                    st.write(
+                        fila["Descripción"]
                     )
 
-                evidencia_final = ruta_archivo
+                st.caption(
+                    f"Prioridad: {fila['Prioridad']} · Vence: {fila['Fecha límite']} · {fila['Vencimiento']}"
+                )
 
-            if st.button(
-                "Guardar avance",
-                key=f"guardar_{prefijo}_{fila['ID']}"
-            ):
+                nuevo_estado = st.selectbox(
+                    "Actualizar estado",
+                    [
+                        "Pendiente",
+                        "En progreso",
+                        "Completado"
+                    ],
+                    index=[
+                        "Pendiente",
+                        "En progreso",
+                        "Completado"
+                    ].index(fila["Estado"]),
+                    key=f"estado_{prefijo}_{fila['ID']}"
+                )
 
-                cursor.execute(
-                    """
-                    UPDATE objetivos
-                    SET
-                    estado = ?,
-                    evidencia = ?
-                    WHERE id = ?
-                    """,
-                    (
-                        nuevo_estado,
-                        evidencia_final,
-                        int(fila["ID"])
+                nueva_evidencia_link = st.text_input(
+                    "Link de evidencia",
+                    value=fila["Evidencia"] if fila["Evidencia"] else "",
+                    key=f"link_{prefijo}_{fila['ID']}"
+                )
+
+                if st.button(
+                    "Guardar avance",
+                    key=f"guardar_{prefijo}_{fila['ID']}"
+                ):
+
+                    cursor.execute(
+                        """
+                        UPDATE objetivos
+                        SET
+                        estado = ?,
+                        evidencia = ?
+                        WHERE id = ?
+                        """,
+                        (
+                            nuevo_estado,
+                            nueva_evidencia_link,
+                            int(fila["ID"])
+                        )
                     )
-                )
 
-                conn.commit()
+                    conn.commit()
 
-                st.success(
-                    "Avance actualizado correctamente"
-                )
+                    st.success(
+                        "Avance actualizado correctamente"
+                    )
 
-                st.rerun()
+                    st.rerun()
+
+                st.divider()
 
         # =========================
         # OBJETIVOS ASIGNADOS
