@@ -48,7 +48,7 @@ def tiene_acceso(pagina, rol):
         ],
         "empleado": [
             "Inicio",
-            "Plan de Trabajo",
+            "Mi Trabajo",
             "Perfil Profesional",
             "🏆 Talent Card",
             "Guía"
