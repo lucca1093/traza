@@ -773,643 +773,209 @@ elif pagina == "Personas":
 
 elif pagina == "Mi Trabajo":
 
-    st.title("🎯 Plan de Trabajo")
+    st.title("🎯 Mi Trabajo")
 
     cursor.execute(
         """
         SELECT
-        nombre,
-        apellido,
-        empresa
-        FROM personas
-        """
+        id,
+        empresa,
+        empleado,
+        titulo,
+        descripcion,
+        prioridad,
+        fecha_limite,
+        estado,
+        evidencia,
+        tipo_objetivo
+        FROM objetivos
+        WHERE empleado = ?
+        ORDER BY fecha_limite ASC
+        """,
+        (st.session_state.persona,)
     )
 
-    personas = cursor.fetchall()
+    datos = cursor.fetchall()
 
-    lista_personas = [
-        f"{nombre} {apellido}"
-        for nombre, apellido, empresa in personas
-    ]
+    if len(datos) == 0:
 
-    empresas_por_persona = {
-        f"{nombre} {apellido}": empresa
-        for nombre, apellido, empresa in personas
-    }
-
-    if len(lista_personas) == 0:
-
-        st.warning(
-            "Primero debes crear una persona en la sección Personas."
+        st.info(
+            "Todavía no tenés objetivos registrados."
         )
 
     else:
 
-        # =========================
-        # CREAR OBJETIVO
-        # =========================
-
-        with st.expander("➕ Crear nuevo objetivo", expanded=False):
-
-            if st.session_state.rol == "admin":
-
-                empleado = st.selectbox(
-                    "Empleado",
-                    lista_personas
-                )
-
-                tipo_objetivo = st.selectbox(
-                    "Tipo de objetivo",
-                    [
-                        "Asignado",
-                        "Personal"
-                    ]
-                )
-
-            elif st.session_state.rol == "supervisor":
-
-                empleado = st.selectbox(
-                    "Empleado",
-                    lista_personas
-                )
-
-                tipo_objetivo = "Asignado"
-
-                st.info(
-                    "Como supervisor, este objetivo se cargará como asignado."
-                )
-
-            else:
-
-                empleado = st.session_state.persona
-
-                tipo_objetivo = "Personal"
-
-                st.info(
-                    f"Empleado: {empleado}"
-                )
-
-                st.info(
-                    "Como empleado, este objetivo se cargará como personal."
-                )
-
-            empresa_objetivo = empresas_por_persona.get(
-                empleado,
-                ""
-            )
-
-            st.info(
-                f"Empresa: {empresa_objetivo}"
-            )
-
-            titulo = st.text_input("Título del objetivo")
-
-            descripcion = st.text_area("Descripción")
-
-            prioridad = st.selectbox(
+        df_objetivos = pd.DataFrame(
+            datos,
+            columns=[
+                "ID",
+                "Empresa",
+                "Empleado",
+                "Título",
+                "Descripción",
                 "Prioridad",
-                [
-                    "Alta",
-                    "Media",
-                    "Baja"
-                ]
-            )
-
-            fecha_limite = st.date_input("Fecha límite")
-
-            estado = st.selectbox(
+                "Fecha límite",
                 "Estado",
-                [
-                    "Pendiente",
-                    "En progreso",
-                    "Completado"
-                ]
-            )
+                "Evidencia",
+                "Tipo"
+            ]
+        )
 
-            evidencia_link = st.text_input(
-                "Link de evidencia"
-            )
+        hoy = date.today()
 
-            evidencia_archivo = st.file_uploader(
-                "Subir archivo de evidencia",
-                type=[
-                    "pdf",
-                    "png",
-                    "jpg",
-                    "jpeg",
-                    "xlsx",
-                    "csv",
-                    "docx"
-                ]
-            )
+        estados_vencimiento = []
 
-            evidencia = evidencia_link
+        for _, fila in df_objetivos.iterrows():
 
-            if evidencia_archivo is not None:
+            try:
 
-                if not os.path.exists("evidencias"):
+                fecha = pd.to_datetime(
+                    fila["Fecha límite"]
+                ).date()
 
-                    os.makedirs("evidencias")
+                if (
+                    fecha < hoy
+                    and fila["Estado"] != "Completado"
+                ):
 
-                ruta_archivo = os.path.join(
-                    "evidencias",
-                    evidencia_archivo.name
+                    estados_vencimiento.append(
+                        "⚠️ Vencido"
+                    )
+
+                else:
+
+                    estados_vencimiento.append(
+                        "OK"
+                    )
+
+            except:
+
+                estados_vencimiento.append(
+                    "-"
                 )
 
-                with open(ruta_archivo, "wb") as archivo:
+        df_objetivos["Vencimiento"] = estados_vencimiento
 
-                    archivo.write(
-                        evidencia_archivo.getbuffer()
-                    )
+        pendientes = len(
+            df_objetivos[
+                df_objetivos["Estado"] != "Completado"
+            ]
+        )
 
-                evidencia = ruta_archivo
+        completados = len(
+            df_objetivos[
+                df_objetivos["Estado"] == "Completado"
+            ]
+        )
 
-            if st.button("Guardar Objetivo"):
+        vencidos = len(
+            df_objetivos[
+                df_objetivos["Vencimiento"] == "⚠️ Vencido"
+            ]
+        )
 
-                cursor.execute(
-                    """
-                    INSERT INTO objetivos
-                    (
-                        empresa,
-                        empleado,
-                        titulo,
-                        descripcion,
-                        prioridad,
-                        fecha_limite,
-                        estado,
-                        evidencia,
-                        tipo_objetivo
-                    )
-                    VALUES
-                    (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        col1, col2, col3 = st.columns(3)
+
+        with col1:
+            st.metric("Pendientes", pendientes)
+
+        with col2:
+            st.metric("Completados", completados)
+
+        with col3:
+            st.metric("Vencidos", vencidos)
+
+        st.divider()
+
+        st.subheader("📥 Objetivos asignados")
+
+        df_asignados = df_objetivos[
+            df_objetivos["Tipo"] == "Asignado"
+        ]
+
+        if len(df_asignados) == 0:
+
+            st.info("No hay objetivos asignados.")
+
+        else:
+
+            for _, fila in df_asignados.iterrows():
+
+                if fila["Estado"] == "Completado":
+                    icono_estado = "🟢"
+                elif fila["Estado"] == "En progreso":
+                    icono_estado = "🟡"
+                else:
+                    icono_estado = "🔴"
+
+                st.markdown(
+                    f"""
+                    <div style="
+                        background-color:#FFFFFF;
+                        border:1px solid #E5E7EB;
+                        border-radius:14px;
+                        padding:18px;
+                        margin-bottom:12px;
+                    ">
+                        <h4 style="margin:0;">
+                            {icono_estado} {fila["Título"]}
+                        </h4>
+                        <p style="margin:6px 0;">
+                            {fila["Descripción"]}
+                        </p>
+                        <p style="margin:0; color:#6B7280;">
+                            Prioridad: {fila["Prioridad"]} · Vence: {fila["Fecha límite"]} · {fila["Vencimiento"]}
+                        </p>
+                    </div>
                     """,
-                    (
-                        empresa_objetivo,
-                        empleado,
-                        titulo,
-                        descripcion,
-                        prioridad,
-                        str(fecha_limite),
-                        estado,
-                        evidencia,
-                        tipo_objetivo
-                    )
-                )
-
-                conn.commit()
-
-                st.success(
-                    "Objetivo guardado correctamente"
+                    unsafe_allow_html=True
                 )
 
         st.divider()
 
-        # =========================
-        # FILTRAR OBJETIVOS POR ROL
-        # =========================
+        st.subheader("📌 Objetivos personales")
 
-        if st.session_state.rol == "empleado":
+        df_personales = df_objetivos[
+            df_objetivos["Tipo"] == "Personal"
+        ]
 
-            cursor.execute(
-                """
-                SELECT
-                id,
-                empresa,
-                empleado,
-                titulo,
-                descripcion,
-                prioridad,
-                fecha_limite,
-                estado,
-                evidencia,
-                tipo_objetivo
-                FROM objetivos
-                WHERE empleado = ?
-                ORDER BY fecha_limite ASC
-                """,
-                (st.session_state.persona,)
-            )
+        if len(df_personales) == 0:
+
+            st.info("No hay objetivos personales.")
 
         else:
 
-            cursor.execute(
-                """
-                SELECT
-                id,
-                empresa,
-                empleado,
-                titulo,
-                descripcion,
-                prioridad,
-                fecha_limite,
-                estado,
-                evidencia,
-                tipo_objetivo
-                FROM objetivos
-                ORDER BY fecha_limite ASC
-                """
-            )
+            for _, fila in df_personales.iterrows():
 
-        datos = cursor.fetchall()
+                if fila["Estado"] == "Completado":
+                    icono_estado = "🟢"
+                elif fila["Estado"] == "En progreso":
+                    icono_estado = "🟡"
+                else:
+                    icono_estado = "🔴"
 
-        if len(datos) == 0:
-
-            st.info(
-                "Todavía no hay objetivos registrados."
-            )
-
-        else:
-
-            df_objetivos = pd.DataFrame(
-                datos,
-                columns=[
-                    "ID",
-                    "Empresa",
-                    "Empleado",
-                    "Título",
-                    "Descripción",
-                    "Prioridad",
-                    "Fecha límite",
-                    "Estado",
-                    "Evidencia",
-                    "Tipo"
-                ]
-            )
-
-            hoy = date.today()
-
-            estados_vencimiento = []
-
-            for _, fila in df_objetivos.iterrows():
-
-                try:
-
-                    fecha = pd.to_datetime(
-                        fila["Fecha límite"]
-                    ).date()
-
-                    if (
-                        fecha < hoy
-                        and fila["Estado"] != "Completado"
-                    ):
-
-                        estados_vencimiento.append(
-                            "⚠️ Vencido"
-                        )
-
-                    else:
-
-                        estados_vencimiento.append(
-                            "OK"
-                        )
-
-                except:
-
-                    estados_vencimiento.append(
-                        "-"
-                    )
-
-            df_objetivos[
-                "Vencimiento"
-            ] = estados_vencimiento
-
-            # =========================
-            # RESUMEN
-            # =========================
-
-            pendientes = len(
-                df_objetivos[
-                    df_objetivos["Estado"] != "Completado"
-                ]
-            )
-
-            completados = len(
-                df_objetivos[
-                    df_objetivos["Estado"] == "Completado"
-                ]
-            )
-
-            vencidos = len(
-                df_objetivos[
-                    df_objetivos["Vencimiento"] == "⚠️ Vencido"
-                ]
-            )
-
-            col1, col2, col3 = st.columns(3)
-
-            with col1:
-                st.metric(
-                    "Pendientes",
-                    pendientes
+                st.markdown(
+                    f"""
+                    <div style="
+                        background-color:#FFFFFF;
+                        border:1px solid #E5E7EB;
+                        border-radius:14px;
+                        padding:18px;
+                        margin-bottom:12px;
+                    ">
+                        <h4 style="margin:0;">
+                            {icono_estado} {fila["Título"]}
+                        </h4>
+                        <p style="margin:6px 0;">
+                            {fila["Descripción"]}
+                        </p>
+                        <p style="margin:0; color:#6B7280;">
+                            Prioridad: {fila["Prioridad"]} · Vence: {fila["Fecha límite"]} · {fila["Vencimiento"]}
+                        </p>
+                    </div>
+                    """,
+                    unsafe_allow_html=True
                 )
-
-            with col2:
-                st.metric(
-                    "Completados",
-                    completados
-                )
-
-            with col3:
-                st.metric(
-                    "Vencidos",
-                    vencidos
-                )
-
-            st.divider()
-
-            # =========================
-            # TARJETAS VISUALES
-            # =========================
-
-            st.subheader(
-                "📥 Objetivos asignados"
-            )
-
-            df_asignados = df_objetivos[
-                df_objetivos["Tipo"] == "Asignado"
-            ]
-
-            if len(df_asignados) == 0:
-
-                st.info(
-                    "No hay objetivos asignados."
-                )
-
-            else:
-
-                for _, fila in df_asignados.iterrows():
-
-                    if fila["Estado"] == "Completado":
-                        icono_estado = "🟢"
-
-                    elif fila["Estado"] == "En progreso":
-                        icono_estado = "🟡"
-
-                    else:
-                        icono_estado = "🔴"
-
-                    st.markdown(
-                        f"""
-                        <div style="
-                            background-color:#FFFFFF;
-                            border:1px solid #E5E7EB;
-                            border-radius:14px;
-                            padding:18px;
-                            margin-bottom:12px;
-                        ">
-                            <h4 style="margin:0;">
-                                {icono_estado} {fila["Título"]}
-                            </h4>
-                            <p style="margin:6px 0;">
-                                {fila["Descripción"]}
-                            </p>
-                            <p style="margin:0; color:#6B7280;">
-                                Empresa: {fila["Empresa"]} · Empleado: {fila["Empleado"]} · Prioridad: {fila["Prioridad"]} · Vence: {fila["Fecha límite"]}
-                            </p>
-                        </div>
-                        """,
-                        unsafe_allow_html=True
-                    )
-
-            st.divider()
-
-            st.subheader(
-                "📌 Objetivos personales"
-            )
-
-            df_personales = df_objetivos[
-                df_objetivos["Tipo"] == "Personal"
-            ]
-
-            if len(df_personales) == 0:
-
-                st.info(
-                    "No hay objetivos personales."
-                )
-
-            else:
-
-                for _, fila in df_personales.iterrows():
-
-                    if fila["Estado"] == "Completado":
-                        icono_estado = "🟢"
-
-                    elif fila["Estado"] == "En progreso":
-                        icono_estado = "🟡"
-
-                    else:
-                        icono_estado = "🔴"
-
-                    st.markdown(
-                        f"""
-                        <div style="
-                            background-color:#FFFFFF;
-                            border:1px solid #E5E7EB;
-                            border-radius:14px;
-                            padding:18px;
-                            margin-bottom:12px;
-                        ">
-                            <h4 style="margin:0;">
-                                {icono_estado} {fila["Título"]}
-                            </h4>
-                            <p style="margin:6px 0;">
-                                {fila["Descripción"]}
-                            </p>
-                            <p style="margin:0; color:#6B7280;">
-                                Empresa: {fila["Empresa"]} · Empleado: {fila["Empleado"]} · Prioridad: {fila["Prioridad"]} · Vence: {fila["Fecha límite"]}
-                            </p>
-                        </div>
-                        """,
-                        unsafe_allow_html=True
-                    )
-
-            st.divider()
-
-            # =========================
-            # TABLA ADMINISTRATIVA
-            # =========================
-
-            with st.expander("📋 Ver tabla administrativa", expanded=False):
-
-                st.dataframe(
-                    df_objetivos,
-                    use_container_width=True
-                )
-
-            # =========================
-            # EDITAR / ELIMINAR
-            # =========================
-
-            if st.session_state.rol != "empleado":
-
-                st.divider()
-
-                st.subheader(
-                    "Editar objetivo"
-                )
-
-                opciones_editar = {
-                    f"{fila[2]} - {fila[3]} (ID {fila[0]})": fila
-                    for fila in datos
-                }
-
-                objetivo_editar = st.selectbox(
-                    "Seleccionar objetivo a editar",
-                    list(opciones_editar.keys())
-                )
-
-                objetivo = opciones_editar[
-                    objetivo_editar
-                ]
-
-                st.info(
-                    f"Empresa: {objetivo[1]}"
-                )
-
-                nuevo_titulo = st.text_input(
-                    "Nuevo título",
-                    value=objetivo[3]
-                )
-
-                nueva_descripcion = st.text_area(
-                    "Nueva descripción",
-                    value=objetivo[4]
-                )
-
-                nueva_prioridad = st.selectbox(
-                    "Nueva prioridad",
-                    [
-                        "Alta",
-                        "Media",
-                        "Baja"
-                    ],
-                    index=[
-                        "Alta",
-                        "Media",
-                        "Baja"
-                    ].index(objetivo[5])
-                )
-
-                nuevo_estado = st.selectbox(
-                    "Nuevo estado",
-                    [
-                        "Pendiente",
-                        "En progreso",
-                        "Completado"
-                    ],
-                    index=[
-                        "Pendiente",
-                        "En progreso",
-                        "Completado"
-                    ].index(objetivo[7])
-                )
-
-                nuevo_tipo = st.selectbox(
-                    "Nuevo tipo",
-                    [
-                        "Asignado",
-                        "Personal"
-                    ],
-                    index=[
-                        "Asignado",
-                        "Personal"
-                    ].index(objetivo[9]) if objetivo[9] in [
-                        "Asignado",
-                        "Personal"
-                    ] else 0
-                )
-
-                nueva_evidencia = st.text_input(
-                    "Nuevo link o referencia de evidencia",
-                    value=objetivo[8] if objetivo[8] else ""
-                )
-
-                if st.button(
-                    "Guardar cambios del objetivo"
-                ):
-
-                    cursor.execute(
-                        """
-                        UPDATE objetivos
-                        SET
-                        titulo = ?,
-                        descripcion = ?,
-                        prioridad = ?,
-                        estado = ?,
-                        evidencia = ?,
-                        tipo_objetivo = ?
-                        WHERE id = ?
-                        """,
-                        (
-                            nuevo_titulo,
-                            nueva_descripcion,
-                            nueva_prioridad,
-                            nuevo_estado,
-                            nueva_evidencia,
-                            nuevo_tipo,
-                            objetivo[0]
-                        )
-                    )
-
-                    conn.commit()
-
-                    st.success(
-                        "Objetivo actualizado correctamente"
-                    )
-
-                st.divider()
-
-                st.subheader(
-                    "Eliminar objetivo"
-                )
-
-                opciones_borrar = {
-                    f"{fila[2]} - {fila[3]} (ID {fila[0]})": fila[0]
-                    for fila in datos
-                }
-
-                objetivo_borrar = st.selectbox(
-                    "Seleccionar objetivo a eliminar",
-                    list(opciones_borrar.keys())
-                )
-
-                if st.button(
-                    "🗑 Eliminar objetivo"
-                ):
-
-                    cursor.execute(
-                        """
-                        DELETE FROM objetivos
-                        WHERE id = ?
-                        """,
-                        (
-                            opciones_borrar[
-                                objetivo_borrar
-                            ],
-                        )
-                    )
-
-                    conn.commit()
-
-                    st.success(
-                        "Objetivo eliminado correctamente"
-                    )
-            
-elif pagina == "Gestión de Objetivos":
-
-    st.title("⚙️ Gestión de Objetivos")
-
-    st.write(
-        """
-        Desde esta sección, administradores y supervisores podrán crear,
-        editar y eliminar objetivos del equipo.
-        """
-    )
-
-    st.info(
-        "Próximo paso: mover acá el formulario de creación, edición y eliminación de objetivos."
-    )
-
 # =========================
 # SUPERVISOR
 # =========================
