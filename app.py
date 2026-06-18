@@ -770,7 +770,7 @@ elif pagina == "Personas":
 # OBJETIVOS
 # =========================
 
-elif pagina == "Plan de Trabajo":
+elif pagina == "Mi Trabajo":
 
     st.title("🎯 Plan de Trabajo")
 
@@ -1394,6 +1394,20 @@ elif pagina == "Plan de Trabajo":
                         "Objetivo eliminado correctamente"
                     )
             
+elif pagina == "Gestión de Objetivos":
+
+    st.title("⚙️ Gestión de Objetivos")
+
+    st.write(
+        """
+        Desde esta sección, administradores y supervisores podrán crear,
+        editar y eliminar objetivos del equipo.
+        """
+    )
+
+    st.info(
+        "Próximo paso: mover acá el formulario de creación, edición y eliminación de objetivos."
+    )
 
 # =========================
 # SUPERVISOR
