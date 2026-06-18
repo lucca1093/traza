@@ -776,6 +776,17 @@ elif pagina == "Mi Trabajo":
     st.title("🎯 Mi Trabajo")
 
     st.write("Persona logueada:", st.session_state.persona)
+    cursor.execute(
+    """
+    SELECT id, empleado, titulo
+    FROM objetivos
+    """
+)
+
+objetivos_debug = cursor.fetchall()
+
+st.write("Objetivos en la base:")
+st.write(objetivos_debug)
 
     cursor.execute(
         """
