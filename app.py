@@ -775,7 +775,7 @@ elif pagina == "Mi Trabajo":
 
     st.title("🎯 Mi Trabajo")
 
-        with st.expander("➕ Crear objetivo personal", expanded=False):
+    with st.expander("➕ Crear objetivo personal", expanded=False):
 
         titulo_personal = st.text_input(
             "Título del objetivo personal"
