@@ -775,6 +775,8 @@ elif pagina == "Mi Trabajo":
 
     st.title("🎯 Mi Trabajo")
 
+    st.write("Persona logueada:", st.session_state.persona)
+
     cursor.execute(
         """
         SELECT
