@@ -1108,7 +1108,7 @@ elif pagina == "Mi Trabajo":
         # OBJETIVOS ASIGNADOS
         # =========================
 
-        st.subheader("📥 Objetivos asignados")
+                st.subheader("📥 Objetivos asignados")
 
         df_asignados = df_objetivos[
             df_objetivos["Tipo"] == "Asignado"
