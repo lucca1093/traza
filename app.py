@@ -955,6 +955,60 @@ elif pagina == "Mi Trabajo":
         st.divider()
 
         # =========================
+        # VISTA SEMANAL
+        # =========================
+
+        st.subheader("📅 Vista semanal")
+
+        hoy = date.today()
+
+        inicio_semana = hoy - pd.Timedelta(days=hoy.weekday())
+
+        dias_semana = [
+            inicio_semana + pd.Timedelta(days=i)
+            for i in range(7)
+        ]
+
+        columnas_dias = st.columns(7)
+
+        for i, dia in enumerate(dias_semana):
+
+            with columnas_dias[i]:
+
+                st.markdown(
+                    f"**{dia.strftime('%a %d/%m')}**"
+                )
+
+                objetivos_dia = df_objetivos[
+                    pd.to_datetime(
+                        df_objetivos["Fecha límite"]
+                    ).dt.date == dia
+                ]
+
+                if len(objetivos_dia) == 0:
+
+                    st.caption("Sin objetivos")
+
+                else:
+
+                    for _, obj in objetivos_dia.iterrows():
+
+                        if obj["Estado"] == "Completado":
+                            icono = "🟢"
+
+                        elif obj["Estado"] == "En progreso":
+                            icono = "🟡"
+
+                        else:
+                            icono = "🔴"
+
+                        st.markdown(
+                            f"{icono} {obj['Título']}"
+                        )
+
+        st.divider()        
+
+        # =========================
         # FUNCIÓN PARA TARJETAS
         # =========================
 
