@@ -1005,12 +1005,12 @@ elif pagina == "Mi Trabajo":
                     key=f"link_{prefijo}_{fila['ID']}"
                 )
 
-                if st.button(
+            if st.button(
                     "Guardar avance",
                     key=f"guardar_{prefijo}_{fila['ID']}"
                 ):
 
-                if prefijo == "personal":
+            if prefijo == "personal":
 
         st.markdown("### ⚙️ Gestionar objetivo personal")
 
