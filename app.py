@@ -1010,7 +1010,7 @@ elif pagina == "Mi Trabajo":
                     key=f"guardar_{prefijo}_{fila['ID']}"
                 ):
 
-                            if prefijo == "personal":
+                if prefijo == "personal":
 
         st.markdown("### ⚙️ Gestionar objetivo personal")
 
