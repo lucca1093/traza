@@ -1010,6 +1010,73 @@ elif pagina == "Mi Trabajo":
                     key=f"guardar_{prefijo}_{fila['ID']}"
                 ):
 
+                            if prefijo == "personal":
+
+                st.markdown("### ⚙️ Gestionar objetivo personal")
+
+                nuevo_titulo = st.text_input(
+                    "Editar título",
+                    value=fila["Título"],
+                    key=f"titulo_{fila['ID']}"
+                )
+
+                nueva_descripcion = st.text_area(
+                    "Editar descripción",
+                    value=fila["Descripción"],
+                    key=f"descripcion_{fila['ID']}"
+                )
+
+                if st.button(
+                    "✏️ Guardar cambios",
+                    key=f"editar_{fila['ID']}"
+                ):
+
+                    cursor.execute(
+                        """
+                        UPDATE objetivos
+                        SET
+                        titulo = ?,
+                        descripcion = ?
+                        WHERE id = ?
+                        """,
+                        (
+                            nuevo_titulo,
+                            nueva_descripcion,
+                            int(fila["ID"])
+                        )
+                    )
+
+                    conn.commit()
+
+                    st.success(
+                        "Objetivo actualizado correctamente"
+                    )
+
+                    st.rerun()
+
+                if st.button(
+                    "🗑 Eliminar objetivo",
+                    key=f"eliminar_{fila['ID']}"
+                ):
+
+                    cursor.execute(
+                        """
+                        DELETE FROM objetivos
+                        WHERE id = ?
+                        """,
+                        (
+                            int(fila["ID"]),
+                        )
+                    )
+
+                    conn.commit()
+
+                    st.success(
+                        "Objetivo eliminado correctamente"
+                    )
+
+                    st.rerun()
+
                     cursor.execute(
                         """
                         UPDATE objetivos
