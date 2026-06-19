@@ -958,7 +958,7 @@ elif pagina == "Mi Trabajo":
         # FUNCIÓN PARA TARJETAS
         # =========================
 
-            def mostrar_tarjeta_objetivo(fila, prefijo):
+    def mostrar_tarjeta_objetivo(fila, prefijo):
 
             if fila["Estado"] == "Completado":
                 icono_estado = "🟢"
