@@ -1012,7 +1012,7 @@ elif pagina == "Mi Trabajo":
 
                             if prefijo == "personal":
 
-                st.markdown("### ⚙️ Gestionar objetivo personal")
+        st.markdown("### ⚙️ Gestionar objetivo personal")
 
                 nuevo_titulo = st.text_input(
                     "Editar título",
