@@ -958,69 +958,101 @@ elif pagina == "Mi Trabajo":
         # FUNCIÓN PARA TARJETAS
         # =========================
 
-    def mostrar_tarjeta_objetivo(fila, prefijo):
+        def mostrar_tarjeta_objetivo(fila, prefijo):
 
-            if fila["Estado"] == "Completado":
-                icono_estado = "🟢"
+            st.subheader(
+                f"{fila['Título']}"
+            )
 
-            elif fila["Estado"] == "En progreso":
-                icono_estado = "🟡"
+            if fila["Descripción"]:
 
-            else:
-                icono_estado = "🔴"
-
-            with st.container():
-
-                st.subheader(
-                    f"{icono_estado} {fila['Título']}"
+                st.write(
+                    fila["Descripción"]
                 )
 
-                if fila["Descripción"]:
-                    st.write(
-                        fila["Descripción"]
+            st.caption(
+                f"Prioridad: {fila['Prioridad']} | Estado: {fila['Estado']} | Vence: {fila['Fecha límite']}"
+            )
+
+            nuevo_estado = st.selectbox(
+                "Actualizar estado",
+                [
+                    "Pendiente",
+                    "En progreso",
+                    "Completado"
+                ],
+                index=[
+                    "Pendiente",
+                    "En progreso",
+                    "Completado"
+                ].index(fila["Estado"]),
+                key=f"estado_{prefijo}_{fila['ID']}"
+            )
+
+            evidencia = st.text_input(
+                "Link evidencia",
+                value=fila["Evidencia"] if fila["Evidencia"] else "",
+                key=f"evidencia_{prefijo}_{fila['ID']}"
+            )
+
+            if st.button(
+                "Guardar avance",
+                key=f"guardar_{prefijo}_{fila['ID']}"
+            ):
+
+                cursor.execute(
+                    """
+                    UPDATE objetivos
+                    SET estado = ?, evidencia = ?
+                    WHERE id = ?
+                    """,
+                    (
+                        nuevo_estado,
+                        evidencia,
+                        int(fila["ID"])
                     )
-
-                st.caption(
-                    f"Prioridad: {fila['Prioridad']} · Vence: {fila['Fecha límite']} · {fila['Vencimiento']}"
                 )
 
-                nuevo_estado = st.selectbox(
-                    "Actualizar estado",
-                    [
-                        "Pendiente",
-                        "En progreso",
-                        "Completado"
-                    ],
-                    index=[
-                        "Pendiente",
-                        "En progreso",
-                        "Completado"
-                    ].index(fila["Estado"]),
-                    key=f"estado_{prefijo}_{fila['ID']}"
+                conn.commit()
+
+                st.success(
+                    "Avance guardado"
                 )
 
-                nueva_evidencia_link = st.text_input(
-                    "Link de evidencia",
-                    value=fila["Evidencia"] if fila["Evidencia"] else "",
-                    key=f"link_{prefijo}_{fila['ID']}"
+                st.rerun()
+
+            if prefijo == "personal":
+
+                st.markdown(
+                    "#### ⚙️ Gestionar objetivo personal"
+                )
+
+                nuevo_titulo = st.text_input(
+                    "Título",
+                    value=fila["Título"],
+                    key=f"titulo_{fila['ID']}"
+                )
+
+                nueva_descripcion = st.text_area(
+                    "Descripción",
+                    value=fila["Descripción"],
+                    key=f"descripcion_{fila['ID']}"
                 )
 
                 if st.button(
-                    "Guardar avance",
-                    key=f"guardar_{prefijo}_{fila['ID']}"
+                    "✏️ Guardar cambios",
+                    key=f"editar_{fila['ID']}"
                 ):
 
                     cursor.execute(
                         """
                         UPDATE objetivos
-                        SET
-                        estado = ?,
-                        evidencia = ?
+                        SET titulo = ?, descripcion = ?
                         WHERE id = ?
                         """,
                         (
-                            nuevo_estado,
-                            nueva_evidencia_link,
+                            nuevo_titulo,
+                            nueva_descripcion,
                             int(fila["ID"])
                         )
                     )
@@ -1028,95 +1060,53 @@ elif pagina == "Mi Trabajo":
                     conn.commit()
 
                     st.success(
-                        "Avance actualizado correctamente"
+                        "Objetivo actualizado"
                     )
 
                     st.rerun()
 
-                if prefijo == "personal":
+                if st.button(
+                    "🗑 Eliminar objetivo",
+                    key=f"eliminar_{fila['ID']}"
+                ):
 
-                    st.markdown(
-                        "### ⚙️ Gestionar objetivo personal"
+                    cursor.execute(
+                        """
+                        DELETE FROM objetivos
+                        WHERE id = ?
+                        """,
+                        (
+                            int(fila["ID"]),
+                        )
                     )
 
-                    nuevo_titulo = st.text_input(
-                        "Editar título",
-                        value=fila["Título"],
-                        key=f"titulo_{fila['ID']}"
+                    conn.commit()
+
+                    st.success(
+                        "Objetivo eliminado"
                     )
 
-                    nueva_descripcion = st.text_area(
-                        "Editar descripción",
-                        value=fila["Descripción"],
-                        key=f"descripcion_{fila['ID']}"
-                    )
+                    st.rerun()
 
-                    if st.button(
-                        "✏️ Guardar cambios",
-                        key=f"editar_{fila['ID']}"
-                    ):
-
-                        cursor.execute(
-                            """
-                            UPDATE objetivos
-                            SET
-                            titulo = ?,
-                            descripcion = ?
-                            WHERE id = ?
-                            """,
-                            (
-                                nuevo_titulo,
-                                nueva_descripcion,
-                                int(fila["ID"])
-                            )
-                        )
-
-                        conn.commit()
-
-                        st.success(
-                            "Objetivo actualizado correctamente"
-                        )
-
-                        st.rerun()
-
-                    if st.button(
-                        "🗑 Eliminar objetivo",
-                        key=f"eliminar_{fila['ID']}"
-                    ):
-
-                        cursor.execute(
-                            """
-                            DELETE FROM objetivos
-                            WHERE id = ?
-                            """,
-                            (
-                                int(fila["ID"]),
-                            )
-                        )
-
-                        conn.commit()
-
-                        st.success(
-                            "Objetivo eliminado correctamente"
-                        )
-
-                        st.rerun()
-
-                st.divider()    
+            st.divider()
 
         # =========================
         # OBJETIVOS ASIGNADOS
         # =========================
 
-                st.subheader("📥 Objetivos asignados")
+        st.subheader(
+            "📥 Objetivos asignados"
+        )
 
-            df_asignados = df_objetivos[
+        df_asignados = df_objetivos[
             df_objetivos["Tipo"] == "Asignado"
         ]
 
         if len(df_asignados) == 0:
 
-            st.info("No hay objetivos asignados.")
+            st.info(
+                "No hay objetivos asignados."
+            )
 
         else:
 
@@ -1133,7 +1123,9 @@ elif pagina == "Mi Trabajo":
         # OBJETIVOS PERSONALES
         # =========================
 
-        st.subheader("📌 Objetivos personales")
+        st.subheader(
+            "📌 Objetivos personales"
+        )
 
         df_personales = df_objetivos[
             df_objetivos["Tipo"] == "Personal"
@@ -1141,7 +1133,9 @@ elif pagina == "Mi Trabajo":
 
         if len(df_personales) == 0:
 
-            st.info("No hay objetivos personales.")
+            st.info(
+                "No hay objetivos personales."
+            )
 
         else:
 
