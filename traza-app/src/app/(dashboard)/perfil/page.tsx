@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import TraceIndexBar from '@/components/ui/TraceIndexBar'
-import { calcularIndiceTraza, getValidacionClasses, getEstadoClasses, formatFecha } from '@/lib/traza'
+import { calcularIndiceTraza, getValidacionStyle, getEstadoClasses, formatFecha } from '@/lib/traza'
 import { CheckCircle2, Trophy, Award, MessageSquare } from 'lucide-react'
 import type { Objetivo, Persona, Profile } from '@/types'
 
@@ -157,7 +157,7 @@ export default function PerfilPage() {
                   {ultimasFeedbacks.map(o => (
                     <div key={o.id} className="border-l-2 border-traza-200 pl-3">
                       <p className="text-xs font-medium text-gray-900">{o.titulo}</p>
-                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${getValidacionClasses(o.validacion)}`}>
+                      <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={getValidacionStyle(o.validacion)}>
                         {o.validacion}
                       </span>
                       {o.comentario_supervisor && (
@@ -192,7 +192,7 @@ export default function PerfilPage() {
                       <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${getEstadoClasses(o.estado)}`}>{o.estado}</span>
                     </td>
                     <td className="px-6 py-3">
-                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${getValidacionClasses(o.validacion)}`}>
+                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${getValidacionStyle(o.validacion)}`}>
                         {o.validacion ?? 'Sin validar'}
                       </span>
                     </td>

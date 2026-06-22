@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import Button from '@/components/ui/Button'
-import { getEstadoClasses, getValidacionClasses, formatFecha } from '@/lib/traza'
+import { getEstadoClasses, getValidacionStyle, formatFecha } from '@/lib/traza'
 import { Paperclip, MessageSquare, Link2 } from 'lucide-react'
 
 export default function ValidacionPage() {
@@ -94,7 +94,7 @@ export default function ValidacionPage() {
                     {obj.estado}
                   </span>
                   {obj.validacion && (
-                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${getValidacionClasses(obj.validacion)}`}>
+                    <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={getValidacionStyle(obj.validacion)}>
                       {obj.validacion}
                     </span>
                   )}

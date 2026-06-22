@@ -87,13 +87,16 @@ export function getPrioridadClasses(prioridad: string): string {
 }
 
 export function getValidacionClasses(validacion: string | null): string {
-  if (!validacion) return 'bg-gray-100 text-gray-500'
-  const map: Record<string, string> = {
-    'De acuerdo':                 'bg-[#ccfbf1] text-[#0f766e]',
-    'Parcialmente de acuerdo':    'bg-[#ede9fe] text-[#6d28d9]',
-    'En desacuerdo':              'bg-[#ffedd5] text-[#c2410c]',
+  return 'bg-gray-100 text-gray-500' // legacy, usar getValidacionStyle
+}
+
+export function getValidacionStyle(validacion: string | null): { backgroundColor: string; color: string } {
+  const map: Record<string, { backgroundColor: string; color: string }> = {
+    'De acuerdo':              { backgroundColor: '#dbeafe', color: '#1d4ed8' },
+    'Parcialmente de acuerdo': { backgroundColor: '#ede9fe', color: '#6d28d9' },
+    'En desacuerdo':           { backgroundColor: '#ffedd5', color: '#c2410c' },
   }
-  return map[validacion] ?? 'bg-gray-100 text-gray-600'
+  return map[validacion ?? ''] ?? { backgroundColor: '#f3f4f6', color: '#6b7280' }
 }
 
 

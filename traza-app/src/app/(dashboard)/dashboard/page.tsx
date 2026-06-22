@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase-server'
 import MetricCard from '@/components/ui/MetricCard'
-import { calcularIndiceTraza, getEstadoClasses, getValidacionClasses, formatFecha } from '@/lib/traza'
+import { calcularIndiceTraza, getEstadoClasses, getValidacionStyle, formatFecha } from '@/lib/traza'
 import { AlertTriangle, Clock, MessageSquare, Link2, Paperclip, CheckCircle2, TrendingUp } from 'lucide-react'
 import type { Objetivo } from '@/types'
 import Link from 'next/link'
@@ -234,7 +234,7 @@ export default async function DashboardPage() {
                 <div key={obj.id} className="py-2 border-b border-gray-50 last:border-0">
                   <div className="flex items-start justify-between gap-2">
                     <p className="text-sm font-medium text-gray-900 truncate flex-1">{obj.titulo}</p>
-                    <span className={`flex-shrink-0 text-xs px-2.5 py-1 rounded-full font-medium ${getValidacionClasses(obj.validacion ?? null)}`}>
+                    <span className="flex-shrink-0 text-xs px-2.5 py-1 rounded-full font-medium" style={getValidacionStyle(obj.validacion ?? null)}>
                       {obj.validacion}
                     </span>
                   </div>
