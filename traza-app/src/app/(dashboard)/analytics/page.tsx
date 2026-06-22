@@ -61,7 +61,25 @@ export default function AnalyticsPage() {
 
     const enRiesgo = rankingData.filter(r => r.indice.score < 40).length
 
-    setStats({ total, completados, pendientes, enProgreso, positivos, negativos, cumplimiento, indiceOrg, enRiesgo, totalPersonas: (personas ?? []).length })
+    // Avances registrados
+    let avQuery = supabase.from('objetivo_avances').select('*', { count: 'exact', head: true })
+    if (empresaId !== 'todas') avQuery = avQuery.eq('empresa_id', empresaId)
+    const { count: totalAvances } = await avQuery
+
+    // Por área
+    const areas: Record<string, { total: number; completados: number }> = {}
+    ;(personas ?? []).forEach((p: any) => {
+      const area = p.area || 'Sin área'
+      if (!areas[area]) areas[area] = { total: 0, completados: 0 }
+      const obsP = objs.filter(o => o.persona_id === p.id)
+      areas[area].total      += obsP.length
+      areas[area].completados += obsP.filter(o => o.estado === 'Completado').length
+    })
+
+    // Sin validar (completados sin validación)
+    const sinValidar = objs.filter(o => o.estado === 'Completado' && !o.validacion).length
+
+    setStats({ total, completados, pendientes, enProgreso, positivos, negativos, cumplimiento, indiceOrg, enRiesgo, totalPersonas: (personas ?? []).length, totalAvances: totalAvances ?? 0, areas, sinValidar })
     setRanking(rankingData)
     setLoading(false)
   }
@@ -95,12 +113,13 @@ export default function AnalyticsPage() {
       </div>
 
       {/* KPIs */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-        <MetricCard icon="Target" label="Objetivos" value={stats.total} />
-        <MetricCard icon="CheckSquare" label="Completados" value={stats.completados} />
-        <MetricCard icon="TrendingUp" label="Cumplimiento" value={`${stats.cumplimiento}%`} />
-        <MetricCard icon="Users" label="Personas" value={stats.totalPersonas} />
-        <MetricCard icon="Building2" label="Índice Org." value={`${stats.indiceOrg}/100`} highlight />
+      <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">
+        <MetricCard icon="Target"      label="Objetivos"    value={stats.total} />
+        <MetricCard icon="CheckSquare" label="Completados"  value={stats.completados} />
+        <MetricCard icon="TrendingUp"  label="Cumplimiento" value={`${stats.cumplimiento}%`} />
+        <MetricCard icon="Users"       label="Personas"     value={stats.totalPersonas} />
+        <MetricCard icon="FileText"    label="Avances reg." value={stats.totalAvances} />
+        <MetricCard icon="Building2"   label="Índice Org."  value={`${stats.indiceOrg}/100`} highlight />
       </div>
 
       {/* Dashboard ejecutivo */}
@@ -166,16 +185,48 @@ export default function AnalyticsPage() {
               </span>
               <span className="font-bold text-red-500">{stats.negativos}</span>
             </div>
-            <div className="flex items-center justify-between py-3">
+            <div className="flex items-center justify-between py-3 border-b border-gray-100">
               <span className="flex items-center gap-2 text-sm text-gray-600">
                 <AlertTriangle size={14} strokeWidth={1.75} className="text-orange-400" />
                 Personas en riesgo (&lt;40)
               </span>
               <span className="font-bold text-orange-500">{stats.enRiesgo}</span>
             </div>
+            <div className="flex items-center justify-between py-3">
+              <span className="flex items-center gap-2 text-sm text-gray-600">
+                <AlertTriangle size={14} strokeWidth={1.75} className="text-amber-400" />
+                Completados sin validar
+              </span>
+              <span className="font-bold text-amber-500">{stats.sinValidar}</span>
+            </div>
           </div>
         </div>
       </div>
+
+      {/* Por área */}
+      {Object.keys(stats.areas).length > 0 && (
+        <div className="traza-card p-6">
+          <h2 className="font-semibold text-gray-900 mb-4">Cumplimiento por área</h2>
+          <div className="space-y-3">
+            {Object.entries(stats.areas as Record<string, { total: number; completados: number }>)
+              .sort((a, b) => b[1].completados / (b[1].total || 1) - a[1].completados / (a[1].total || 1))
+              .map(([area, data]) => {
+                const pct = data.total > 0 ? Math.round(data.completados / data.total * 100) : 0
+                return (
+                  <div key={area}>
+                    <div className="flex justify-between text-sm mb-1">
+                      <span className="text-gray-700 font-medium">{area}</span>
+                      <span className="text-gray-500">{data.completados}/{data.total} · <span className="font-semibold text-gray-900">{pct}%</span></span>
+                    </div>
+                    <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                      <div className="h-full rounded-full bg-traza-500" style={{ width: `${pct}%` }} />
+                    </div>
+                  </div>
+                )
+              })}
+          </div>
+        </div>
+      )}
 
       {/* Ranking */}
       <div className="traza-card overflow-hidden">
