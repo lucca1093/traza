@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import Button from '@/components/ui/Button'
 import { getEstadoClasses, getPrioridadClasses, formatFecha } from '@/lib/traza'
-import { ChevronDown, ChevronRight } from 'lucide-react'
+import { ChevronDown, ChevronRight, Search } from 'lucide-react'
 import type { Objetivo, Persona, Profile } from '@/types'
 
 export default function ObjetivosPage() {
@@ -15,6 +15,7 @@ export default function ObjetivosPage() {
   const [success, setSuccess]     = useState(false)
   const [editId, setEditId]       = useState<string | null>(null)
   const [expanded, setExpanded]   = useState<Set<string>>(new Set())
+  const [busqueda, setBusqueda]   = useState('')
 
   const [form, setForm] = useState({
     persona_id: '',
@@ -41,8 +42,6 @@ export default function ObjetivosPage() {
     setPersonas(pers ?? [])
     if (pers && pers.length > 0 && !form.persona_id) {
       setForm(f => ({ ...f, persona_id: pers[0].id }))
-      // Expandir todos por defecto
-      setExpanded(new Set(pers.map(p => p.id)))
     }
   }
 
@@ -117,8 +116,14 @@ export default function ObjetivosPage() {
 
   const f = (k: string, v: string) => setForm(prev => ({ ...prev, [k]: v }))
 
-  // Agrupar objetivos por persona
-  const porPersona = personas.map(p => ({
+  // Filtrar y agrupar objetivos por persona
+  const personasFiltradas = busqueda.trim()
+    ? personas.filter(p =>
+        `${p.nombre} ${p.apellido}`.toLowerCase().includes(busqueda.toLowerCase())
+      )
+    : personas
+
+  const porPersona = personasFiltradas.map(p => ({
     persona: p,
     objetivos: objetivos.filter(o => o.persona_id === p.id),
   })).filter(g => g.objetivos.length > 0)
@@ -189,8 +194,19 @@ export default function ObjetivosPage() {
 
       {/* Lista agrupada por persona */}
       <div className="traza-card overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-          <h2 className="font-semibold text-gray-900">Objetivos por colaborador ({objetivos.length})</h2>
+        <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-4 flex-wrap">
+          <h2 className="font-semibold text-gray-900 mr-auto">Objetivos por colaborador ({objetivos.length})</h2>
+          {/* Buscador */}
+          <div className="relative">
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" strokeWidth={1.75} />
+            <input
+              type="text"
+              value={busqueda}
+              onChange={e => setBusqueda(e.target.value)}
+              placeholder="Buscar colaborador..."
+              className="pl-8 pr-4 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-traza-300 w-48"
+            />
+          </div>
           <div className="flex gap-2">
             <button
               onClick={() => setExpanded(new Set(personas.map(p => p.id)))}
