@@ -130,6 +130,7 @@ export const NAV_ITEMS: NavItem[] = [
   { label: 'Mi Trabajo',           href: '/mi-trabajo',    icon: 'Target',          roles: ['super_admin', 'admin', 'supervisor', 'empleado'] },
   { label: 'Gestión de Objetivos', href: '/objetivos',     icon: 'ClipboardList',   roles: ['super_admin', 'admin', 'supervisor'] },
   { label: 'Validación',           href: '/validacion',    icon: 'CheckSquare',     roles: ['super_admin', 'admin', 'supervisor'] },
+  { label: 'Calendario',           href: '/calendario',    icon: 'CalendarDays',    roles: ['super_admin', 'admin', 'supervisor', 'empleado'] },
   { label: 'Analytics',            href: '/analytics',     icon: 'BarChart2',       roles: ['super_admin', 'admin', 'supervisor'] },
   { label: 'Perfil Profesional',   href: '/perfil',        icon: 'User',            roles: ['super_admin', 'admin', 'supervisor', 'empleado'] },
   { label: 'Talent Card',          href: '/talent-card',   icon: 'Award',           roles: ['super_admin', 'admin', 'supervisor', 'empleado'] },
