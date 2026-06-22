@@ -98,6 +98,22 @@ export default function PerfilPage() {
                 <p className="text-gray-600 mt-0.5">{persona.cargo ?? '—'}</p>
                 <p className="text-gray-400 text-sm">{persona.area ?? '—'}</p>
               </div>
+              {(persona as any).traza_id && (
+                <div className="flex flex-col items-end gap-1.5">
+                  <div className="flex items-center gap-2 bg-traza-50 border border-traza-200 rounded-xl px-3 py-2">
+                    <span className="text-xs text-traza-500 font-medium">ID TRAZA</span>
+                    <span className="text-sm font-bold text-traza-700 tracking-widest">{(persona as any).traza_id}</span>
+                  </div>
+                  <a
+                    href={`/p/${(persona as any).traza_id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-gray-400 hover:text-traza-700 transition-colors"
+                  >
+                    Ver perfil público →
+                  </a>
+                </div>
+              )}
             </div>
           </div>
 
