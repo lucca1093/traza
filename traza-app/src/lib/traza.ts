@@ -121,6 +121,93 @@ export function formatFecha(fecha: string | null): string {
 }
 
 // ============================================================
+// GENERADOR DE NARRATIVA DE PERFIL (sin API externa)
+// ============================================================
+
+export interface PerfilNarrativoInput {
+  nombre: string
+  apellido: string
+  cargo?: string | null
+  area?: string | null
+  empresa?: string | null
+  objetivos: Objetivo[]
+}
+
+export function generarPerfilNarrativo(input: PerfilNarrativoInput): string {
+  const { nombre, apellido, cargo, area, empresa, objetivos } = input
+  const indice = calcularIndiceTraza(objetivos)
+  const { score, badge, cumplimiento, total, completados, positivos, parciales, negativos } = indice
+
+  const validados = objetivos.filter(o => !!o.validacion)
+  const conAutoeval = objetivos.filter(o => (o as any).autoevaluacion)
+  const autoSatisfecho = conAutoeval.filter(o => (o as any).autoevaluacion === 'Satisfecho').length
+  const consistencia = conAutoeval.length > 0
+    ? Math.round((autoSatisfecho / conAutoeval.length) * 100)
+    : null
+
+  // Apertura según nivel
+  const nombreCompleto = `${nombre} ${apellido}`
+  const rolDesc = cargo && area ? `${cargo} en el área de ${area}` : cargo ?? area ?? 'profesional'
+
+  let apertura = ''
+  if (score >= 85) {
+    apertura = `${nombreCompleto} es un${cargo ? 'a' : ''} ${rolDesc} con desempeño sobresaliente y resultados consistentemente validados por su entorno.`
+  } else if (score >= 65) {
+    apertura = `${nombreCompleto} se desempeña como ${rolDesc} con un historial sólido de cumplimiento y gestión de objetivos.`
+  } else if (score >= 40) {
+    apertura = `${nombreCompleto} es un${cargo ? 'a' : ''} ${rolDesc} con trayectoria en desarrollo y capacidad de crecimiento profesional comprobada.`
+  } else {
+    apertura = `${nombreCompleto} se desempeña como ${rolDesc} y se encuentra en etapa de desarrollo y construcción de su historial de desempeño.`
+  }
+
+  // Métricas centrales
+  let metricasTexto = ''
+  if (total === 0) {
+    metricasTexto = 'Aún no registra objetivos completados en la plataforma.'
+  } else {
+    const pctStr = `${cumplimiento}%`
+    metricasTexto = `Su Índice Traza es de ${score}/100 (${badge}), con un ${pctStr} de cumplimiento: ${completados} de ${total} objetivo${total > 1 ? 's' : ''} completado${completados > 1 ? 's' : ''}.`
+  }
+
+  // Validaciones
+  let validacionTexto = ''
+  if (validados.length > 0) {
+    if (positivos > 0 && parciales === 0 && negativos === 0) {
+      validacionTexto = `La totalidad de sus entregas validadas fueron calificadas positivamente por sus supervisores.`
+    } else if (positivos >= parciales && negativos === 0) {
+      validacionTexto = `La mayoría de sus entregas fueron validadas positivamente${parciales > 0 ? `, con algunas calificaciones parciales` : ''}.`
+    } else if (negativos === 0) {
+      validacionTexto = `Sus entregas recibieron validaciones entre positivas y parciales, sin observaciones negativas.`
+    } else {
+      const pctPos = Math.round((positivos / validados.length) * 100)
+      validacionTexto = `El ${pctPos}% de sus entregas validadas recibieron calificación positiva.`
+    }
+  }
+
+  // Consistencia autoevaluación
+  let autoText = ''
+  if (consistencia !== null && conAutoeval.length >= 2) {
+    if (consistencia >= 80) {
+      autoText = `Demuestra alta autoconciencia profesional, con autoevaluaciones consistentes con la perspectiva de sus supervisores.`
+    } else if (consistencia >= 50) {
+      autoText = `Muestra capacidad de autoevaluación con alineación parcial respecto al feedback recibido.`
+    }
+  }
+
+  // Empresa actual
+  const empresaText = empresa
+    ? `Actualmente se desempeña en ${empresa}.`
+    : ''
+
+  // Armar párrafo final
+  const partes = [apertura, metricasTexto, validacionTexto, autoText, empresaText]
+    .filter(Boolean)
+    .join(' ')
+
+  return partes
+}
+
+// ============================================================
 // PERMISOS POR ROL
 // ============================================================
 
