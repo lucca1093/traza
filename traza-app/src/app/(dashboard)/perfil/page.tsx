@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import TraceIndexBar from '@/components/ui/TraceIndexBar'
 import { calcularIndiceTraza, getValidacionStyle, getEstadoClasses, formatFecha } from '@/lib/traza'
-import { CheckCircle2, Trophy, Award, MessageSquare } from 'lucide-react'
+import { CheckCircle2, Trophy, Award, MessageSquare, ChevronDown, ChevronRight, Link2, Paperclip } from 'lucide-react'
 import type { Objetivo, Persona, Profile } from '@/types'
 
 export default function PerfilPage() {
@@ -174,35 +174,124 @@ export default function PerfilPage() {
           <div className="traza-card overflow-hidden">
             <div className="px-6 py-4 border-b border-gray-100">
               <h3 className="font-semibold text-gray-900">Historial de objetivos</h3>
+              <p className="text-xs text-gray-400 mt-0.5">Tocá un objetivo para ver sus avances y feedback</p>
             </div>
-            <table className="w-full">
-              <thead className="bg-gray-50 text-xs text-gray-500 uppercase">
-                <tr>
-                  <th className="px-6 py-3 text-left">Objetivo</th>
-                  <th className="px-6 py-3 text-left">Estado</th>
-                  <th className="px-6 py-3 text-left">Validación</th>
-                  <th className="px-6 py-3 text-left">Fecha</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {objetivos.map(o => (
-                  <tr key={o.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-3 font-medium text-gray-900 text-sm">{o.titulo}</td>
-                    <td className="px-6 py-3">
-                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${getEstadoClasses(o.estado)}`}>{o.estado}</span>
-                    </td>
-                    <td className="px-6 py-3">
-                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${getValidacionStyle(o.validacion)}`}>
-                        {o.validacion ?? 'Sin validar'}
-                      </span>
-                    </td>
-                    <td className="px-6 py-3 text-sm text-gray-400">{formatFecha(o.fecha_limite)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <div className="divide-y divide-gray-100">
+              {objetivos.map(o => (
+                <ObjetivoHistorialRow key={o.id} obj={o} />
+              ))}
+            </div>
           </div>
         </>
+      )}
+    </div>
+  )
+}
+
+// -------- Fila expandible con avances + feedback --------
+function ObjetivoHistorialRow({ obj }: { obj: Objetivo }) {
+  const [open, setOpen]       = useState(false)
+  const [avances, setAvances] = useState<any[]>([])
+
+  useEffect(() => {
+    if (open && avances.length === 0) {
+      supabase
+        .from('objetivo_avances')
+        .select('*')
+        .eq('objetivo_id', obj.id)
+        .order('creado_en', { ascending: true })
+        .then(({ data }) => setAvances(data ?? []))
+    }
+  }, [open])
+
+  function formatDT(dt: string) {
+    return new Date(dt).toLocaleString('es-AR', {
+      day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
+    })
+  }
+
+  const tieneDetalle = avances.length > 0 || obj.validacion || obj.comentario_supervisor
+
+  return (
+    <div>
+      {/* Fila resumen */}
+      <div
+        onClick={() => setOpen(!open)}
+        className="flex items-center gap-3 px-6 py-4 cursor-pointer hover:bg-gray-50 transition-colors"
+      >
+        <span className="text-gray-300 flex-shrink-0">
+          {open ? <ChevronDown size={15} /> : <ChevronRight size={15} />}
+        </span>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium text-gray-900 truncate">{obj.titulo}</p>
+          <p className="text-xs text-gray-400 mt-0.5">{formatFecha(obj.fecha_limite)}</p>
+        </div>
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${getEstadoClasses(obj.estado)}`}>
+            {obj.estado}
+          </span>
+          {obj.validacion && (
+            <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={getValidacionStyle(obj.validacion)}>
+              {obj.validacion}
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Panel expandido */}
+      {open && (
+        <div className="px-6 pb-4 ml-6 space-y-4 border-t border-gray-50">
+
+          {/* Feedback del supervisor */}
+          {(obj.validacion || obj.comentario_supervisor) && (
+            <div className="mt-3">
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Feedback del supervisor</p>
+              <div className="bg-gray-50 rounded-xl px-4 py-3 space-y-1">
+                {obj.validacion && (
+                  <span className="text-xs px-2 py-0.5 rounded-full font-medium inline-block" style={getValidacionStyle(obj.validacion)}>
+                    {obj.validacion}
+                  </span>
+                )}
+                {obj.comentario_supervisor && (
+                  <p className="text-sm text-gray-600 italic">"{obj.comentario_supervisor}"</p>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Avances */}
+          <div>
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Avances registrados</p>
+            {avances.length === 0 ? (
+              <p className="text-xs text-gray-400">Sin avances registrados.</p>
+            ) : (
+              <div className="space-y-2.5">
+                {avances.map(a => (
+                  <div key={a.id} className="flex gap-2.5 bg-gray-50 rounded-xl px-3 py-2.5">
+                    <div className="flex-shrink-0 mt-0.5">
+                      {a.tipo === 'comentario' && <MessageSquare size={13} className="text-gray-400" />}
+                      {a.tipo === 'link'       && <Link2 size={13} className="text-traza-500" />}
+                      {a.tipo === 'archivo'    && <Paperclip size={13} className="text-orange-400" />}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      {(a.tipo === 'link' || a.tipo === 'archivo') ? (
+                        <a href={a.contenido} target="_blank" rel="noopener noreferrer"
+                          className="text-traza-700 hover:underline break-all text-xs">{a.contenido}</a>
+                      ) : (
+                        <p className="text-sm text-gray-700">{a.contenido}</p>
+                      )}
+                      <p className="text-xs text-gray-400 mt-0.5">{formatDT(a.creado_en)}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {!obj.validacion && !obj.comentario_supervisor && avances.length === 0 && (
+            <p className="text-xs text-gray-400 mt-3">Este objetivo todavía no tiene avances ni feedback.</p>
+          )}
+        </div>
       )}
     </div>
   )
