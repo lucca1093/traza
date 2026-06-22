@@ -101,11 +101,16 @@ export default function MiTrabajoPage() {
 
   if (loading) return <div className="text-gray-400 py-12 text-center">Cargando...</div>
 
-  const asignados  = objetivos.filter(o => o.tipo === 'Asignado')
-  const personales = objetivos.filter(o => o.tipo === 'Personal')
-  const pendientes  = objetivos.filter(o => o.estado !== 'Completado').length
-  const completados = objetivos.filter(o => o.estado === 'Completado').length
-  const vencidos    = objetivos.filter(o => isVencido(o.fecha_limite, o.estado)).length
+  const [tab, setTab] = useState<'activos' | 'completados'>('activos')
+
+  const activos     = objetivos.filter(o => o.estado !== 'Completado')
+  const completados = objetivos.filter(o => o.estado === 'Completado')
+  const asignados   = activos.filter(o => o.tipo === 'Asignado')
+  const personales  = activos.filter(o => o.tipo === 'Personal')
+  const asignadosC  = completados.filter(o => o.tipo === 'Asignado')
+  const personalesC = completados.filter(o => o.tipo === 'Personal')
+  const pendientes  = activos.filter(o => o.estado !== 'Completado').length
+  const vencidos    = activos.filter(o => isVencido(o.fecha_limite, o.estado)).length
 
   return (
     <div className="space-y-8">
@@ -133,16 +138,32 @@ export default function MiTrabajoPage() {
       <div className="grid grid-cols-3 gap-4">
         <div className="traza-card p-4 text-center">
           <p className="text-2xl font-bold text-gray-900">{pendientes}</p>
-          <p className="text-sm text-gray-500">Pendientes</p>
+          <p className="text-sm text-gray-500">Activos</p>
         </div>
         <div className="traza-card p-4 text-center">
-          <p className="text-2xl font-bold text-green-600">{completados}</p>
+          <p className="text-2xl font-bold text-green-600">{completados.length}</p>
           <p className="text-sm text-gray-500">Completados</p>
         </div>
         <div className="traza-card p-4 text-center">
           <p className="text-2xl font-bold text-red-500">{vencidos}</p>
           <p className="text-sm text-gray-500">Vencidos</p>
         </div>
+      </div>
+
+      {/* Pestañas */}
+      <div className="flex gap-1 bg-gray-100 p-1 rounded-xl w-fit">
+        <button
+          onClick={() => setTab('activos')}
+          className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${tab === 'activos' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+        >
+          Activos {activos.length > 0 && <span className="ml-1 text-xs text-gray-400">({activos.length})</span>}
+        </button>
+        <button
+          onClick={() => setTab('completados')}
+          className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${tab === 'completados' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+        >
+          Completados {completados.length > 0 && <span className="ml-1 text-xs text-gray-400">({completados.length})</span>}
+        </button>
       </div>
 
       {/* Formulario nuevo objetivo personal */}
@@ -177,33 +198,63 @@ export default function MiTrabajoPage() {
         </div>
       )}
 
-      {/* Objetivos asignados */}
-      <section>
-        <h2 className="text-base font-semibold text-gray-900 mb-3">Objetivos asignados</h2>
-        {asignados.length === 0 ? (
-          <div className="traza-card p-8 text-center text-gray-400">No hay objetivos asignados.</div>
-        ) : (
-          <div className="space-y-3">
-            {asignados.map(obj => (
-              <ObjetivoCard key={obj.id} obj={obj} saving={saving} onUpdate={updateEstado} autoExpand={obj.id === objetivoDestacado} />
-            ))}
-          </div>
-        )}
-      </section>
+      {tab === 'activos' && (
+        <>
+          <section>
+            <h2 className="text-base font-semibold text-gray-900 mb-3">Objetivos asignados</h2>
+            {asignados.length === 0 ? (
+              <div className="traza-card p-8 text-center text-gray-400">No hay objetivos asignados activos.</div>
+            ) : (
+              <div className="space-y-3">
+                {asignados.map(obj => (
+                  <ObjetivoCard key={obj.id} obj={obj} saving={saving} onUpdate={updateEstado} autoExpand={obj.id === objetivoDestacado} />
+                ))}
+              </div>
+            )}
+          </section>
 
-      {/* Objetivos personales */}
-      <section>
-        <h2 className="text-base font-semibold text-gray-900 mb-3">Objetivos personales</h2>
-        {personales.length === 0 ? (
-          <div className="traza-card p-8 text-center text-gray-400">No hay objetivos personales.</div>
-        ) : (
-          <div className="space-y-3">
-            {personales.map(obj => (
-              <ObjetivoCard key={obj.id} obj={obj} saving={saving} onUpdate={updateEstado} onDelete={deleteObjetivo} personal autoExpand={obj.id === objetivoDestacado} />
-            ))}
-          </div>
-        )}
-      </section>
+          <section>
+            <h2 className="text-base font-semibold text-gray-900 mb-3">Objetivos personales</h2>
+            {personales.length === 0 ? (
+              <div className="traza-card p-8 text-center text-gray-400">No hay objetivos personales activos.</div>
+            ) : (
+              <div className="space-y-3">
+                {personales.map(obj => (
+                  <ObjetivoCard key={obj.id} obj={obj} saving={saving} onUpdate={updateEstado} onDelete={deleteObjetivo} personal autoExpand={obj.id === objetivoDestacado} />
+                ))}
+              </div>
+            )}
+          </section>
+        </>
+      )}
+
+      {tab === 'completados' && (
+        <>
+          {asignadosC.length > 0 && (
+            <section>
+              <h2 className="text-base font-semibold text-gray-900 mb-3">Asignados completados</h2>
+              <div className="space-y-3">
+                {asignadosC.map(obj => (
+                  <ObjetivoCard key={obj.id} obj={obj} saving={saving} onUpdate={updateEstado} />
+                ))}
+              </div>
+            </section>
+          )}
+          {personalesC.length > 0 && (
+            <section>
+              <h2 className="text-base font-semibold text-gray-900 mb-3">Personales completados</h2>
+              <div className="space-y-3">
+                {personalesC.map(obj => (
+                  <ObjetivoCard key={obj.id} obj={obj} saving={saving} onUpdate={updateEstado} personal />
+                ))}
+              </div>
+            </section>
+          )}
+          {completados.length === 0 && (
+            <div className="traza-card p-8 text-center text-gray-400">Todavía no hay objetivos completados.</div>
+          )}
+        </>
+      )}
     </div>
   )
 }

@@ -130,7 +130,13 @@ export default function ObjetivosPage() {
 
   const f = (k: string, v: string) => setForm(prev => ({ ...prev, [k]: v }))
 
+  const [tabObj, setTabObj] = useState<'activos' | 'completados'>('activos')
+
   // Filtrar y agrupar objetivos por persona
+  const objFiltradosPorTab = objetivos.filter(o =>
+    tabObj === 'activos' ? o.estado !== 'Completado' : o.estado === 'Completado'
+  )
+
   const personasFiltradas = busqueda.trim()
     ? personas.filter(p =>
         `${p.nombre} ${p.apellido}`.toLowerCase().includes(busqueda.toLowerCase())
@@ -139,11 +145,14 @@ export default function ObjetivosPage() {
 
   const porPersona = personasFiltradas.map(p => ({
     persona: p,
-    objetivos: objetivos.filter(o => o.persona_id === p.id),
+    objetivos: objFiltradosPorTab.filter(o => o.persona_id === p.id),
   })).filter(g => g.objetivos.length > 0)
 
   // Objetivos sin persona asignada
-  const sinPersona = objetivos.filter(o => !o.persona_id)
+  const sinPersona = objFiltradosPorTab.filter(o => !o.persona_id)
+
+  const totalActivos     = objetivos.filter(o => o.estado !== 'Completado').length
+  const totalCompletados = objetivos.filter(o => o.estado === 'Completado').length
 
   return (
     <div className="space-y-8">
@@ -209,7 +218,22 @@ export default function ObjetivosPage() {
       {/* Lista agrupada por persona */}
       <div className="traza-card overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-4 flex-wrap">
-          <h2 className="font-semibold text-gray-900 mr-auto">Objetivos por colaborador ({objetivos.length})</h2>
+          {/* Pestañas */}
+          <div className="flex gap-1 bg-gray-100 p-1 rounded-xl">
+            <button
+              onClick={() => setTabObj('activos')}
+              className={`px-3 py-1 rounded-lg text-sm font-medium transition-all ${tabObj === 'activos' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+            >
+              Activos <span className="text-xs text-gray-400">({totalActivos})</span>
+            </button>
+            <button
+              onClick={() => setTabObj('completados')}
+              className={`px-3 py-1 rounded-lg text-sm font-medium transition-all ${tabObj === 'completados' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+            >
+              Completados <span className="text-xs text-gray-400">({totalCompletados})</span>
+            </button>
+          </div>
+          <div className="mr-auto" />
           {/* Buscador */}
           <div className="relative">
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" strokeWidth={1.75} />
