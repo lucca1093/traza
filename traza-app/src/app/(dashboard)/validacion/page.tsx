@@ -17,6 +17,7 @@ export default function ValidacionPage() {
   const [avances, setAvances]       = useState<any[]>([])
   const [tab, setTab]               = useState<'pendientes' | 'validados'>('pendientes')
   const [expanded, setExpanded]     = useState<Set<string>>(new Set())
+  const [editando, setEditando]     = useState(false)
 
   async function fetchData() {
     const { data: obs } = await supabase
@@ -46,6 +47,7 @@ export default function ValidacionPage() {
 
   function handleSelect(objId: string) {
     setSelected(objId)
+    setEditando(false)
     fetchAvances(objId)
     const obj = objetivos.find(o => o.id === objId)
     if (obj) {
@@ -264,36 +266,56 @@ export default function ValidacionPage() {
                 </div>
               )}
 
-              {/* Formulario validación */}
-              <form onSubmit={handleValidar} className="space-y-4">
-                <div>
-                  <label className="traza-label">Resultado</label>
-                  <div className="grid grid-cols-1 gap-2">
-                    {['De acuerdo', 'Parcialmente de acuerdo', 'En desacuerdo'].map(opt => (
-                      <label
-                        key={opt}
-                        className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-colors ${validacion === opt ? 'border-traza-700 bg-traza-50' : 'border-gray-200 hover:bg-gray-50'}`}
-                      >
-                        <input type="radio" value={opt} checked={validacion === opt} onChange={e => setValidacion(e.target.value)} className="text-traza-700" />
-                        <span className="text-sm font-medium">{opt}</span>
-                      </label>
-                    ))}
+              {/* Panel validación: resumen o formulario según tab y modo */}
+              {tab === 'validados' && objSeleccionado.validacion && !editando ? (
+                <div className="space-y-3">
+                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Tu validación</p>
+                  <div className="bg-gray-50 rounded-xl p-4 space-y-2">
+                    <span className="text-sm font-semibold text-gray-900 inline-block px-3 py-1 rounded-full" style={getValidacionStyle(objSeleccionado.validacion)}>
+                      {objSeleccionado.validacion}
+                    </span>
+                    {objSeleccionado.comentario_supervisor && (
+                      <p className="text-sm text-gray-600 italic">"{objSeleccionado.comentario_supervisor}"</p>
+                    )}
                   </div>
+                  <button onClick={() => setEditando(true)} className="text-xs text-traza-700 font-medium hover:underline">
+                    Editar validación
+                  </button>
                 </div>
-                <div>
-                  <label className="traza-label">Comentario / Feedback</label>
-                  <textarea
-                    className="traza-input min-h-[80px] resize-none"
-                    value={comentario}
-                    onChange={e => setComentario(e.target.value)}
-                    placeholder="Escribí tu feedback..."
-                  />
-                </div>
-                <div className="flex items-center gap-3">
-                  <Button type="submit" loading={saving}>Guardar validación</Button>
-                  {success && <p className="text-green-600 text-sm">Validación guardada</p>}
-                </div>
-              </form>
+              ) : (
+                <form onSubmit={async (e) => { await handleValidar(e); setEditando(false) }} className="space-y-4">
+                  <div>
+                    <label className="traza-label">Resultado</label>
+                    <div className="grid grid-cols-1 gap-2">
+                      {['De acuerdo', 'Parcialmente de acuerdo', 'En desacuerdo'].map(opt => (
+                        <label
+                          key={opt}
+                          className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-colors ${validacion === opt ? 'border-traza-700 bg-traza-50' : 'border-gray-200 hover:bg-gray-50'}`}
+                        >
+                          <input type="radio" value={opt} checked={validacion === opt} onChange={e => setValidacion(e.target.value)} className="text-traza-700" />
+                          <span className="text-sm font-medium">{opt}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <label className="traza-label">Comentario / Feedback</label>
+                    <textarea
+                      className="traza-input min-h-[80px] resize-none"
+                      value={comentario}
+                      onChange={e => setComentario(e.target.value)}
+                      placeholder="Escribí tu feedback..."
+                    />
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Button type="submit" loading={saving}>Guardar validación</Button>
+                    {editando && (
+                      <button type="button" onClick={() => setEditando(false)} className="text-sm text-gray-400 hover:text-gray-600">Cancelar</button>
+                    )}
+                    {success && <p className="text-green-600 text-sm">Validación guardada</p>}
+                  </div>
+                </form>
+              )}
             </>
           )}
         </div>
