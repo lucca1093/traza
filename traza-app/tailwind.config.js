@@ -26,5 +26,10 @@ module.exports = {
       },
     },
   },
+  safelist: [
+    'bg-teal-100', 'text-teal-700',
+    'bg-violet-100', 'text-violet-700',
+    'bg-orange-100', 'text-orange-700',
+  ],
   plugins: [],
 }
