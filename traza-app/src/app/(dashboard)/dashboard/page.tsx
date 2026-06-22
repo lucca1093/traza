@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase-server'
 import MetricCard from '@/components/ui/MetricCard'
 import { calcularIndiceTraza, getEstadoClasses, formatFecha } from '@/lib/traza'
+import { Users, Target, CheckSquare, TrendingUp, Trophy, ClipboardList, User } from 'lucide-react'
 import type { Objetivo } from '@/types'
 
 export default async function DashboardPage() {
@@ -11,7 +12,6 @@ export default async function DashboardPage() {
 
   if (!profile) return null
 
-  // Métricas generales de la empresa
   const { count: totalPersonas } = await supabase
     .from('personas')
     .select('*', { count: 'exact', head: true })
@@ -25,7 +25,6 @@ export default async function DashboardPage() {
   const completados      = objs.filter(o => o.estado === 'Completado').length
   const cumplimiento     = totalObjetivos > 0 ? Math.round(completados / totalObjetivos * 100) : 0
 
-  // Últimos objetivos (recientes)
   const { data: recientes } = await supabase
     .from('objetivos')
     .select('*, persona:personas(nombre, apellido)')
@@ -34,7 +33,6 @@ export default async function DashboardPage() {
 
   const esAdmin = ['admin', 'super_admin', 'supervisor'].includes(profile.rol)
 
-  // Si es empleado, calcular su propio índice
   let indicePersonal = null
   if (profile.rol === 'empleado') {
     const { data: persona } = await supabase
@@ -57,7 +55,7 @@ export default async function DashboardPage() {
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-gray-900">
-          Buen día, {profile.nombre} 👋
+          Buen día, {profile.nombre}
         </h1>
         <p className="text-gray-500 mt-1">
           {new Date().toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' })}
@@ -67,17 +65,17 @@ export default async function DashboardPage() {
       {/* Métricas */}
       {esAdmin ? (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <MetricCard icon="👥" label="Colaboradores" value={totalPersonas ?? 0} />
-          <MetricCard icon="🎯" label="Objetivos totales" value={totalObjetivos} />
-          <MetricCard icon="✅" label="Completados" value={completados} />
-          <MetricCard icon="📈" label="Cumplimiento" value={`${cumplimiento}%`} highlight />
+          <MetricCard icon="Users" label="Colaboradores" value={totalPersonas ?? 0} />
+          <MetricCard icon="Target" label="Objetivos totales" value={totalObjetivos} />
+          <MetricCard icon="CheckSquare" label="Completados" value={completados} />
+          <MetricCard icon="TrendingUp" label="Cumplimiento" value={`${cumplimiento}%`} highlight />
         </div>
       ) : indicePersonal ? (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <MetricCard icon="🎯" label="Mis objetivos" value={indicePersonal.total} />
-          <MetricCard icon="✅" label="Completados" value={indicePersonal.completados} />
-          <MetricCard icon="📈" label="Cumplimiento" value={`${indicePersonal.cumplimiento}%`} />
-          <MetricCard icon="🏆" label="Índice Traza" value={`${indicePersonal.score}/100`} highlight />
+          <MetricCard icon="Target" label="Mis objetivos" value={indicePersonal.total} />
+          <MetricCard icon="CheckSquare" label="Completados" value={indicePersonal.completados} />
+          <MetricCard icon="TrendingUp" label="Cumplimiento" value={`${indicePersonal.cumplimiento}%`} />
+          <MetricCard icon="Trophy" label="Índice Traza" value={`${indicePersonal.score}/100`} highlight />
         </div>
       ) : null}
 
@@ -104,16 +102,16 @@ export default async function DashboardPage() {
         </div>
       )}
 
-      {/* Quick tips para empleados */}
+      {/* Quick links para empleados */}
       {profile.rol === 'empleado' && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {[
-            { icon: '🎯', title: 'Mi Trabajo', desc: 'Actualizá tus objetivos y cargá evidencias.' },
-            { icon: '📋', title: 'Perfil', desc: 'Revisá tu historial profesional.' },
-            { icon: '🏆', title: 'Talent Card', desc: 'Tu credencial de desempeño.' },
+            { icon: <Target size={20} strokeWidth={1.75} className="text-traza-700" />, title: 'Mi Trabajo', desc: 'Actualizá tus objetivos y cargá evidencias.' },
+            { icon: <User size={20} strokeWidth={1.75} className="text-traza-700" />, title: 'Perfil', desc: 'Revisá tu historial profesional.' },
+            { icon: <Trophy size={20} strokeWidth={1.75} className="text-traza-700" />, title: 'Talent Card', desc: 'Tu credencial de desempeño.' },
           ].map(item => (
             <div key={item.title} className="traza-card p-5">
-              <p className="text-2xl mb-2">{item.icon}</p>
+              <div className="mb-3">{item.icon}</div>
               <p className="font-semibold text-gray-900">{item.title}</p>
               <p className="text-sm text-gray-500 mt-1">{item.desc}</p>
             </div>

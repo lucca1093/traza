@@ -2,9 +2,19 @@
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
+import {
+  LayoutDashboard, Building2, Users, Target, ClipboardList,
+  CheckSquare, BarChart2, User, Award, FileText, LogOut,
+  type LucideIcon
+} from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { getNavForRole, cn } from '@/lib/traza'
 import type { Profile } from '@/types'
+
+const ICON_MAP: Record<string, LucideIcon> = {
+  LayoutDashboard, Building2, Users, Target, ClipboardList,
+  CheckSquare, BarChart2, User, Award, FileText,
+}
 
 interface SidebarProps {
   profile: Profile
@@ -57,7 +67,7 @@ export default function Sidebar({ profile }: SidebarProps) {
                       : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
                   )}
                 >
-                  <span className="text-base">{item.icon}</span>
+                  {(() => { const Icon = ICON_MAP[item.icon]; return Icon ? <Icon size={16} strokeWidth={1.75} /> : null })()}
                   <span>{item.label}</span>
                 </Link>
               </li>
@@ -79,8 +89,9 @@ export default function Sidebar({ profile }: SidebarProps) {
         </div>
         <button
           onClick={handleSignOut}
-          className="w-full text-left px-3 py-2 rounded-xl text-sm text-gray-500 hover:bg-red-50 hover:text-red-600 transition-colors"
+          className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-gray-500 hover:bg-red-50 hover:text-red-600 transition-colors"
         >
+          <LogOut size={16} strokeWidth={1.75} />
           Cerrar sesión
         </button>
       </div>

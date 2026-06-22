@@ -141,16 +141,16 @@ export function formatFecha(fecha: string | null): string {
 import type { UserRole, NavItem } from '@/types'
 
 export const NAV_ITEMS: NavItem[] = [
-  { label: 'Inicio',               href: '/dashboard',     icon: '🏠', roles: ['super_admin', 'admin', 'supervisor', 'empleado'] },
-  { label: 'Empresas',             href: '/empresas',      icon: '🏢', roles: ['super_admin', 'admin'] },
-  { label: 'Personas',             href: '/personas',      icon: '👥', roles: ['super_admin', 'admin'] },
-  { label: 'Mi Trabajo',           href: '/mi-trabajo',    icon: '🎯', roles: ['super_admin', 'admin', 'supervisor', 'empleado'] },
-  { label: 'Gestión de Objetivos', href: '/objetivos',     icon: '⚙️', roles: ['super_admin', 'admin', 'supervisor'] },
-  { label: 'Validación',           href: '/validacion',    icon: '✅', roles: ['super_admin', 'admin', 'supervisor'] },
-  { label: 'Analytics',            href: '/analytics',     icon: '📈', roles: ['super_admin', 'admin', 'supervisor'] },
-  { label: 'Perfil Profesional',   href: '/perfil',        icon: '👤', roles: ['super_admin', 'admin', 'supervisor', 'empleado'] },
-  { label: 'Talent Card',          href: '/talent-card',   icon: '🏆', roles: ['super_admin', 'admin', 'supervisor', 'empleado'] },
-  { label: 'Reportes',             href: '/reportes',      icon: '📄', roles: ['super_admin', 'admin', 'supervisor'] },
+  { label: 'Inicio',               href: '/dashboard',     icon: 'LayoutDashboard', roles: ['super_admin', 'admin', 'supervisor', 'empleado'] },
+  { label: 'Empresas',             href: '/empresas',      icon: 'Building2',       roles: ['super_admin', 'admin'] },
+  { label: 'Personas',             href: '/personas',      icon: 'Users',           roles: ['super_admin', 'admin'] },
+  { label: 'Mi Trabajo',           href: '/mi-trabajo',    icon: 'Target',          roles: ['super_admin', 'admin', 'supervisor', 'empleado'] },
+  { label: 'Gestión de Objetivos', href: '/objetivos',     icon: 'ClipboardList',   roles: ['super_admin', 'admin', 'supervisor'] },
+  { label: 'Validación',           href: '/validacion',    icon: 'CheckSquare',     roles: ['super_admin', 'admin', 'supervisor'] },
+  { label: 'Analytics',            href: '/analytics',     icon: 'BarChart2',       roles: ['super_admin', 'admin', 'supervisor'] },
+  { label: 'Perfil Profesional',   href: '/perfil',        icon: 'User',            roles: ['super_admin', 'admin', 'supervisor', 'empleado'] },
+  { label: 'Talent Card',          href: '/talent-card',   icon: 'Award',           roles: ['super_admin', 'admin', 'supervisor', 'empleado'] },
+  { label: 'Reportes',             href: '/reportes',      icon: 'FileText',        roles: ['super_admin', 'admin', 'supervisor'] },
 ]
 
 export function getNavForRole(rol: UserRole): NavItem[] {
