@@ -34,7 +34,7 @@ export default function AnalyticsPage() {
     const { data: objetivos } = await obsQuery
 
     // Personas
-    let persQuery = supabase.from('personas').select('*, objetivos(*)')
+    let persQuery = supabase.from('personas').select('*')
     if (empresaId !== 'todas') persQuery = persQuery.eq('empresa_id', empresaId)
     const { data: personas } = await persQuery
 
@@ -125,22 +125,29 @@ export default function AnalyticsPage() {
       {/* Dashboard ejecutivo */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Top performer */}
-        {topPerformer && (
-          <div className="traza-card p-6 bg-traza-700 border-traza-700">
-            <p className="text-traza-300 text-xs font-semibold uppercase mb-3">Top Performer</p>
-            <div className="flex items-center gap-2">
-              <Trophy size={18} strokeWidth={1.75} className="text-yellow-300" />
-              <p className="text-white text-xl font-bold">
-                {topPerformer.persona.nombre} {topPerformer.persona.apellido}
+        <div className="traza-card p-6 bg-traza-700 border-traza-700">
+          <p className="text-traza-300 text-xs font-semibold uppercase mb-3">Top Performer</p>
+          {topPerformer ? (
+            <>
+              <div className="flex items-center gap-2">
+                <Trophy size={18} strokeWidth={1.75} className="text-yellow-300" />
+                <p className="text-white text-xl font-bold">
+                  {topPerformer.persona.nombre} {topPerformer.persona.apellido}
+                </p>
+              </div>
+              <p className="text-traza-200 text-sm mt-1">{topPerformer.persona.cargo ?? ''}{topPerformer.persona.area ? ` · ${topPerformer.persona.area}` : ''}</p>
+              <p className="text-white text-4xl font-bold mt-4">
+                {topPerformer.indice.score}<span className="text-traza-300 text-xl">/100</span>
               </p>
-            </div>
-            <p className="text-traza-200 text-sm mt-1">{topPerformer.persona.cargo ?? ''}</p>
-            <p className="text-white text-3xl font-bold mt-4">
-              {topPerformer.indice.score}<span className="text-traza-300 text-lg">/100</span>
-            </p>
-            <p className="text-traza-300 text-sm mt-1">Índice Traza</p>
-          </div>
-        )}
+              <p className="text-traza-300 text-sm mt-1">Índice Traza · {topPerformer.indice.badge}</p>
+              <div className="mt-3 text-xs text-traza-300">
+                {topPerformer.indice.completados} completados · {topPerformer.indice.cumplimiento}% cumplimiento
+              </div>
+            </>
+          ) : (
+            <p className="text-traza-300 text-sm mt-2">No hay datos suficientes todavía.</p>
+          )}
+        </div>
 
         {/* Estado de objetivos */}
         <div className="traza-card p-6">
