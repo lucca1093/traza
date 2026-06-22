@@ -5,12 +5,14 @@ import { useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Button from '@/components/ui/Button'
 import { getEstadoClasses, getPrioridadClasses, isVencido, formatFecha, cn } from '@/lib/traza'
-import { AlertTriangle } from 'lucide-react'
+import { AlertTriangle, ArrowLeft } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import type { Objetivo, Persona } from '@/types'
 
 export default function MiTrabajoPage() {
   const searchParams = useSearchParams()
   const objetivoDestacado = searchParams.get('objetivo')
+  const router = useRouter()
 
   const [objetivos, setObjetivos]   = useState<Objetivo[]>([])
   const [persona, setPersona]       = useState<Persona | null>(null)
@@ -114,6 +116,15 @@ export default function MiTrabajoPage() {
 
   return (
     <div className="space-y-8">
+      {objetivoDestacado && (
+        <button
+          onClick={() => router.push('/calendario')}
+          className="flex items-center gap-1.5 text-sm text-traza-700 hover:text-traza-900 font-medium transition-colors"
+        >
+          <ArrowLeft size={15} strokeWidth={2} />
+          Volver al calendario
+        </button>
+      )}
       <div className="flex items-start justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Mi Trabajo</h1>
