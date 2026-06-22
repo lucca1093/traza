@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase'
 import MetricCard from '@/components/ui/MetricCard'
 import TraceIndexBar from '@/components/ui/TraceIndexBar'
 import { calcularIndiceTraza } from '@/lib/traza'
-import { CheckCircle2, XCircle, AlertTriangle, Trophy } from 'lucide-react'
+import { CheckCircle2, AlertTriangle, Trophy } from 'lucide-react'
 import type { Objetivo, Persona } from '@/types'
 
 export default function AnalyticsPage() {
@@ -122,30 +122,32 @@ export default function AnalyticsPage() {
         <MetricCard icon="Building2"   label="Índice Org."  value={`${stats.indiceOrg}/100`} highlight />
       </div>
 
-      {/* Dashboard ejecutivo */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* Top performer + Estado */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Top performer */}
-        <div className="traza-card p-6 bg-traza-700 border-traza-700">
-          <p className="text-traza-300 text-xs font-semibold uppercase mb-3">Top Performer</p>
+        <div className="traza-card p-6 rounded-2xl" style={{ backgroundColor: '#0F4C81' }}>
+          <p className="text-xs font-semibold uppercase mb-3" style={{ color: '#85AADF' }}>Top Performer</p>
           {topPerformer ? (
             <>
-              <div className="flex items-center gap-2">
-                <Trophy size={18} strokeWidth={1.75} className="text-yellow-300" />
-                <p className="text-white text-xl font-bold">
+              <div className="flex items-center gap-2 mb-1">
+                <Trophy size={18} strokeWidth={1.75} style={{ color: '#fde68a' }} />
+                <p className="text-xl font-bold" style={{ color: '#ffffff' }}>
                   {topPerformer.persona.nombre} {topPerformer.persona.apellido}
                 </p>
               </div>
-              <p className="text-traza-200 text-sm mt-1">{topPerformer.persona.cargo ?? ''}{topPerformer.persona.area ? ` · ${topPerformer.persona.area}` : ''}</p>
-              <p className="text-white text-4xl font-bold mt-4">
-                {topPerformer.indice.score}<span className="text-traza-300 text-xl">/100</span>
+              <p className="text-sm mb-4" style={{ color: '#AEC8EA' }}>
+                {topPerformer.persona.cargo ?? ''}{topPerformer.persona.area ? ` · ${topPerformer.persona.area}` : ''}
               </p>
-              <p className="text-traza-300 text-sm mt-1">Índice Traza · {topPerformer.indice.badge}</p>
-              <div className="mt-3 text-xs text-traza-300">
-                {topPerformer.indice.completados} completados · {topPerformer.indice.cumplimiento}% cumplimiento
-              </div>
+              <p className="text-5xl font-bold" style={{ color: '#ffffff' }}>
+                {topPerformer.indice.score}
+                <span className="text-2xl font-normal" style={{ color: '#85AADF' }}>/100</span>
+              </p>
+              <p className="text-sm mt-1" style={{ color: '#85AADF' }}>
+                {topPerformer.indice.badge} · {topPerformer.indice.cumplimiento}% cumplimiento
+              </p>
             </>
           ) : (
-            <p className="text-traza-300 text-sm mt-2">No hay datos suficientes todavía.</p>
+            <p className="text-sm mt-2" style={{ color: '#85AADF' }}>Sin datos suficientes todavía.</p>
           )}
         </div>
 
@@ -154,58 +156,43 @@ export default function AnalyticsPage() {
           <p className="font-semibold text-gray-900 mb-4">Estado de objetivos</p>
           <div className="space-y-3">
             {[
-              { label: 'Completados', val: stats.completados, color: 'bg-green-500' },
-              { label: 'En progreso', val: stats.enProgreso,  color: 'bg-yellow-400' },
-              { label: 'Pendientes',  val: stats.pendientes,  color: 'bg-red-400' },
+              { label: 'Completados', val: stats.completados, color: '#22c55e' },
+              { label: 'En progreso', val: stats.enProgreso,  color: '#facc15' },
+              { label: 'Pendientes',  val: stats.pendientes,  color: '#f87171' },
             ].map(item => (
               <div key={item.label}>
                 <div className="flex justify-between text-sm mb-1">
                   <span className="text-gray-600">{item.label}</span>
-                  <span className="font-semibold">{item.val}</span>
+                  <span className="font-semibold text-gray-900">
+                    {item.val} <span className="text-gray-400 font-normal">
+                      ({stats.total > 0 ? Math.round(item.val / stats.total * 100) : 0}%)
+                    </span>
+                  </span>
                 </div>
                 <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                  <div
-                    className={`h-full rounded-full ${item.color}`}
-                    style={{ width: stats.total > 0 ? `${(item.val / stats.total) * 100}%` : '0%' }}
-                  />
+                  <div className="h-full rounded-full" style={{
+                    width: stats.total > 0 ? `${(item.val / stats.total) * 100}%` : '0%',
+                    backgroundColor: item.color
+                  }} />
                 </div>
               </div>
             ))}
-          </div>
-        </div>
-
-        {/* Validaciones */}
-        <div className="traza-card p-6">
-          <p className="font-semibold text-gray-900 mb-4">Alertas</p>
-          <div className="space-y-3">
-            <div className="flex items-center justify-between py-3 border-b border-gray-100">
-              <span className="flex items-center gap-2 text-sm text-gray-600">
-                <CheckCircle2 size={14} strokeWidth={1.75} className="text-green-500" />
+            <div className="pt-3 mt-1 border-t border-gray-100 flex items-center justify-between text-sm">
+              <span className="flex items-center gap-1.5 text-gray-500">
+                <CheckCircle2 size={13} className="text-green-500" strokeWidth={1.75} />
                 Validaciones positivas
               </span>
-              <span className="font-bold text-green-600">{stats.positivos}</span>
+              <span className="font-semibold text-gray-700">{stats.positivos}</span>
             </div>
-            <div className="flex items-center justify-between py-3 border-b border-gray-100">
-              <span className="flex items-center gap-2 text-sm text-gray-600">
-                <XCircle size={14} strokeWidth={1.75} className="text-red-400" />
-                Validaciones negativas
-              </span>
-              <span className="font-bold text-red-500">{stats.negativos}</span>
-            </div>
-            <div className="flex items-center justify-between py-3 border-b border-gray-100">
-              <span className="flex items-center gap-2 text-sm text-gray-600">
-                <AlertTriangle size={14} strokeWidth={1.75} className="text-orange-400" />
-                Personas en riesgo (&lt;40)
-              </span>
-              <span className="font-bold text-orange-500">{stats.enRiesgo}</span>
-            </div>
-            <div className="flex items-center justify-between py-3">
-              <span className="flex items-center gap-2 text-sm text-gray-600">
-                <AlertTriangle size={14} strokeWidth={1.75} className="text-amber-400" />
-                Completados sin validar
-              </span>
-              <span className="font-bold text-amber-500">{stats.sinValidar}</span>
-            </div>
+            {stats.sinValidar > 0 && (
+              <div className="flex items-center justify-between text-sm">
+                <span className="flex items-center gap-1.5 text-gray-500">
+                  <AlertTriangle size={13} className="text-amber-400" strokeWidth={1.75} />
+                  Completados sin validar
+                </span>
+                <span className="font-semibold text-amber-600">{stats.sinValidar}</span>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -265,31 +252,6 @@ export default function AnalyticsPage() {
         </div>
       </div>
 
-      {/* Personas en riesgo */}
-      {ranking.filter(r => r.indice.score < 40).length > 0 && (
-        <div className="traza-card overflow-hidden">
-          <div className="px-6 py-4 border-b border-red-100 bg-red-50">
-            <h2 className="flex items-center gap-2 font-semibold text-red-700">
-            <AlertTriangle size={16} strokeWidth={1.75} />
-            Personas que requieren seguimiento
-          </h2>
-          </div>
-          <div className="divide-y divide-gray-100">
-            {ranking.filter(r => r.indice.score < 40).map(item => (
-              <div key={item.persona.id} className="px-6 py-4 flex items-center justify-between">
-                <div>
-                  <p className="font-medium text-gray-900">{item.persona.nombre} {item.persona.apellido}</p>
-                  <p className="text-xs text-gray-500">{item.persona.cargo ?? ''}</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-lg font-bold text-red-500">{item.indice.score}/100</p>
-                  <p className="text-xs text-gray-400">Índice Traza</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   )
 }
