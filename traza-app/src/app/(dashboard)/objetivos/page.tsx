@@ -19,6 +19,7 @@ export default function ObjetivosPage() {
   const objetivoDestacado = searchParams.get('objetivo')
   const [expanded, setExpanded]   = useState<Set<string>>(new Set())
   const [busqueda, setBusqueda]   = useState('')
+  const [tabObj, setTabObj]       = useState<'activos' | 'completados'>('activos')
 
   const [form, setForm] = useState({
     persona_id: '',
@@ -129,8 +130,6 @@ export default function ObjetivosPage() {
   }
 
   const f = (k: string, v: string) => setForm(prev => ({ ...prev, [k]: v }))
-
-  const [tabObj, setTabObj] = useState<'activos' | 'completados'>('activos')
 
   // Filtrar y agrupar objetivos por persona
   const objFiltradosPorTab = objetivos.filter(o =>

@@ -19,6 +19,7 @@ export default function MiTrabajoPage() {
   const [loading, setLoading]       = useState(true)
   const [saving, setSaving]         = useState<string | null>(null)
   const [showForm, setShowForm]     = useState(false)
+  const [tab, setTab]               = useState<'activos' | 'completados'>('activos')
 
   const [form, setForm] = useState({
     titulo: '',
@@ -100,8 +101,6 @@ export default function MiTrabajoPage() {
   }
 
   if (loading) return <div className="text-gray-400 py-12 text-center">Cargando...</div>
-
-  const [tab, setTab] = useState<'activos' | 'completados'>('activos')
 
   const activos     = objetivos.filter(o => o.estado !== 'Completado')
   const completados = objetivos.filter(o => o.estado === 'Completado')
