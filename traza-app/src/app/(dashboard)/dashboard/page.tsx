@@ -44,6 +44,20 @@ export default async function DashboardPage() {
       .order('creado_en', { ascending: false })
       .limit(8)
 
+    // Cierres semanales de esta semana
+    const lunes = (() => {
+      const d = new Date()
+      const day = d.getDay()
+      const diff = d.getDate() - day + (day === 0 ? -6 : 1)
+      d.setDate(diff)
+      return d.toISOString().split('T')[0]
+    })()
+    const { data: cierres } = await supabase
+      .from('cierres_semanales')
+      .select('*, persona:personas(nombre, apellido)')
+      .eq('semana', lunes)
+      .order('creado_en', { ascending: false })
+
     return (
       <div className="space-y-8">
         <div>
@@ -67,6 +81,43 @@ export default async function DashboardPage() {
               <span className="font-semibold">{pendValidar} objetivo{pendValidar > 1 ? 's' : ''}</span> completado{pendValidar > 1 ? 's' : ''} esperan tu validación.
               {' '}<Link href="/validacion" className="underline font-medium">Ir a Validación →</Link>
             </p>
+          </div>
+        )}
+
+        {/* Cierres semanales del equipo */}
+        {cierres && cierres.length > 0 && (
+          <div className="traza-card overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-100">
+              <h2 className="text-base font-semibold text-gray-900">Cierres semanales</h2>
+              <p className="text-xs text-gray-400 mt-0.5">{cierres.length} colaborador{cierres.length > 1 ? 'es' : ''} completaron el cierre de esta semana</p>
+            </div>
+            <div className="divide-y divide-gray-50">
+              {(cierres as any[]).map((c: any) => (
+                <div key={c.id} className="px-6 py-4">
+                  <p className="text-sm font-semibold text-gray-900 mb-3">{c.persona?.nombre} {c.persona?.apellido}</p>
+                  <div className="grid grid-cols-3 gap-4">
+                    {c.que_avance && (
+                      <div>
+                        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Avanzó</p>
+                        <p className="text-sm text-gray-700">{c.que_avance}</p>
+                      </div>
+                    )}
+                    {c.que_obstaculos && (
+                      <div>
+                        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Obstáculos</p>
+                        <p className="text-sm text-gray-700">{c.que_obstaculos}</p>
+                      </div>
+                    )}
+                    {c.que_necesito && (
+                      <div>
+                        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Necesita</p>
+                        <p className="text-sm text-gray-700">{c.que_necesito}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 

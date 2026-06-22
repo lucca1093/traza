@@ -224,6 +224,19 @@ export default function ValidacionPage() {
                 </p>
               </div>
 
+              {/* Autoevaluación del empleado */}
+              {(objSeleccionado.autoevaluacion || objSeleccionado.comentario_empleado) && (
+                <div className="mb-5 bg-amber-50 border border-amber-100 rounded-xl p-4">
+                  <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide mb-2">Autoevaluación del colaborador</p>
+                  {objSeleccionado.autoevaluacion && (
+                    <p className="text-sm font-semibold text-gray-900 mb-1">{objSeleccionado.autoevaluacion}</p>
+                  )}
+                  {objSeleccionado.comentario_empleado && (
+                    <p className="text-sm text-gray-600 italic">"{objSeleccionado.comentario_empleado}"</p>
+                  )}
+                </div>
+              )}
+
               {/* Avances del empleado */}
               {avances.length > 0 && (
                 <div className="mb-5">

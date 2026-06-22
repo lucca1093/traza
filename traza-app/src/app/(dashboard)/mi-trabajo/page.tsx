@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Button from '@/components/ui/Button'
 import { getEstadoClasses, getPrioridadClasses, isVencido, formatFecha, cn } from '@/lib/traza'
-import { AlertTriangle, ArrowLeft, MessageSquare, Link2, Paperclip, Plus } from 'lucide-react'
+import { AlertTriangle, ArrowLeft, MessageSquare, Link2, Paperclip, Plus, CheckCircle2, Star } from 'lucide-react'
 import type { Objetivo, Persona } from '@/types'
 
 export default function MiTrabajoPage() {
@@ -94,6 +94,11 @@ export default function MiTrabajoPage() {
     setSaving(null)
   }
 
+  async function updateAutoevaluacion(id: string, autoevaluacion: string, comentario_empleado: string) {
+    await supabase.from('objetivos').update({ autoevaluacion, comentario_empleado: comentario_empleado || null }).eq('id', id)
+    setObjetivos(prev => prev.map(o => o.id === id ? { ...o, autoevaluacion: autoevaluacion as any, comentario_empleado } : o))
+  }
+
   async function deleteObjetivo(id: string) {
     if (!confirm('¿Eliminar este objetivo?')) return
     await supabase.from('objetivos').delete().eq('id', id)
@@ -132,6 +137,9 @@ export default function MiTrabajoPage() {
           {showForm ? 'Cancelar' : '+ Objetivo personal'}
         </Button>
       </div>
+
+      {/* Cierre semanal */}
+      {persona && <CierreSemanal personaId={persona.id} />}
 
       {/* Métricas rápidas */}
       <div className="grid grid-cols-3 gap-4">
@@ -206,7 +214,7 @@ export default function MiTrabajoPage() {
             ) : (
               <div className="space-y-3">
                 {asignados.map(obj => (
-                  <ObjetivoCard key={obj.id} obj={obj} saving={saving} onUpdate={updateEstado} autoExpand={obj.id === objetivoDestacado} />
+                  <ObjetivoCard key={obj.id} obj={obj} saving={saving} onUpdate={updateEstado} onUpdateAuto={updateAutoevaluacion} autoExpand={obj.id === objetivoDestacado} />
                 ))}
               </div>
             )}
@@ -219,7 +227,7 @@ export default function MiTrabajoPage() {
             ) : (
               <div className="space-y-3">
                 {personales.map(obj => (
-                  <ObjetivoCard key={obj.id} obj={obj} saving={saving} onUpdate={updateEstado} onDelete={deleteObjetivo} personal autoExpand={obj.id === objetivoDestacado} />
+                  <ObjetivoCard key={obj.id} obj={obj} saving={saving} onUpdate={updateEstado} onUpdateAuto={updateAutoevaluacion} onDelete={deleteObjetivo} personal autoExpand={obj.id === objetivoDestacado} />
                 ))}
               </div>
             )}
@@ -234,7 +242,7 @@ export default function MiTrabajoPage() {
               <h2 className="text-base font-semibold text-gray-900 mb-3">Asignados completados</h2>
               <div className="space-y-3">
                 {asignadosC.map(obj => (
-                  <ObjetivoCard key={obj.id} obj={obj} saving={saving} onUpdate={updateEstado} />
+                  <ObjetivoCard key={obj.id} obj={obj} saving={saving} onUpdate={updateEstado} onUpdateAuto={updateAutoevaluacion} />
                 ))}
               </div>
             </section>
@@ -244,7 +252,7 @@ export default function MiTrabajoPage() {
               <h2 className="text-base font-semibold text-gray-900 mb-3">Personales completados</h2>
               <div className="space-y-3">
                 {personalesC.map(obj => (
-                  <ObjetivoCard key={obj.id} obj={obj} saving={saving} onUpdate={updateEstado} personal />
+                  <ObjetivoCard key={obj.id} obj={obj} saving={saving} onUpdate={updateEstado} onUpdateAuto={updateAutoevaluacion} personal />
                 ))}
               </div>
             </section>
@@ -258,13 +266,140 @@ export default function MiTrabajoPage() {
   )
 }
 
-// -------- Sub-componente --------
+// -------- Cierre Semanal --------
+function CierreSemanal({ personaId }: { personaId: string }) {
+  const [cierre, setCierre]   = useState<any>(null)
+  const [editing, setEditing] = useState(false)
+  const [saving, setSaving]   = useState(false)
+  const [form, setForm]       = useState({ que_avance: '', que_obstaculos: '', que_necesito: '' })
+
+  // Lunes de la semana actual
+  function getLunes() {
+    const d = new Date()
+    const day = d.getDay()
+    const diff = d.getDate() - day + (day === 0 ? -6 : 1)
+    d.setDate(diff)
+    return d.toISOString().split('T')[0]
+  }
+
+  const semana = getLunes()
+
+  useEffect(() => {
+    supabase.from('cierres_semanales')
+      .select('*')
+      .eq('persona_id', personaId)
+      .eq('semana', semana)
+      .maybeSingle()
+      .then(({ data }) => {
+        setCierre(data)
+        if (data) setForm({ que_avance: data.que_avance ?? '', que_obstaculos: data.que_obstaculos ?? '', que_necesito: data.que_necesito ?? '' })
+      })
+  }, [personaId])
+
+  async function handleGuardar(e: React.FormEvent) {
+    e.preventDefault()
+    setSaving(true)
+    const { data: { user } } = await supabase.auth.getUser()
+    const { data: profile } = await supabase.from('profiles').select('empresa_id').eq('id', user!.id).single()
+
+    const payload = {
+      empresa_id: profile!.empresa_id,
+      persona_id: personaId,
+      semana,
+      que_avance: form.que_avance || null,
+      que_obstaculos: form.que_obstaculos || null,
+      que_necesito: form.que_necesito || null,
+      creado_por: user!.id,
+    }
+
+    if (cierre) {
+      await supabase.from('cierres_semanales').update(payload).eq('id', cierre.id)
+    } else {
+      await supabase.from('cierres_semanales').insert(payload)
+    }
+
+    const { data } = await supabase.from('cierres_semanales').select('*').eq('persona_id', personaId).eq('semana', semana).maybeSingle()
+    setCierre(data)
+    setEditing(false)
+    setSaving(false)
+  }
+
+  const semanaLabel = new Date(semana + 'T12:00:00').toLocaleDateString('es-AR', { day: 'numeric', month: 'long' })
+
+  return (
+    <div className="traza-card overflow-hidden">
+      <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+        <div className="flex items-center gap-2">
+          <CheckCircle2 size={16} className="text-traza-700" strokeWidth={1.75} />
+          <h2 className="font-semibold text-gray-900">Cierre semanal</h2>
+          <span className="text-xs text-gray-400">Semana del {semanaLabel}</span>
+        </div>
+        <button
+          onClick={() => setEditing(!editing)}
+          className="text-xs text-traza-700 font-medium hover:underline"
+        >
+          {cierre ? 'Editar' : 'Completar'}
+        </button>
+      </div>
+
+      {!editing && cierre && (
+        <div className="px-5 py-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">¿Qué avancé esta semana?</p>
+            <p className="text-sm text-gray-700">{cierre.que_avance || <span className="text-gray-300">—</span>}</p>
+          </div>
+          <div>
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">¿Qué obstáculos tuve?</p>
+            <p className="text-sm text-gray-700">{cierre.que_obstaculos || <span className="text-gray-300">—</span>}</p>
+          </div>
+          <div>
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">¿Qué necesito para la próxima?</p>
+            <p className="text-sm text-gray-700">{cierre.que_necesito || <span className="text-gray-300">—</span>}</p>
+          </div>
+        </div>
+      )}
+
+      {!editing && !cierre && (
+        <div className="px-5 py-5 text-center">
+          <p className="text-sm text-gray-400 mb-2">Todavía no completaste el cierre de esta semana.</p>
+          <button onClick={() => setEditing(true)} className="text-sm font-medium text-traza-700 hover:underline">
+            Completar ahora →
+          </button>
+        </div>
+      )}
+
+      {editing && (
+        <form onSubmit={handleGuardar} className="px-5 py-4 space-y-3">
+          <div>
+            <label className="traza-label">¿Qué avancé esta semana?</label>
+            <textarea className="traza-input min-h-[64px] resize-none text-sm" value={form.que_avance} onChange={e => setForm(f => ({ ...f, que_avance: e.target.value }))} placeholder="Describí tus logros y avances más importantes..." />
+          </div>
+          <div>
+            <label className="traza-label">¿Qué obstáculos tuve?</label>
+            <textarea className="traza-input min-h-[64px] resize-none text-sm" value={form.que_obstaculos} onChange={e => setForm(f => ({ ...f, que_obstaculos: e.target.value }))} placeholder="¿Qué te frenó o complicó esta semana?" />
+          </div>
+          <div>
+            <label className="traza-label">¿Qué necesito para la próxima semana?</label>
+            <textarea className="traza-input min-h-[64px] resize-none text-sm" value={form.que_necesito} onChange={e => setForm(f => ({ ...f, que_necesito: e.target.value }))} placeholder="Recursos, apoyo, información..." />
+          </div>
+          <div className="flex gap-2">
+            <Button type="submit" size="sm" loading={saving}>Guardar cierre</Button>
+            <Button type="button" size="sm" variant="ghost" onClick={() => setEditing(false)}>Cancelar</Button>
+          </div>
+        </form>
+      )}
+    </div>
+  )
+}
+
+// -------- ObjetivoCard --------
 function ObjetivoCard({
-  obj, saving, onUpdate, onDelete, personal, autoExpand
+  obj, saving, onUpdate, onUpdateAuto, onDelete, personal, autoExpand
 }: {
   obj: Objetivo
   saving: string | null
   onUpdate: (id: string, estado: string) => void
+  onUpdateAuto: (id: string, auto: string, comentario: string) => void
   onDelete?: (id: string) => void
   personal?: boolean
   autoExpand?: boolean
@@ -275,6 +410,10 @@ function ObjetivoCard({
   const [addingType, setAddingType]     = useState<'comentario' | 'link' | 'archivo' | null>(null)
   const [addingContent, setAddingContent] = useState('')
   const [savingAvance, setSavingAvance] = useState(false)
+  const [autoEval, setAutoEval]         = useState((obj as any).autoevaluacion ?? '')
+  const [comentarioEmp, setComentarioEmp] = useState((obj as any).comentario_empleado ?? '')
+  const [savingAuto, setSavingAuto]     = useState(false)
+  const [autoSaved, setAutoSaved]       = useState(false)
   const vencido = isVencido(obj.fecha_limite, obj.estado)
 
   useEffect(() => {
@@ -317,11 +456,22 @@ function ObjetivoCard({
     setSavingAvance(false)
   }
 
+  async function handleGuardarAuto() {
+    if (!autoEval) return
+    setSavingAuto(true)
+    await onUpdateAuto(obj.id, autoEval, comentarioEmp)
+    setAutoSaved(true)
+    setTimeout(() => setAutoSaved(false), 2000)
+    setSavingAuto(false)
+  }
+
   function formatDT(dt: string) {
     return new Date(dt).toLocaleString('es-AR', {
       day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit'
     })
   }
+
+  const yaCompletado = estado === 'Completado' || obj.estado === 'Completado'
 
   return (
     <div id={`obj-${obj.id}`} className={cn(
@@ -378,6 +528,40 @@ function ObjetivoCard({
                 Guardar
               </Button>
             </div>
+
+            {/* Autoevaluación — aparece cuando está completado */}
+            {yaCompletado && (
+              <div className="bg-gray-50 rounded-xl p-4 space-y-3">
+                <div className="flex items-center gap-2">
+                  <Star size={14} className="text-amber-400" strokeWidth={1.75} />
+                  <p className="text-xs font-semibold text-gray-700">Tu autoevaluación</p>
+                  {(obj as any).autoevaluacion && !autoSaved && (
+                    <span className="text-xs text-gray-400">ya completada</span>
+                  )}
+                  {autoSaved && <span className="text-xs text-green-500">Guardada ✓</span>}
+                </div>
+                <div className="grid grid-cols-1 gap-2">
+                  {['Satisfecho', 'Parcialmente satisfecho', 'Insatisfecho'].map(opt => (
+                    <label
+                      key={opt}
+                      className={`flex items-center gap-3 px-3 py-2.5 rounded-xl border cursor-pointer transition-colors text-sm ${autoEval === opt ? 'border-traza-700 bg-traza-50 font-medium' : 'border-gray-200 hover:bg-white'}`}
+                    >
+                      <input type="radio" value={opt} checked={autoEval === opt} onChange={e => setAutoEval(e.target.value)} className="text-traza-700" />
+                      {opt}
+                    </label>
+                  ))}
+                </div>
+                <textarea
+                  className="traza-input text-sm min-h-[64px] resize-none"
+                  placeholder="¿Querés agregar algo sobre cómo fue tu desempeño en este objetivo?"
+                  value={comentarioEmp}
+                  onChange={e => setComentarioEmp(e.target.value)}
+                />
+                <Button size="sm" loading={savingAuto} onClick={handleGuardarAuto} disabled={!autoEval}>
+                  Guardar autoevaluación
+                </Button>
+              </div>
+            )}
 
             {obj.validacion && (
               <div className="bg-gray-50 rounded-xl p-3">
