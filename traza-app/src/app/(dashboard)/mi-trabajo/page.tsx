@@ -2,11 +2,11 @@
 
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Button from '@/components/ui/Button'
 import { getEstadoClasses, getPrioridadClasses, isVencido, formatFecha, cn } from '@/lib/traza'
-import { AlertTriangle, ArrowLeft } from 'lucide-react'
-import { useRouter } from 'next/navigation'
+import { AlertTriangle, ArrowLeft, MessageSquare, Link2, Paperclip, Plus } from 'lucide-react'
 import type { Objetivo, Persona } from '@/types'
 
 export default function MiTrabajoPage() {
@@ -31,12 +31,6 @@ export default function MiTrabajoPage() {
     async function load() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
-
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('empresa_id')
-        .eq('id', user.id)
-        .single()
 
       const { data: p } = await supabase
         .from('personas')
@@ -83,7 +77,6 @@ export default function MiTrabajoPage() {
     setForm({ titulo: '', descripcion: '', prioridad: 'Media', fecha_limite: '' })
     setShowForm(false)
 
-    // Refrescar
     const { data: obs } = await supabase
       .from('objetivos')
       .select('*')
@@ -93,10 +86,10 @@ export default function MiTrabajoPage() {
     setSaving(null)
   }
 
-  async function updateEstado(id: string, estado: string, evidencia_url?: string) {
+  async function updateEstado(id: string, estado: string) {
     setSaving(id)
-    await supabase.from('objetivos').update({ estado, evidencia_url: evidencia_url ?? null }).eq('id', id)
-    setObjetivos(prev => prev.map(o => o.id === id ? { ...o, estado: estado as any, evidencia_url: evidencia_url ?? o.evidencia_url } : o))
+    await supabase.from('objetivos').update({ estado }).eq('id', id)
+    setObjetivos(prev => prev.map(o => o.id === id ? { ...o, estado: estado as any } : o))
     setSaving(null)
   }
 
@@ -110,9 +103,9 @@ export default function MiTrabajoPage() {
 
   const asignados  = objetivos.filter(o => o.tipo === 'Asignado')
   const personales = objetivos.filter(o => o.tipo === 'Personal')
-  const pendientes = objetivos.filter(o => o.estado !== 'Completado').length
+  const pendientes  = objetivos.filter(o => o.estado !== 'Completado').length
   const completados = objetivos.filter(o => o.estado === 'Completado').length
-  const vencidos   = objetivos.filter(o => isVencido(o.fecha_limite, o.estado)).length
+  const vencidos    = objetivos.filter(o => isVencido(o.fecha_limite, o.estado)).length
 
   return (
     <div className="space-y-8">
@@ -125,6 +118,7 @@ export default function MiTrabajoPage() {
           Volver al calendario
         </button>
       )}
+
       <div className="flex items-start justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Mi Trabajo</h1>
@@ -220,12 +214,18 @@ function ObjetivoCard({
 }: {
   obj: Objetivo
   saving: string | null
-  onUpdate: (id: string, estado: string, evidencia?: string) => void
+  onUpdate: (id: string, estado: string) => void
   onDelete?: (id: string) => void
   personal?: boolean
   autoExpand?: boolean
 }) {
-  const [expanded, setExpanded] = useState(autoExpand ?? false)
+  const [expanded, setExpanded]         = useState(autoExpand ?? false)
+  const [estado, setEstado]             = useState(obj.estado)
+  const [avances, setAvances]           = useState<any[]>([])
+  const [addingType, setAddingType]     = useState<'comentario' | 'link' | 'archivo' | null>(null)
+  const [addingContent, setAddingContent] = useState('')
+  const [savingAvance, setSavingAvance] = useState(false)
+  const vencido = isVencido(obj.fecha_limite, obj.estado)
 
   useEffect(() => {
     if (autoExpand) {
@@ -235,9 +235,43 @@ function ObjetivoCard({
       }, 100)
     }
   }, [autoExpand])
-  const [estado, setEstado]     = useState(obj.estado)
-  const [evidencia, setEvidencia] = useState(obj.evidencia_url ?? '')
-  const vencido = isVencido(obj.fecha_limite, obj.estado)
+
+  useEffect(() => {
+    if (expanded) loadAvances()
+  }, [expanded])
+
+  async function loadAvances() {
+    const { data } = await supabase
+      .from('objetivo_avances')
+      .select('*')
+      .eq('objetivo_id', obj.id)
+      .order('creado_en', { ascending: true })
+    setAvances(data ?? [])
+  }
+
+  async function addAvance() {
+    if (!addingContent.trim() || !addingType) return
+    setSavingAvance(true)
+    const { data: { user } } = await supabase.auth.getUser()
+    await supabase.from('objetivo_avances').insert({
+      empresa_id:  (obj as any).empresa_id,
+      objetivo_id: obj.id,
+      persona_id:  (obj as any).persona_id,
+      tipo:        addingType,
+      contenido:   addingContent.trim(),
+      creado_por:  user!.id,
+    })
+    setAddingContent('')
+    setAddingType(null)
+    await loadAvances()
+    setSavingAvance(false)
+  }
+
+  function formatDT(dt: string) {
+    return new Date(dt).toLocaleString('es-AR', {
+      day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit'
+    })
+  }
 
   return (
     <div id={`obj-${obj.id}`} className={cn(
@@ -245,6 +279,7 @@ function ObjetivoCard({
       vencido && 'border-red-200',
       autoExpand && 'ring-2 ring-traza-300'
     )}>
+      {/* Header */}
       <div
         className="flex items-center justify-between px-5 py-4 cursor-pointer"
         onClick={() => setExpanded(!expanded)}
@@ -259,9 +294,7 @@ function ObjetivoCard({
               </span>
             )}
           </div>
-          <p className="text-xs text-gray-500 mt-0.5">
-            {formatFecha(obj.fecha_limite)}
-          </p>
+          <p className="text-xs text-gray-500 mt-0.5">{formatFecha(obj.fecha_limite)}</p>
         </div>
         <div className="flex items-center gap-2 ml-4">
           <span className={cn('text-xs px-2.5 py-1 rounded-full font-medium', getPrioridadClasses(obj.prioridad))}>
@@ -275,59 +308,125 @@ function ObjetivoCard({
       </div>
 
       {expanded && (
-        <div className="px-5 pb-5 border-t border-gray-100 space-y-4 pt-4">
-          {obj.descripcion && (
-            <p className="text-sm text-gray-600">{obj.descripcion}</p>
-          )}
+        <div className="border-t border-gray-100 divide-y divide-gray-50">
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="traza-label">Estado</label>
-              <select
-                className="traza-input"
-                value={estado}
-                onChange={e => setEstado(e.target.value as any)}
-              >
-                <option>Pendiente</option>
-                <option>En progreso</option>
-                <option>Completado</option>
-              </select>
-            </div>
-            <div>
-              <label className="traza-label">Link de evidencia</label>
-              <input
-                className="traza-input"
-                value={evidencia}
-                onChange={e => setEvidencia(e.target.value)}
-                placeholder="https://..."
-              />
-            </div>
-          </div>
-
-          {obj.validacion && (
-            <div className="bg-gray-50 rounded-xl p-3">
-              <p className="text-xs font-medium text-gray-500 mb-1">Validación del supervisor</p>
-              <p className="text-sm font-semibold text-gray-900">{obj.validacion}</p>
-              {obj.comentario_supervisor && (
-                <p className="text-sm text-gray-600 mt-1 italic">"{obj.comentario_supervisor}"</p>
-              )}
-            </div>
-          )}
-
-          <div className="flex items-center gap-3">
-            <Button
-              size="sm"
-              loading={saving === obj.id}
-              onClick={() => onUpdate(obj.id, estado, evidencia)}
-            >
-              Guardar avance
-            </Button>
-            {personal && onDelete && (
-              <Button size="sm" variant="danger" onClick={() => onDelete(obj.id)}>
-                Eliminar
+          {/* Estado */}
+          <div className="px-5 py-4 space-y-3">
+            {obj.descripcion && (
+              <p className="text-sm text-gray-600">{obj.descripcion}</p>
+            )}
+            <div className="flex items-end gap-3 flex-wrap">
+              <div className="flex-1 min-w-[160px]">
+                <label className="traza-label">Estado</label>
+                <select className="traza-input" value={estado} onChange={e => setEstado(e.target.value as any)}>
+                  <option>Pendiente</option>
+                  <option>En progreso</option>
+                  <option>Completado</option>
+                </select>
+              </div>
+              <Button size="sm" loading={saving === obj.id} onClick={() => onUpdate(obj.id, estado)}>
+                Guardar
               </Button>
+            </div>
+
+            {obj.validacion && (
+              <div className="bg-gray-50 rounded-xl p-3">
+                <p className="text-xs font-medium text-gray-500 mb-1">Validación del supervisor</p>
+                <p className="text-sm font-semibold text-gray-900">{obj.validacion}</p>
+                {obj.comentario_supervisor && (
+                  <p className="text-sm text-gray-600 mt-1 italic">"{obj.comentario_supervisor}"</p>
+                )}
+              </div>
+            )}
+
+            {personal && onDelete && (
+              <button onClick={() => onDelete(obj.id)} className="text-xs text-red-400 hover:text-red-600 transition-colors">
+                Eliminar objetivo
+              </button>
             )}
           </div>
+
+          {/* Avances */}
+          <div className="px-5 py-4 space-y-3">
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Avances registrados</p>
+
+            {avances.length === 0 ? (
+              <p className="text-xs text-gray-400">Sin avances todavía.</p>
+            ) : (
+              <div className="space-y-2.5">
+                {avances.map(a => (
+                  <div key={a.id} className="flex gap-2.5">
+                    <div className="flex-shrink-0 mt-0.5">
+                      {a.tipo === 'comentario' && <MessageSquare size={14} className="text-gray-400" />}
+                      {a.tipo === 'link'       && <Link2 size={14} className="text-traza-500" />}
+                      {a.tipo === 'archivo'    && <Paperclip size={14} className="text-orange-400" />}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      {(a.tipo === 'link' || a.tipo === 'archivo') ? (
+                        <a href={a.contenido} target="_blank" rel="noopener noreferrer"
+                          className="text-traza-700 hover:underline break-all text-xs">
+                          {a.contenido}
+                        </a>
+                      ) : (
+                        <p className="text-sm text-gray-700">{a.contenido}</p>
+                      )}
+                      <p className="text-xs text-gray-400 mt-0.5">{formatDT(a.creado_en)}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Botones agregar */}
+            {addingType === null ? (
+              <div className="flex gap-4 pt-1">
+                <button onClick={() => setAddingType('comentario')}
+                  className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-700 transition-colors">
+                  <Plus size={11} strokeWidth={2.5} />
+                  <MessageSquare size={12} />
+                  Comentario
+                </button>
+                <button onClick={() => setAddingType('link')}
+                  className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-700 transition-colors">
+                  <Plus size={11} strokeWidth={2.5} />
+                  <Link2 size={12} />
+                  Link
+                </button>
+                <button onClick={() => setAddingType('archivo')}
+                  className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-700 transition-colors">
+                  <Plus size={11} strokeWidth={2.5} />
+                  <Paperclip size={12} />
+                  Archivo
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-2 pt-1">
+                {addingType === 'comentario' ? (
+                  <textarea
+                    autoFocus
+                    className="traza-input text-sm min-h-[72px] resize-none"
+                    placeholder="Describí tu avance..."
+                    value={addingContent}
+                    onChange={e => setAddingContent(e.target.value)}
+                  />
+                ) : (
+                  <input
+                    autoFocus
+                    type="url"
+                    className="traza-input text-sm"
+                    placeholder={addingType === 'link' ? 'https://...' : 'Link al archivo (Drive, Notion, etc.)'}
+                    value={addingContent}
+                    onChange={e => setAddingContent(e.target.value)}
+                  />
+                )}
+                <div className="flex gap-2">
+                  <Button size="sm" loading={savingAvance} onClick={addAvance}>Agregar</Button>
+                  <Button size="sm" variant="ghost" onClick={() => { setAddingType(null); setAddingContent('') }}>Cancelar</Button>
+                </div>
+              </div>
+            )}
+          </div>
+
         </div>
       )}
     </div>

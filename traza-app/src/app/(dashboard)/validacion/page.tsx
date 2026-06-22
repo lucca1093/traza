@@ -4,15 +4,25 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import Button from '@/components/ui/Button'
 import { getEstadoClasses, getValidacionClasses, formatFecha } from '@/lib/traza'
-import { Paperclip } from 'lucide-react'
+import { Paperclip, MessageSquare, Link2 } from 'lucide-react'
 
 export default function ValidacionPage() {
-  const [objetivos, setObjetivos] = useState<any[]>([])
-  const [selected, setSelected]   = useState<string>('')
+  const [objetivos, setObjetivos]   = useState<any[]>([])
+  const [selected, setSelected]     = useState<string>('')
   const [validacion, setValidacion] = useState('De acuerdo')
   const [comentario, setComentario] = useState('')
   const [saving, setSaving]         = useState(false)
   const [success, setSuccess]       = useState(false)
+  const [avances, setAvances]       = useState<any[]>([])
+
+  async function fetchAvances(objetivoId: string) {
+    const { data } = await supabase
+      .from('objetivo_avances')
+      .select('*')
+      .eq('objetivo_id', objetivoId)
+      .order('creado_en', { ascending: true })
+    setAvances(data ?? [])
+  }
 
   async function fetchObjetivos() {
     const { data } = await supabase
@@ -21,7 +31,10 @@ export default function ValidacionPage() {
       .order('created_at', { ascending: false })
 
     setObjetivos(data ?? [])
-    if (data && data.length > 0) setSelected(data[0].id)
+    if (data && data.length > 0) {
+      setSelected(data[0].id)
+      fetchAvances(data[0].id)
+    }
   }
 
   useEffect(() => { fetchObjetivos() }, [])
@@ -68,7 +81,7 @@ export default function ValidacionPage() {
             {objetivos.map(obj => (
               <div
                 key={obj.id}
-                onClick={() => setSelected(obj.id)}
+                onClick={() => { setSelected(obj.id); fetchAvances(obj.id) }}
                 className={`px-5 py-4 cursor-pointer transition-colors ${selected === obj.id ? 'bg-traza-50 border-l-2 border-traza-700' : 'hover:bg-gray-50'}`}
               >
                 <p className="font-medium text-gray-900 text-sm truncate">{obj.titulo}</p>
@@ -107,18 +120,40 @@ export default function ValidacionPage() {
                     ? `${objSeleccionado.persona.nombre} ${objSeleccionado.persona.apellido}`
                     : '—'}
                 </p>
-                {objSeleccionado.evidencia_url && (
-                  <a
-                    href={objSeleccionado.evidencia_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-1 text-xs text-traza-700 hover:underline mt-1"
-                  >
-                    <Paperclip size={12} strokeWidth={1.75} />
-                    Ver evidencia
-                  </a>
-                )}
               </div>
+
+              {/* Historial de avances del empleado */}
+              {avances.length > 0 && (
+                <div className="mb-5">
+                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Avances del colaborador</p>
+                  <div className="space-y-2.5">
+                    {avances.map(a => (
+                      <div key={a.id} className="flex gap-2.5 bg-gray-50 rounded-xl px-3 py-2.5">
+                        <div className="flex-shrink-0 mt-0.5">
+                          {a.tipo === 'comentario' && <MessageSquare size={13} className="text-gray-400" />}
+                          {a.tipo === 'link'       && <Link2 size={13} className="text-traza-500" />}
+                          {a.tipo === 'archivo'    && <Paperclip size={13} className="text-orange-400" />}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          {(a.tipo === 'link' || a.tipo === 'archivo') ? (
+                            <a href={a.contenido} target="_blank" rel="noopener noreferrer"
+                              className="text-traza-700 hover:underline break-all text-xs">
+                              {a.contenido}
+                            </a>
+                          ) : (
+                            <p className="text-sm text-gray-700">{a.contenido}</p>
+                          )}
+                          <p className="text-xs text-gray-400 mt-0.5">
+                            {new Date(a.creado_en).toLocaleString('es-AR', {
+                              day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit'
+                            })}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <form onSubmit={handleValidar} className="space-y-4">
                 <div>
