@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Button from '@/components/ui/Button'
 import { getEstadoClasses, getPrioridadClasses, formatFecha } from '@/lib/traza'
-import { ChevronDown, ChevronRight, Search } from 'lucide-react'
+import { ChevronDown, ChevronRight, Search, MessageSquare, Link2, Paperclip } from 'lucide-react'
 import type { Objetivo, Persona, Profile } from '@/types'
 
 export default function ObjetivosPage() {
@@ -287,36 +287,16 @@ export default function ObjetivosPage() {
 
                   {/* Objetivos expandidos */}
                   {isOpen && (
-                    <div className="bg-gray-50 border-t border-gray-100">
-                      <table className="w-full">
-                        <thead className="text-xs text-gray-400 uppercase">
-                          <tr>
-                            <th className="pl-16 pr-4 py-2 text-left">Objetivo</th>
-                            <th className="px-4 py-2 text-left">Prioridad</th>
-                            <th className="px-4 py-2 text-left">Estado</th>
-                            <th className="px-4 py-2 text-left">Vence</th>
-                            <th className="px-4 py-2 text-right">Acciones</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-100">
-                          {obs.map((obj: any) => (
-                            <tr id={`obj-row-${obj.id}`} key={obj.id} className={`hover:bg-white transition-colors ${obj.id === objetivoDestacado ? 'bg-traza-50' : ''}`}>
-                              <td className="pl-16 pr-4 py-3 font-medium text-gray-900 text-sm max-w-xs truncate">{obj.titulo}</td>
-                              <td className="px-4 py-3">
-                                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${getPrioridadClasses(obj.prioridad)}`}>{obj.prioridad}</span>
-                              </td>
-                              <td className="px-4 py-3">
-                                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${getEstadoClasses(obj.estado)}`}>{obj.estado}</span>
-                              </td>
-                              <td className="px-4 py-3 text-sm text-gray-500">{formatFecha(obj.fecha_limite)}</td>
-                              <td className="px-4 py-3 text-right space-x-2">
-                                <button onClick={() => handleEdit(obj)} className="text-xs text-traza-700 hover:underline">Editar</button>
-                                <button onClick={() => handleDelete(obj.id)} className="text-xs text-red-500 hover:underline">Eliminar</button>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
+                    <div className="bg-gray-50 border-t border-gray-100 divide-y divide-gray-100">
+                      {obs.map((obj: any) => (
+                        <ObjetivoRow
+                          key={obj.id}
+                          obj={obj}
+                          autoExpand={obj.id === objetivoDestacado}
+                          onEdit={handleEdit}
+                          onDelete={handleDelete}
+                        />
+                      ))}
                     </div>
                   )}
                 </div>
@@ -344,6 +324,95 @@ export default function ObjetivosPage() {
           </div>
         )}
       </div>
+    </div>
+  )
+}
+
+// -------- Fila de objetivo expandible con avances --------
+function ObjetivoRow({ obj, autoExpand, onEdit, onDelete }: {
+  obj: any
+  autoExpand?: boolean
+  onEdit: (obj: any) => void
+  onDelete: (id: string) => void
+}) {
+  const [open, setOpen]       = useState(autoExpand ?? false)
+  const [avances, setAvances] = useState<any[]>([])
+
+  useEffect(() => {
+    if (autoExpand) {
+      setOpen(true)
+      setTimeout(() => {
+        document.getElementById(`obj-row-${obj.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      }, 300)
+    }
+  }, [autoExpand])
+
+  useEffect(() => {
+    if (open) {
+      supabase
+        .from('objetivo_avances')
+        .select('*')
+        .eq('objetivo_id', obj.id)
+        .order('creado_en', { ascending: true })
+        .then(({ data }) => setAvances(data ?? []))
+    }
+  }, [open])
+
+  function formatDT(dt: string) {
+    return new Date(dt).toLocaleString('es-AR', {
+      day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit'
+    })
+  }
+
+  return (
+    <div id={`obj-row-${obj.id}`} className={open ? 'bg-white' : ''}>
+      {/* Fila resumen */}
+      <div
+        onClick={() => setOpen(!open)}
+        className={`flex items-center gap-3 pl-16 pr-4 py-3 cursor-pointer hover:bg-white transition-colors ${obj.id === (autoExpand ? obj.id : '') && !open ? 'bg-traza-50' : ''}`}
+      >
+        <p className="flex-1 font-medium text-gray-900 text-sm truncate">{obj.titulo}</p>
+        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${getPrioridadClasses(obj.prioridad)}`}>{obj.prioridad}</span>
+        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${getEstadoClasses(obj.estado)}`}>{obj.estado}</span>
+        <span className="text-xs text-gray-400 w-20 text-right">{formatFecha(obj.fecha_limite)}</span>
+        <div className="flex gap-2 ml-2" onClick={e => e.stopPropagation()}>
+          <button onClick={() => onEdit(obj)} className="text-xs text-traza-700 hover:underline">Editar</button>
+          <button onClick={() => onDelete(obj.id)} className="text-xs text-red-500 hover:underline">Eliminar</button>
+        </div>
+        <span className="text-gray-300 text-sm ml-1">{open ? '↑' : '↓'}</span>
+      </div>
+
+      {/* Panel de avances */}
+      {open && (
+        <div className="pl-16 pr-6 pb-4 space-y-2">
+          {avances.length === 0 ? (
+            <p className="text-xs text-gray-400 italic">El colaborador aún no registró avances.</p>
+          ) : (
+            <div className="space-y-2">
+              {avances.map(a => (
+                <div key={a.id} className="flex gap-2.5 bg-gray-50 rounded-xl px-3 py-2.5">
+                  <div className="flex-shrink-0 mt-0.5">
+                    {a.tipo === 'comentario' && <MessageSquare size={13} className="text-gray-400" />}
+                    {a.tipo === 'link'       && <Link2 size={13} className="text-traza-500" />}
+                    {a.tipo === 'archivo'    && <Paperclip size={13} className="text-orange-400" />}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    {(a.tipo === 'link' || a.tipo === 'archivo') ? (
+                      <a href={a.contenido} target="_blank" rel="noopener noreferrer"
+                        className="text-traza-700 hover:underline break-all text-xs">
+                        {a.contenido}
+                      </a>
+                    ) : (
+                      <p className="text-sm text-gray-700">{a.contenido}</p>
+                    )}
+                    <p className="text-xs text-gray-400 mt-0.5">{formatDT(a.creado_en)}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   )
 }
