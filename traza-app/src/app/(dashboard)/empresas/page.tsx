@@ -39,7 +39,7 @@ export default function EmpresasPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">🏢 Empresas</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Empresas</h1>
         <p className="text-gray-500 mt-1">Gestioná las organizaciones en la plataforma.</p>
       </div>
 
@@ -68,7 +68,7 @@ export default function EmpresasPage() {
           </div>
           <div className="md:col-span-2 flex items-center gap-3">
             <Button type="submit" loading={loading}>Guardar empresa</Button>
-            {success && <p className="text-green-600 text-sm">✅ Empresa guardada correctamente</p>}
+            {success && <p className="text-green-600 text-sm">Empresa guardada correctamente</p>}
           </div>
         </form>
       </div>
@@ -80,7 +80,6 @@ export default function EmpresasPage() {
         </div>
         {empresas.length === 0 ? (
           <div className="px-6 py-12 text-center text-gray-400">
-            <p className="text-4xl mb-2">🏢</p>
             <p>Todavía no hay empresas registradas.</p>
           </div>
         ) : (

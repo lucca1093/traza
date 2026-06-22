@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase'
 import MetricCard from '@/components/ui/MetricCard'
 import TraceIndexBar from '@/components/ui/TraceIndexBar'
 import { calcularIndiceTraza } from '@/lib/traza'
+import { CheckCircle2, XCircle, AlertTriangle, Trophy } from 'lucide-react'
 import type { Objetivo, Persona } from '@/types'
 
 export default function AnalyticsPage() {
@@ -73,13 +74,12 @@ export default function AnalyticsPage() {
   if (!stats) return <div className="text-gray-400 py-12 text-center">Cargando...</div>
 
   const topPerformer = ranking[0]
-  const MEDALLAS = ['🥇', '🥈', '🥉']
 
   return (
     <div className="space-y-8">
       <div className="flex items-start justify-between flex-wrap gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">📈 Analytics</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Analytics</h1>
           <p className="text-gray-500 mt-1">Indicadores consolidados de desempeño organizacional.</p>
         </div>
         <div>
@@ -96,11 +96,11 @@ export default function AnalyticsPage() {
 
       {/* KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-        <MetricCard icon="🎯" label="Objetivos" value={stats.total} />
-        <MetricCard icon="✅" label="Completados" value={stats.completados} />
-        <MetricCard icon="📈" label="Cumplimiento" value={`${stats.cumplimiento}%`} />
-        <MetricCard icon="👥" label="Personas" value={stats.totalPersonas} />
-        <MetricCard icon="🏢" label="Índice Org." value={`${stats.indiceOrg}/100`} highlight />
+        <MetricCard icon="Target" label="Objetivos" value={stats.total} />
+        <MetricCard icon="CheckSquare" label="Completados" value={stats.completados} />
+        <MetricCard icon="TrendingUp" label="Cumplimiento" value={`${stats.cumplimiento}%`} />
+        <MetricCard icon="Users" label="Personas" value={stats.totalPersonas} />
+        <MetricCard icon="Building2" label="Índice Org." value={`${stats.indiceOrg}/100`} highlight />
       </div>
 
       {/* Dashboard ejecutivo */}
@@ -109,9 +109,12 @@ export default function AnalyticsPage() {
         {topPerformer && (
           <div className="traza-card p-6 bg-traza-700 border-traza-700">
             <p className="text-traza-300 text-xs font-semibold uppercase mb-3">Top Performer</p>
-            <p className="text-white text-xl font-bold">
-              🏆 {topPerformer.persona.nombre} {topPerformer.persona.apellido}
-            </p>
+            <div className="flex items-center gap-2">
+              <Trophy size={18} strokeWidth={1.75} className="text-yellow-300" />
+              <p className="text-white text-xl font-bold">
+                {topPerformer.persona.nombre} {topPerformer.persona.apellido}
+              </p>
+            </div>
             <p className="text-traza-200 text-sm mt-1">{topPerformer.persona.cargo ?? ''}</p>
             <p className="text-white text-3xl font-bold mt-4">
               {topPerformer.indice.score}<span className="text-traza-300 text-lg">/100</span>
@@ -150,15 +153,24 @@ export default function AnalyticsPage() {
           <p className="font-semibold text-gray-900 mb-4">Alertas</p>
           <div className="space-y-3">
             <div className="flex items-center justify-between py-3 border-b border-gray-100">
-              <span className="text-sm text-gray-600">⭐ Validaciones positivas</span>
+              <span className="flex items-center gap-2 text-sm text-gray-600">
+                <CheckCircle2 size={14} strokeWidth={1.75} className="text-green-500" />
+                Validaciones positivas
+              </span>
               <span className="font-bold text-green-600">{stats.positivos}</span>
             </div>
             <div className="flex items-center justify-between py-3 border-b border-gray-100">
-              <span className="text-sm text-gray-600">❌ Validaciones negativas</span>
+              <span className="flex items-center gap-2 text-sm text-gray-600">
+                <XCircle size={14} strokeWidth={1.75} className="text-red-400" />
+                Validaciones negativas
+              </span>
               <span className="font-bold text-red-500">{stats.negativos}</span>
             </div>
             <div className="flex items-center justify-between py-3">
-              <span className="text-sm text-gray-600">⚠️ Personas en riesgo (&lt;40)</span>
+              <span className="flex items-center gap-2 text-sm text-gray-600">
+                <AlertTriangle size={14} strokeWidth={1.75} className="text-orange-400" />
+                Personas en riesgo (&lt;40)
+              </span>
               <span className="font-bold text-orange-500">{stats.enRiesgo}</span>
             </div>
           </div>
@@ -168,7 +180,7 @@ export default function AnalyticsPage() {
       {/* Ranking */}
       <div className="traza-card overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-100">
-          <h2 className="font-semibold text-gray-900">🏆 Ranking Traza</h2>
+          <h2 className="font-semibold text-gray-900">Ranking Traza</h2>
         </div>
         <div className="divide-y divide-gray-100">
           {ranking.length === 0 && (
@@ -176,7 +188,7 @@ export default function AnalyticsPage() {
           )}
           {ranking.map((item, i) => (
             <div key={item.persona.id} className="px-6 py-4 flex items-center gap-4">
-              <span className="text-xl w-8 text-center">{MEDALLAS[i] ?? '🏅'}</span>
+              <span className="text-sm font-bold text-gray-400 w-6 text-center">{i + 1}</span>
               <div className="flex-1 min-w-0">
                 <p className="font-semibold text-gray-900">
                   {item.persona.nombre} {item.persona.apellido}
@@ -199,7 +211,10 @@ export default function AnalyticsPage() {
       {ranking.filter(r => r.indice.score < 40).length > 0 && (
         <div className="traza-card overflow-hidden">
           <div className="px-6 py-4 border-b border-red-100 bg-red-50">
-            <h2 className="font-semibold text-red-700">⚠️ Personas que requieren seguimiento</h2>
+            <h2 className="flex items-center gap-2 font-semibold text-red-700">
+            <AlertTriangle size={16} strokeWidth={1.75} />
+            Personas que requieren seguimiento
+          </h2>
           </div>
           <div className="divide-y divide-gray-100">
             {ranking.filter(r => r.indice.score < 40).map(item => (

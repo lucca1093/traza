@@ -108,7 +108,7 @@ export default function ObjetivosPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">⚙️ Gestión de Objetivos</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Gestión de Objetivos</h1>
         <p className="text-gray-500 mt-1">Creá y administrá los objetivos del equipo.</p>
       </div>
 
@@ -161,7 +161,7 @@ export default function ObjetivosPage() {
           <div className="md:col-span-2 flex items-center gap-3">
             <Button type="submit" loading={loading}>{editId ? 'Guardar cambios' : 'Guardar objetivo'}</Button>
             {editId && <Button type="button" variant="ghost" onClick={resetForm}>Cancelar</Button>}
-            {success && <p className="text-green-600 text-sm">✅ Guardado correctamente</p>}
+            {success && <p className="text-green-600 text-sm">Guardado correctamente</p>}
           </div>
         </form>
       </div>

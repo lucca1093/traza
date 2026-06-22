@@ -107,7 +107,6 @@ export default function PersonasPage() {
   if (empresas.length === 0) {
     return (
       <div className="traza-card p-12 text-center text-gray-400">
-        <p className="text-4xl mb-2">⚠️</p>
         <p>Primero creá una empresa en la sección <strong>Empresas</strong>.</p>
       </div>
     )
@@ -116,7 +115,7 @@ export default function PersonasPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">👥 Personas</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Personas</h1>
         <p className="text-gray-500 mt-1">Administrá los colaboradores de cada empresa.</p>
       </div>
 
@@ -156,7 +155,7 @@ export default function PersonasPage() {
           <div className="md:col-span-2 flex items-center gap-3 flex-wrap">
             <Button type="submit" loading={loading}>{editId ? 'Guardar cambios' : 'Guardar persona'}</Button>
             {editId && <Button type="button" variant="ghost" onClick={resetForm}>Cancelar</Button>}
-            {success && <p className="text-green-600 text-sm">✅ Guardado correctamente</p>}
+            {success && <p className="text-green-600 text-sm">Guardado correctamente</p>}
             {error && <p className="text-red-600 text-sm">{error}</p>}
           </div>
         </form>
@@ -169,7 +168,6 @@ export default function PersonasPage() {
         </div>
         {personas.length === 0 ? (
           <div className="px-6 py-12 text-center text-gray-400">
-            <p className="text-4xl mb-2">👥</p>
             <p>Todavía no hay personas registradas.</p>
           </div>
         ) : (

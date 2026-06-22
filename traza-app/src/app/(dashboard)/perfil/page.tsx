@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import TraceIndexBar from '@/components/ui/TraceIndexBar'
 import { calcularIndiceTraza, getValidacionClasses, getEstadoClasses, formatFecha } from '@/lib/traza'
+import { CheckCircle2, Trophy, Award, MessageSquare } from 'lucide-react'
 import type { Objetivo, Persona, Profile } from '@/types'
 
 export default function PerfilPage() {
@@ -66,7 +67,7 @@ export default function PerfilPage() {
     <div className="space-y-8">
       <div className="flex items-start justify-between flex-wrap gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">👤 Perfil Profesional</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Perfil Profesional</h1>
           <p className="text-gray-500 mt-1">Historial de desempeño basado en objetivos y validaciones.</p>
         </div>
         {profile?.rol !== 'empleado' && personas.length > 0 && (
@@ -102,16 +103,19 @@ export default function PerfilPage() {
 
           {/* Índice Traza */}
           <div className="traza-card p-6">
-            <h3 className="font-semibold text-gray-900 mb-4">🏆 Índice Traza</h3>
+            <h3 className="flex items-center gap-2 font-semibold text-gray-900 mb-4">
+              <Trophy size={16} strokeWidth={1.75} className="text-traza-700" />
+              Índice Traza
+            </h3>
             <TraceIndexBar indice={indice} size="lg" />
             <p className="text-sm text-gray-500 mt-4">
               {indice.score >= 85
-                ? '💪 Desempeño sobresaliente. Ejecución consistente y resultados validados.'
+                ? 'Desempeño sobresaliente. Ejecución consistente y resultados validados.'
                 : indice.score >= 65
-                ? '💪 Desempeño sólido y consistente.'
+                ? 'Desempeño sólido y consistente.'
                 : indice.score >= 40
-                ? '🔧 Hay oportunidades de mejora identificadas.'
-                : '⚠️ Requiere acompañamiento y seguimiento.'}
+                ? 'Hay oportunidades de mejora identificadas.'
+                : 'Requiere acompañamiento y seguimiento.'}
             </p>
           </div>
 
@@ -119,14 +123,17 @@ export default function PerfilPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Logros */}
             <div className="traza-card p-6">
-              <h3 className="font-semibold text-gray-900 mb-4">🏅 Logros destacados</h3>
+              <h3 className="flex items-center gap-2 font-semibold text-gray-900 mb-4">
+                <Award size={16} strokeWidth={1.75} className="text-traza-700" />
+                Logros destacados
+              </h3>
               {logros.length === 0 ? (
                 <p className="text-gray-400 text-sm">Todavía no hay objetivos completados.</p>
               ) : (
                 <div className="space-y-2">
                   {logros.map(o => (
                     <div key={o.id} className="flex items-start gap-3 py-2">
-                      <span className="text-green-500 mt-0.5">✅</span>
+                      <CheckCircle2 size={16} strokeWidth={1.75} className="text-green-500 mt-0.5 flex-shrink-0" />
                       <div>
                         <p className="text-sm font-medium text-gray-900">{o.titulo}</p>
                         <p className="text-xs text-gray-400">{formatFecha(o.fecha_limite)}</p>
@@ -139,7 +146,10 @@ export default function PerfilPage() {
 
             {/* Últimos feedbacks */}
             <div className="traza-card p-6">
-              <h3 className="font-semibold text-gray-900 mb-4">💬 Feedback del supervisor</h3>
+              <h3 className="flex items-center gap-2 font-semibold text-gray-900 mb-4">
+                <MessageSquare size={16} strokeWidth={1.75} className="text-traza-700" />
+                Feedback del supervisor
+              </h3>
               {ultimasFeedbacks.length === 0 ? (
                 <p className="text-gray-400 text-sm">Todavía no hay feedback registrado.</p>
               ) : (

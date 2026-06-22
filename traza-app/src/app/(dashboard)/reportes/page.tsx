@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import Button from '@/components/ui/Button'
 import { getEstadoClasses, getValidacionClasses, formatFecha } from '@/lib/traza'
+import { Paperclip } from 'lucide-react'
 
 export default function ReportesPage() {
   const [datos, setDatos]     = useState<any[]>([])
@@ -148,7 +149,10 @@ export default function ReportesPage() {
                     <td className="px-5 py-3 text-sm text-gray-400">{formatFecha(d.fecha_limite)}</td>
                     <td className="px-5 py-3">
                       {d.evidencia_url ? (
-                        <a href={d.evidencia_url} target="_blank" rel="noopener noreferrer" className="text-xs text-traza-700 hover:underline">📎 Ver</a>
+                        <a href={d.evidencia_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-xs text-traza-700 hover:underline">
+                          <Paperclip size={12} strokeWidth={1.75} />
+                          Ver
+                        </a>
                       ) : <span className="text-gray-300 text-xs">—</span>}
                     </td>
                   </tr>

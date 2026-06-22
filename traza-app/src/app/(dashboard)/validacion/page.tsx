@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import Button from '@/components/ui/Button'
 import { getEstadoClasses, getValidacionClasses, formatFecha } from '@/lib/traza'
+import { Paperclip } from 'lucide-react'
 
 export default function ValidacionPage() {
   const [objetivos, setObjetivos] = useState<any[]>([])
@@ -50,7 +51,7 @@ export default function ValidacionPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">✅ Validación</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Validación</h1>
         <p className="text-gray-500 mt-1">Revisá y validá los objetivos del equipo.</p>
       </div>
 
@@ -111,9 +112,10 @@ export default function ValidacionPage() {
                     href={objSeleccionado.evidencia_url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-xs text-traza-700 hover:underline mt-1 block"
+                    className="flex items-center gap-1 text-xs text-traza-700 hover:underline mt-1"
                   >
-                    📎 Ver evidencia
+                    <Paperclip size={12} strokeWidth={1.75} />
+                    Ver evidencia
                   </a>
                 )}
               </div>
@@ -142,7 +144,7 @@ export default function ValidacionPage() {
                 </div>
 
                 <Button type="submit" loading={saving}>Guardar validación</Button>
-                {success && <p className="text-green-600 text-sm">✅ Validación guardada correctamente</p>}
+                {success && <p className="text-green-600 text-sm">Validación guardada correctamente</p>}
               </form>
             </>
           ) : (

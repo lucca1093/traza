@@ -46,10 +46,10 @@ function getNivel(score: number): NivelTraza {
 
 function getBadge(nivel: NivelTraza): string {
   const badges: Record<NivelTraza, string> = {
-    Elite:        '🏆 Elite Performer',
-    Avanzado:     '⭐ High Performer',
-    Profesional:  '🚀 Growth Professional',
-    Inicial:      '🌱 En Desarrollo',
+    Elite:        'Elite Performer',
+    Avanzado:     'High Performer',
+    Profesional:  'Growth Professional',
+    Inicial:      'En Desarrollo',
   }
   return badges[nivel]
 }
@@ -96,23 +96,6 @@ export function getValidacionClasses(validacion: string | null): string {
   return map[validacion] ?? 'bg-gray-100 text-gray-600'
 }
 
-export function getEstadoIcon(estado: string): string {
-  const map: Record<string, string> = {
-    'Completado':  '🟢',
-    'En progreso': '🟡',
-    'Pendiente':   '🔴',
-  }
-  return map[estado] ?? '⚪'
-}
-
-export function getPrioridadIcon(prioridad: string): string {
-  const map: Record<string, string> = {
-    'Alta':  '🔴',
-    'Media': '🟡',
-    'Baja':  '🟢',
-  }
-  return map[prioridad] ?? '⚪'
-}
 
 // ============================================================
 // HELPERS DE FECHA

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import TraceIndexBar from '@/components/ui/TraceIndexBar'
 import { calcularIndiceTraza } from '@/lib/traza'
+import { Award, CheckCircle2 } from 'lucide-react'
 import type { Objetivo, Persona, Profile } from '@/types'
 
 export default function TalentCardPage() {
@@ -59,7 +60,7 @@ export default function TalentCardPage() {
     <div className="space-y-6">
       <div className="flex items-start justify-between flex-wrap gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">🏆 Talent Card</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Talent Card</h1>
           <p className="text-gray-500 mt-1">Credencial profesional basada en desempeño verificable.</p>
         </div>
         {profile?.rol !== 'empleado' && personas.length > 0 && (
@@ -128,11 +129,14 @@ export default function TalentCardPage() {
               {/* Logros */}
               {logros.length > 0 && (
                 <div>
-                  <p className="font-semibold text-gray-900 mb-3">🏅 Logros destacados</p>
+                  <p className="flex items-center gap-2 font-semibold text-gray-900 mb-3">
+                    <Award size={15} strokeWidth={1.75} className="text-traza-700" />
+                    Logros destacados
+                  </p>
                   <div className="space-y-2">
                     {logros.map(o => (
                       <div key={o.id} className="flex items-center gap-2">
-                        <span className="text-green-500">✅</span>
+                        <CheckCircle2 size={14} strokeWidth={1.75} className="text-green-500 flex-shrink-0" />
                         <span className="text-sm text-gray-700">{o.titulo}</span>
                       </div>
                     ))}

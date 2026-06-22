@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import Button from '@/components/ui/Button'
 import { getEstadoClasses, getPrioridadClasses, isVencido, formatFecha, cn } from '@/lib/traza'
+import { AlertTriangle } from 'lucide-react'
 import type { Objetivo, Persona } from '@/types'
 
 export default function MiTrabajoPage() {
@@ -111,7 +112,7 @@ export default function MiTrabajoPage() {
     <div className="space-y-8">
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">🎯 Mi Trabajo</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Mi Trabajo</h1>
           <p className="text-gray-500 mt-1">Tus objetivos y avances.</p>
         </div>
         <Button onClick={() => setShowForm(!showForm)}>
@@ -169,7 +170,7 @@ export default function MiTrabajoPage() {
 
       {/* Objetivos asignados */}
       <section>
-        <h2 className="text-base font-semibold text-gray-900 mb-3">📥 Objetivos asignados</h2>
+        <h2 className="text-base font-semibold text-gray-900 mb-3">Objetivos asignados</h2>
         {asignados.length === 0 ? (
           <div className="traza-card p-8 text-center text-gray-400">No hay objetivos asignados.</div>
         ) : (
@@ -183,7 +184,7 @@ export default function MiTrabajoPage() {
 
       {/* Objetivos personales */}
       <section>
-        <h2 className="text-base font-semibold text-gray-900 mb-3">📌 Objetivos personales</h2>
+        <h2 className="text-base font-semibold text-gray-900 mb-3">Objetivos personales</h2>
         {personales.length === 0 ? (
           <div className="traza-card p-8 text-center text-gray-400">No hay objetivos personales.</div>
         ) : (
@@ -225,7 +226,12 @@ function ObjetivoCard({
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <p className="font-semibold text-gray-900 truncate">{obj.titulo}</p>
-            {vencido && <span className="text-xs text-red-500 font-medium">⚠️ Vencido</span>}
+            {vencido && (
+              <span className="flex items-center gap-1 text-xs text-red-500 font-medium">
+                <AlertTriangle size={12} strokeWidth={1.75} />
+                Vencido
+              </span>
+            )}
           </div>
           <p className="text-xs text-gray-500 mt-0.5">
             {formatFecha(obj.fecha_limite)}

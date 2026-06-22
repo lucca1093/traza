@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Button from '@/components/ui/Button'
+import { Target, CheckSquare, Award } from 'lucide-react'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -55,12 +56,12 @@ export default function LoginPage() {
 
           <div className="grid grid-cols-3 gap-4 pt-4">
             {[
-              { icon: '🎯', label: 'Objetivos', sub: 'Trazables' },
-              { icon: '✅', label: 'Validación', sub: 'Verificable' },
-              { icon: '🏆', label: 'Talent Card', sub: 'Tu historial' },
+              { icon: <Target size={20} strokeWidth={1.75} className="text-traza-200" />, label: 'Objetivos', sub: 'Trazables' },
+              { icon: <CheckSquare size={20} strokeWidth={1.75} className="text-traza-200" />, label: 'Validación', sub: 'Verificable' },
+              { icon: <Award size={20} strokeWidth={1.75} className="text-traza-200" />, label: 'Talent Card', sub: 'Tu historial' },
             ].map(item => (
               <div key={item.label} className="bg-white/10 rounded-xl p-4 text-center">
-                <p className="text-2xl mb-1">{item.icon}</p>
+                <div className="flex justify-center mb-2">{item.icon}</div>
                 <p className="text-white text-sm font-semibold">{item.label}</p>
                 <p className="text-traza-300 text-xs">{item.sub}</p>
               </div>
