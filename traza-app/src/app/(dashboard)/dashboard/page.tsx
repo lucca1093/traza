@@ -40,9 +40,9 @@ export default async function DashboardPage() {
     // Avances recientes del equipo
     const { data: avancesEquipo } = await supabase
       .from('objetivo_avances')
-      .select('*, objetivo:objetivos(titulo), persona:personas(nombre, apellido)')
+      .select('*, objetivo:objetivos(id, titulo, estado, validacion), persona:personas(nombre, apellido)')
       .order('creado_en', { ascending: false })
-      .limit(5)
+      .limit(8)
 
     return (
       <div className="space-y-8">
@@ -70,66 +70,73 @@ export default async function DashboardPage() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Actividad reciente */}
-          <div className="traza-card p-6">
-            <h2 className="text-base font-semibold text-gray-900 mb-4">Objetivos recientes</h2>
-            {recientes && recientes.length > 0 ? (
-              <div className="space-y-3">
-                {recientes.map((obj: any) => (
-                  <div key={obj.id} className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 truncate">{obj.titulo}</p>
-                      <p className="text-xs text-gray-500">
-                        {obj.persona ? `${obj.persona.nombre} ${obj.persona.apellido}` : '—'}
-                        {obj.fecha_limite && ` · ${formatFecha(obj.fecha_limite)}`}
-                      </p>
-                    </div>
-                    <span className={`ml-3 flex-shrink-0 text-xs px-2.5 py-1 rounded-full font-medium ${getEstadoClasses(obj.estado)}`}>
-                      {obj.estado}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-gray-400 text-sm">Sin objetivos cargados.</p>
-            )}
+        {/* Feed unificado de actividad */}
+        <div className="traza-card overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-100">
+            <h2 className="text-base font-semibold text-gray-900">Actividad del equipo</h2>
+            <p className="text-xs text-gray-400 mt-0.5">Avances registrados por colaboradores, del más reciente al más antiguo</p>
           </div>
+          {avancesEquipo && avancesEquipo.length > 0 ? (
+            <div className="divide-y divide-gray-50">
+              {avancesEquipo.map((a: any) => (
+                <div key={a.id} className="px-6 py-4 flex gap-3">
+                  {/* Ícono tipo */}
+                  <div className="flex-shrink-0 mt-1">
+                    {a.tipo === 'comentario' && <MessageSquare size={15} className="text-gray-400" strokeWidth={1.75} />}
+                    {a.tipo === 'link'       && <Link2 size={15} className="text-traza-500" strokeWidth={1.75} />}
+                    {a.tipo === 'archivo'    && <Paperclip size={15} className="text-orange-400" strokeWidth={1.75} />}
+                  </div>
 
-          {/* Avances del equipo */}
-          <div className="traza-card p-6">
-            <h2 className="text-base font-semibold text-gray-900 mb-4">Avances del equipo</h2>
-            {avancesEquipo && avancesEquipo.length > 0 ? (
-              <div className="space-y-3">
-                {avancesEquipo.map((a: any) => (
-                  <div key={a.id} className="flex gap-2.5 py-2 border-b border-gray-50 last:border-0">
-                    <div className="flex-shrink-0 mt-0.5">
-                      {a.tipo === 'comentario' && <MessageSquare size={14} className="text-gray-400" />}
-                      {a.tipo === 'link'       && <Link2 size={14} className="text-traza-500" />}
-                      {a.tipo === 'archivo'    && <Paperclip size={14} className="text-orange-400" />}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-medium text-gray-700 truncate">
+                  <div className="flex-1 min-w-0">
+                    {/* Quién + cuándo */}
+                    <div className="flex items-center gap-2 flex-wrap mb-1">
+                      <p className="text-sm font-semibold text-gray-900">
                         {a.persona?.nombre} {a.persona?.apellido}
-                        <span className="text-gray-400 font-normal"> · {a.objetivo?.titulo}</span>
                       </p>
-                      {a.tipo === 'comentario' ? (
-                        <p className="text-xs text-gray-500 truncate mt-0.5">{a.contenido}</p>
-                      ) : (
-                        <a href={a.contenido} target="_blank" rel="noopener noreferrer"
-                          className="text-xs text-traza-700 hover:underline truncate block mt-0.5">{a.contenido}</a>
-                      )}
-                      <p className="text-xs text-gray-300 mt-0.5">
+                      <span className="text-gray-300">·</span>
+                      <p className="text-xs text-gray-400">
                         {new Date(a.creado_en).toLocaleString('es-AR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
                       </p>
                     </div>
+
+                    {/* Objetivo al que pertenece */}
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <span className="text-xs text-gray-400">en</span>
+                      <Link
+                        href={`/objetivos?objetivo=${a.objetivo?.id}`}
+                        className="text-xs font-medium text-traza-700 hover:underline truncate"
+                      >
+                        {a.objetivo?.titulo}
+                      </Link>
+                      <span className={`flex-shrink-0 text-xs px-2 py-0.5 rounded-full font-medium ${getEstadoClasses(a.objetivo?.estado)}`}>
+                        {a.objetivo?.estado}
+                      </span>
+                    </div>
+
+                    {/* Contenido del avance */}
+                    {a.tipo === 'comentario' ? (
+                      <p className="text-sm text-gray-600">{a.contenido}</p>
+                    ) : (
+                      <a href={a.contenido} target="_blank" rel="noopener noreferrer"
+                        className="text-sm text-traza-700 hover:underline break-all">{a.contenido}</a>
+                    )}
+
+                    {/* Botón validar si el objetivo está completado y sin validar */}
+                    {a.objetivo?.estado === 'Completado' && !a.objetivo?.validacion && (
+                      <Link
+                        href="/validacion"
+                        className="inline-flex items-center mt-2 text-xs font-medium text-amber-700 bg-amber-50 hover:bg-amber-100 px-2.5 py-1 rounded-lg transition-colors"
+                      >
+                        Pendiente de validación →
+                      </Link>
+                    )}
                   </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-gray-400 text-sm">El equipo aún no registró avances.</p>
-            )}
-          </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-gray-400 text-sm px-6 py-8">El equipo aún no registró avances.</p>
+          )}
         </div>
       </div>
     )
