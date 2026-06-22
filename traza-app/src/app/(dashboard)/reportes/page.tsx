@@ -4,20 +4,21 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import Button from '@/components/ui/Button'
 import { getEstadoClasses, getValidacionStyle, formatFecha } from '@/lib/traza'
-import { Paperclip } from 'lucide-react'
+import { ChevronDown, ChevronRight, Paperclip } from 'lucide-react'
 
 export default function ReportesPage() {
   const [datos, setDatos]     = useState<any[]>([])
   const [loading, setLoading] = useState(true)
-  const [filtroEstado, setFiltroEstado] = useState('todos')
-  const [empresas, setEmpresas] = useState<any[]>([])
-  const [filtroEmpresa, setFiltroEmpresa] = useState('todas')
+  const [filtroEstado, setFiltroEstado]     = useState('todos')
+  const [empresas, setEmpresas]             = useState<any[]>([])
+  const [filtroEmpresa, setFiltroEmpresa]   = useState('todas')
+  const [expanded, setExpanded]             = useState<Set<string>>(new Set())
 
   async function fetchData() {
     setLoading(true)
     let query = supabase
       .from('objetivos')
-      .select('*, persona:personas(nombre, apellido, cargo, area)')
+      .select('*, persona:personas(id, nombre, apellido, cargo, area)')
       .order('created_at', { ascending: false })
 
     if (filtroEstado !== 'todos') query = query.eq('estado', filtroEstado)
@@ -39,6 +40,14 @@ export default function ReportesPage() {
 
   useEffect(() => { fetchData() }, [filtroEstado, filtroEmpresa])
 
+  function togglePersona(personaId: string) {
+    setExpanded(prev => {
+      const next = new Set(prev)
+      next.has(personaId) ? next.delete(personaId) : next.add(personaId)
+      return next
+    })
+  }
+
   function exportCSV() {
     const headers = ['Colaborador', 'Cargo', 'Área', 'Objetivo', 'Descripción', 'Prioridad', 'Fecha límite', 'Estado', 'Validación', 'Comentario supervisor', 'Evidencia']
     const rows = datos.map(d => [
@@ -54,7 +63,6 @@ export default function ReportesPage() {
       d.comentario_supervisor ?? '',
       d.evidencia_url ?? '',
     ])
-
     const csv = [headers, ...rows].map(row => row.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n')
     const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' })
     const url = URL.createObjectURL(blob)
@@ -65,10 +73,19 @@ export default function ReportesPage() {
     URL.revokeObjectURL(url)
   }
 
+  // Agrupar por persona
+  const personasMap: Record<string, { persona: any; objetivos: any[] }> = {}
+  datos.forEach(d => {
+    const pid = d.persona?.id ?? 'sin-persona'
+    if (!personasMap[pid]) personasMap[pid] = { persona: d.persona, objetivos: [] }
+    personasMap[pid].objetivos.push(d)
+  })
+  const grupos = Object.values(personasMap)
+
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">📄 Reportes</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Reportes</h1>
         <p className="text-gray-500 mt-1">Exportá información de desempeño para análisis externo.</p>
       </div>
 
@@ -90,75 +107,125 @@ export default function ReportesPage() {
             <option>Completado</option>
           </select>
         </div>
-        <Button onClick={exportCSV} variant="secondary">⬇️ Exportar CSV</Button>
+        <Button onClick={exportCSV} variant="secondary">⬇ Exportar CSV</Button>
       </div>
 
-      {/* Tabla */}
+      {/* Tabla agrupada */}
       <div className="traza-card overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-          <h2 className="font-semibold text-gray-900">Resultados ({datos.length})</h2>
+          <h2 className="font-semibold text-gray-900">
+            {grupos.length} colaborador{grupos.length !== 1 ? 'es' : ''} · {datos.length} objetivo{datos.length !== 1 ? 's' : ''}
+          </h2>
+          <button
+            onClick={() => {
+              const allIds = grupos.map(g => g.persona?.id ?? 'sin-persona')
+              const allOpen = allIds.every(id => expanded.has(id))
+              setExpanded(allOpen ? new Set() : new Set(allIds))
+            }}
+            className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
+          >
+            {grupos.every(g => expanded.has(g.persona?.id ?? 'sin-persona')) ? 'Cerrar todo' : 'Expandir todo'}
+          </button>
         </div>
 
         {loading ? (
           <div className="p-12 text-center text-gray-400">Cargando...</div>
-        ) : datos.length === 0 ? (
-          <div className="p-12 text-center text-gray-400">
-            <p className="text-4xl mb-2">📄</p>
-            <p>No hay datos para mostrar con los filtros seleccionados.</p>
-          </div>
+        ) : grupos.length === 0 ? (
+          <div className="p-12 text-center text-gray-400">No hay datos para mostrar.</div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[900px]">
-              <thead className="bg-gray-50 text-xs text-gray-500 uppercase">
-                <tr>
-                  <th className="px-5 py-3 text-left">Colaborador</th>
-                  <th className="px-5 py-3 text-left">Objetivo</th>
-                  <th className="px-5 py-3 text-left">Prioridad</th>
-                  <th className="px-5 py-3 text-left">Estado</th>
-                  <th className="px-5 py-3 text-left">Validación</th>
-                  <th className="px-5 py-3 text-left">Vence</th>
-                  <th className="px-5 py-3 text-left">Evidencia</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {datos.map((d: any) => (
-                  <tr key={d.id} className="hover:bg-gray-50">
-                    <td className="px-5 py-3">
-                      <p className="text-sm font-medium text-gray-900">
-                        {d.persona ? `${d.persona.nombre} ${d.persona.apellido}` : '—'}
+          <div className="divide-y divide-gray-100">
+            {grupos.map(({ persona, objetivos: obs }) => {
+              const pid = persona?.id ?? 'sin-persona'
+              const isOpen = expanded.has(pid)
+              const completados = obs.filter((o: any) => o.estado === 'Completado').length
+
+              return (
+                <div key={pid}>
+                  {/* Fila persona */}
+                  <button
+                    onClick={() => togglePersona(pid)}
+                    className="w-full flex items-center gap-4 px-6 py-4 hover:bg-gray-50 transition-colors text-left"
+                  >
+                    <span className="text-gray-300 flex-shrink-0">
+                      {isOpen ? <ChevronDown size={15} /> : <ChevronRight size={15} />}
+                    </span>
+                    <div className="w-9 h-9 rounded-full bg-traza-100 flex items-center justify-center flex-shrink-0">
+                      <span className="text-traza-700 text-xs font-bold">
+                        {persona?.nombre?.[0]}{persona?.apellido?.[0]}
+                      </span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-gray-900">
+                        {persona ? `${persona.nombre} ${persona.apellido}` : 'Sin asignar'}
                       </p>
-                      <p className="text-xs text-gray-400">{d.persona?.cargo ?? ''}</p>
-                    </td>
-                    <td className="px-5 py-3 text-sm text-gray-900 max-w-xs">
-                      <p className="font-medium truncate">{d.titulo}</p>
-                      {d.descripcion && <p className="text-xs text-gray-400 truncate">{d.descripcion}</p>}
-                    </td>
-                    <td className="px-5 py-3">
-                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${d.prioridad === 'Alta' ? 'bg-red-100 text-red-700' : d.prioridad === 'Media' ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700'}`}>
-                        {d.prioridad}
-                      </span>
-                    </td>
-                    <td className="px-5 py-3">
-                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${getEstadoClasses(d.estado)}`}>{d.estado}</span>
-                    </td>
-                    <td className="px-5 py-3">
-                      <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={getValidacionStyle(d.validacion)}>
-                        {d.validacion ?? 'Sin validar'}
-                      </span>
-                    </td>
-                    <td className="px-5 py-3 text-sm text-gray-400">{formatFecha(d.fecha_limite)}</td>
-                    <td className="px-5 py-3">
-                      {d.evidencia_url ? (
-                        <a href={d.evidencia_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-xs text-traza-700 hover:underline">
-                          <Paperclip size={12} strokeWidth={1.75} />
-                          Ver
-                        </a>
-                      ) : <span className="text-gray-300 text-xs">—</span>}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                      <p className="text-xs text-gray-400">
+                        {persona?.cargo ?? ''}{persona?.area ? ` · ${persona.area}` : ''}
+                      </p>
+                    </div>
+                    <div className="flex-shrink-0 text-sm text-gray-400">
+                      {completados}/{obs.length} completados
+                    </div>
+                  </button>
+
+                  {/* Objetivos expandidos */}
+                  {isOpen && (
+                    <div className="bg-gray-50">
+                      {/* Header columnas */}
+                      <div className="grid grid-cols-12 gap-2 px-16 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wide border-b border-gray-100">
+                        <div className="col-span-4">Objetivo</div>
+                        <div className="col-span-2">Prioridad</div>
+                        <div className="col-span-2">Estado</div>
+                        <div className="col-span-2">Validación</div>
+                        <div className="col-span-1">Vence</div>
+                        <div className="col-span-1 text-center">Evidencia</div>
+                      </div>
+                      {obs.map((obj: any) => (
+                        <div
+                          key={obj.id}
+                          className="grid grid-cols-12 gap-2 items-center px-16 py-3 border-b border-gray-100 last:border-0 hover:bg-white transition-colors"
+                        >
+                          <div className="col-span-4">
+                            <p className="text-sm font-medium text-gray-900 truncate">{obj.titulo}</p>
+                            {obj.descripcion && (
+                              <p className="text-xs text-gray-400 truncate mt-0.5">{obj.descripcion}</p>
+                            )}
+                          </div>
+                          <div className="col-span-2">
+                            <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${obj.prioridad === 'Alta' ? 'bg-red-100 text-red-700' : obj.prioridad === 'Media' ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700'}`}>
+                              {obj.prioridad}
+                            </span>
+                          </div>
+                          <div className="col-span-2">
+                            <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${getEstadoClasses(obj.estado)}`}>
+                              {obj.estado}
+                            </span>
+                          </div>
+                          <div className="col-span-2">
+                            <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={getValidacionStyle(obj.validacion)}>
+                              {obj.validacion ?? 'Sin validar'}
+                            </span>
+                          </div>
+                          <div className="col-span-1 text-xs text-gray-400">
+                            {formatFecha(obj.fecha_limite)}
+                          </div>
+                          <div className="col-span-1 flex justify-center">
+                            {obj.evidencia_url ? (
+                              <a href={obj.evidencia_url} target="_blank" rel="noopener noreferrer"
+                                className="flex items-center gap-1 text-xs text-traza-700 hover:underline">
+                                <Paperclip size={12} strokeWidth={1.75} />
+                                Ver
+                              </a>
+                            ) : (
+                              <span className="text-gray-300 text-xs">—</span>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )
+            })}
           </div>
         )}
       </div>
