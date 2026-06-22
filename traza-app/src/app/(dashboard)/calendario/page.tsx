@@ -1,10 +1,10 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
-import { getEstadoClasses, formatFecha } from '@/lib/traza'
+import { getEstadoClasses } from '@/lib/traza'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import type { Objetivo } from '@/types'
 
 const DIAS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']
 const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre']
@@ -17,6 +17,7 @@ function getDiasDelMes(year: number, month: number) {
 }
 
 export default function CalendarioPage() {
+  const router = useRouter()
   const hoy = new Date()
   const [mes, setMes]       = useState(hoy.getMonth())
   const [año, setAño]       = useState(hoy.getFullYear())
@@ -186,7 +187,12 @@ export default function CalendarioPage() {
                     {obs.slice(0, 3).map(o => (
                       <div
                         key={o.id}
-                        className={`text-xs px-1.5 py-0.5 rounded truncate font-medium ${getEstadoClasses(o.estado)}`}
+                        onClick={e => {
+                          e.stopPropagation()
+                          const dest = rol === 'empleado' ? `/mi-trabajo?objetivo=${o.id}` : `/objetivos?objetivo=${o.id}`
+                          router.push(dest)
+                        }}
+                        className={`text-xs px-1.5 py-0.5 rounded truncate font-medium cursor-pointer hover:opacity-75 transition-opacity ${getEstadoClasses(o.estado)}`}
                         title={o.titulo}
                       >
                         {o.titulo}
@@ -228,7 +234,14 @@ export default function CalendarioPage() {
           ) : (
             <div className="space-y-3">
               {obsSeleccionados.map(o => (
-                <div key={o.id} className="flex items-center justify-between py-3 border-b border-gray-50 last:border-0">
+                <div
+                  key={o.id}
+                  onClick={() => {
+                    const dest = rol === 'empleado' ? `/mi-trabajo?objetivo=${o.id}` : `/objetivos?objetivo=${o.id}`
+                    router.push(dest)
+                  }}
+                  className="flex items-center justify-between py-3 border-b border-gray-50 last:border-0 cursor-pointer hover:bg-gray-50 rounded-lg px-2 transition-colors"
+                >
                   <div>
                     <p className="font-medium text-gray-900 text-sm">{o.titulo}</p>
                     {o.persona && (
@@ -239,6 +252,7 @@ export default function CalendarioPage() {
                     <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${getEstadoClasses(o.estado)}`}>
                       {o.estado}
                     </span>
+                    <span className="text-xs text-traza-700 font-medium">Abrir →</span>
                   </div>
                 </div>
               ))}

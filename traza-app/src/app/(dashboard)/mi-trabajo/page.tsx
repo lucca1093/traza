@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Button from '@/components/ui/Button'
 import { getEstadoClasses, getPrioridadClasses, isVencido, formatFecha, cn } from '@/lib/traza'
@@ -8,6 +9,9 @@ import { AlertTriangle } from 'lucide-react'
 import type { Objetivo, Persona } from '@/types'
 
 export default function MiTrabajoPage() {
+  const searchParams = useSearchParams()
+  const objetivoDestacado = searchParams.get('objetivo')
+
   const [objetivos, setObjetivos]   = useState<Objetivo[]>([])
   const [persona, setPersona]       = useState<Persona | null>(null)
   const [loading, setLoading]       = useState(true)
@@ -176,7 +180,7 @@ export default function MiTrabajoPage() {
         ) : (
           <div className="space-y-3">
             {asignados.map(obj => (
-              <ObjetivoCard key={obj.id} obj={obj} saving={saving} onUpdate={updateEstado} />
+              <ObjetivoCard key={obj.id} obj={obj} saving={saving} onUpdate={updateEstado} autoExpand={obj.id === objetivoDestacado} />
             ))}
           </div>
         )}
@@ -190,7 +194,7 @@ export default function MiTrabajoPage() {
         ) : (
           <div className="space-y-3">
             {personales.map(obj => (
-              <ObjetivoCard key={obj.id} obj={obj} saving={saving} onUpdate={updateEstado} onDelete={deleteObjetivo} personal />
+              <ObjetivoCard key={obj.id} obj={obj} saving={saving} onUpdate={updateEstado} onDelete={deleteObjetivo} personal autoExpand={obj.id === objetivoDestacado} />
             ))}
           </div>
         )}
@@ -201,23 +205,34 @@ export default function MiTrabajoPage() {
 
 // -------- Sub-componente --------
 function ObjetivoCard({
-  obj, saving, onUpdate, onDelete, personal
+  obj, saving, onUpdate, onDelete, personal, autoExpand
 }: {
   obj: Objetivo
   saving: string | null
   onUpdate: (id: string, estado: string, evidencia?: string) => void
   onDelete?: (id: string) => void
   personal?: boolean
+  autoExpand?: boolean
 }) {
-  const [expanded, setExpanded] = useState(false)
+  const [expanded, setExpanded] = useState(autoExpand ?? false)
+
+  useEffect(() => {
+    if (autoExpand) {
+      setExpanded(true)
+      setTimeout(() => {
+        document.getElementById(`obj-${obj.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      }, 100)
+    }
+  }, [autoExpand])
   const [estado, setEstado]     = useState(obj.estado)
   const [evidencia, setEvidencia] = useState(obj.evidencia_url ?? '')
   const vencido = isVencido(obj.fecha_limite, obj.estado)
 
   return (
-    <div className={cn(
-      'traza-card overflow-hidden',
-      vencido && 'border-red-200'
+    <div id={`obj-${obj.id}`} className={cn(
+      'traza-card overflow-hidden transition-all',
+      vencido && 'border-red-200',
+      autoExpand && 'ring-2 ring-traza-300'
     )}>
       <div
         className="flex items-center justify-between px-5 py-4 cursor-pointer"

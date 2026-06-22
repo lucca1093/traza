@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Button from '@/components/ui/Button'
 import { getEstadoClasses, getPrioridadClasses, formatFecha } from '@/lib/traza'
@@ -14,6 +15,8 @@ export default function ObjetivosPage() {
   const [loading, setLoading]     = useState(false)
   const [success, setSuccess]     = useState(false)
   const [editId, setEditId]       = useState<string | null>(null)
+  const searchParams = useSearchParams()
+  const objetivoDestacado = searchParams.get('objetivo')
   const [expanded, setExpanded]   = useState<Set<string>>(new Set())
   const [busqueda, setBusqueda]   = useState('')
 
@@ -42,6 +45,17 @@ export default function ObjetivosPage() {
     setPersonas(pers ?? [])
     if (pers && pers.length > 0 && !form.persona_id) {
       setForm(f => ({ ...f, persona_id: pers[0].id }))
+    }
+
+    // Si viene con ?objetivo=ID, expandir la persona correspondiente
+    if (objetivoDestacado && obs) {
+      const obj = obs.find((o: any) => o.id === objetivoDestacado)
+      if (obj?.persona_id) {
+        setExpanded(new Set([obj.persona_id]))
+        setTimeout(() => {
+          document.getElementById(`obj-row-${objetivoDestacado}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        }, 300)
+      }
     }
   }
 
@@ -286,7 +300,7 @@ export default function ObjetivosPage() {
                         </thead>
                         <tbody className="divide-y divide-gray-100">
                           {obs.map((obj: any) => (
-                            <tr key={obj.id} className="hover:bg-white transition-colors">
+                            <tr id={`obj-row-${obj.id}`} key={obj.id} className={`hover:bg-white transition-colors ${obj.id === objetivoDestacado ? 'bg-traza-50' : ''}`}>
                               <td className="pl-16 pr-4 py-3 font-medium text-gray-900 text-sm max-w-xs truncate">{obj.titulo}</td>
                               <td className="px-4 py-3">
                                 <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${getPrioridadClasses(obj.prioridad)}`}>{obj.prioridad}</span>
