@@ -89,9 +89,9 @@ export function getPrioridadClasses(prioridad: string): string {
 export function getValidacionClasses(validacion: string | null): string {
   if (!validacion) return 'bg-gray-100 text-gray-500'
   const map: Record<string, string> = {
-    'De acuerdo':                 'bg-green-100 text-green-700',
-    'Parcialmente de acuerdo':    'bg-yellow-100 text-yellow-700',
-    'En desacuerdo':              'bg-red-100 text-red-700',
+    'De acuerdo':                 'bg-blue-100 text-blue-700',
+    'Parcialmente de acuerdo':    'bg-indigo-100 text-indigo-600',
+    'En desacuerdo':              'bg-orange-100 text-orange-700',
   }
   return map[validacion] ?? 'bg-gray-100 text-gray-600'
 }
