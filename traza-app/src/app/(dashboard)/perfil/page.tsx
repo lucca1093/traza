@@ -110,7 +110,7 @@ export default function PerfilPage() {
                     rel="noopener noreferrer"
                     className="text-xs text-gray-400 hover:text-traza-700 transition-colors"
                   >
-                    Ver perfil público →
+                    Ver Credencial TRAZA →
                   </a>
                 </div>
               )}

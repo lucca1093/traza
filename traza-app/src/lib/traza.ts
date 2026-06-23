@@ -145,62 +145,80 @@ export function generarPerfilNarrativo(input: PerfilNarrativoInput): string {
     ? Math.round((autoSatisfecho / conAutoeval.length) * 100)
     : null
 
-  // Apertura según nivel
-  const nombreCompleto = `${nombre} ${apellido}`
-  const rolDesc = cargo && area ? `${cargo} en el área de ${area}` : cargo ?? area ?? 'profesional'
+  // Trimestres con actividad (para medir consistencia en el tiempo)
+  const trimestresActivos = new Set(
+    objetivos
+      .filter(o => o.estado === 'Completado' && o.fecha_limite)
+      .map(o => {
+        const d = new Date(o.fecha_limite!)
+        return `${d.getFullYear()}-Q${Math.ceil((d.getMonth() + 1) / 3)}`
+      })
+  ).size
 
+  const nombreCompleto = `${nombre} ${apellido}`
+  const rolDesc = cargo && area
+    ? `${cargo} en el área de ${area}`
+    : cargo ?? area ?? 'profesional'
+
+  // ── Apertura según nivel ──────────────────────────────────────
   let apertura = ''
   if (score >= 85) {
-    apertura = `${nombreCompleto} es un${cargo ? 'a' : ''} ${rolDesc} con desempeño sobresaliente y resultados consistentemente validados por su entorno.`
+    apertura = `${nombreCompleto} es ${rolDesc} con un historial de desempeño sobresaliente, avalado por validaciones de supervisores en cada etapa de su trabajo.`
   } else if (score >= 65) {
-    apertura = `${nombreCompleto} se desempeña como ${rolDesc} con un historial sólido de cumplimiento y gestión de objetivos.`
+    apertura = `${nombreCompleto} se desempeña como ${rolDesc} con un historial sólido y consistente de cumplimiento de objetivos.`
   } else if (score >= 40) {
-    apertura = `${nombreCompleto} es un${cargo ? 'a' : ''} ${rolDesc} con trayectoria en desarrollo y capacidad de crecimiento profesional comprobada.`
+    apertura = `${nombreCompleto} trabaja como ${rolDesc} y registra una trayectoria en crecimiento con evidencia concreta de avance profesional.`
   } else {
-    apertura = `${nombreCompleto} se desempeña como ${rolDesc} y se encuentra en etapa de desarrollo y construcción de su historial de desempeño.`
+    apertura = `${nombreCompleto} se desempeña como ${rolDesc} y está construyendo su historial de desempeño verificado en la plataforma.`
   }
 
-  // Métricas centrales
+  // ── Métricas centrales ────────────────────────────────────────
   let metricasTexto = ''
   if (total === 0) {
     metricasTexto = 'Aún no registra objetivos completados en la plataforma.'
   } else {
-    const pctStr = `${cumplimiento}%`
-    metricasTexto = `Su Índice Traza es de ${score}/100 (${badge}), con un ${pctStr} de cumplimiento: ${completados} de ${total} objetivo${total > 1 ? 's' : ''} completado${completados > 1 ? 's' : ''}.`
+    metricasTexto = `Acumula un Índice Traza de ${score}/100 (${badge}), con un ${cumplimiento}% de cumplimiento sobre ${total} objetivo${total > 1 ? 's' : ''} asignado${total > 1 ? 's' : ''}, de los cuales ${completados} fue${completados > 1 ? 'ron' : ''} completado${completados > 1 ? 's' : ''}.`
   }
 
-  // Validaciones
+  // ── Validaciones ──────────────────────────────────────────────
   let validacionTexto = ''
   if (validados.length > 0) {
-    if (positivos > 0 && parciales === 0 && negativos === 0) {
-      validacionTexto = `La totalidad de sus entregas validadas fueron calificadas positivamente por sus supervisores.`
-    } else if (positivos >= parciales && negativos === 0) {
-      validacionTexto = `La mayoría de sus entregas fueron validadas positivamente${parciales > 0 ? `, con algunas calificaciones parciales` : ''}.`
+    const pctPos = Math.round((positivos / validados.length) * 100)
+    if (positivos === validados.length) {
+      validacionTexto = `La totalidad de sus entregas validadas recibieron calificación positiva de sus supervisores, lo que refleja alineación constante con los estándares de la organización.`
+    } else if (pctPos >= 70 && negativos === 0) {
+      validacionTexto = `El ${pctPos}% de sus entregas fue calificado positivamente, con el resto recibiendo observaciones parciales pero sin calificaciones negativas.`
     } else if (negativos === 0) {
-      validacionTexto = `Sus entregas recibieron validaciones entre positivas y parciales, sin observaciones negativas.`
+      validacionTexto = `Sus entregas acumulan calificaciones entre positivas y parciales, sin observaciones negativas por parte de supervisores.`
     } else {
-      const pctPos = Math.round((positivos / validados.length) * 100)
       validacionTexto = `El ${pctPos}% de sus entregas validadas recibieron calificación positiva.`
     }
   }
 
-  // Consistencia autoevaluación
+  // ── Consistencia temporal ─────────────────────────────────────
+  let consistenciaTexto = ''
+  if (trimestresActivos >= 3) {
+    consistenciaTexto = `Su actividad se extiende a lo largo de ${trimestresActivos} trimestres, lo que evidencia continuidad y compromiso sostenido en el tiempo.`
+  } else if (trimestresActivos === 2) {
+    consistenciaTexto = `Registra actividad en ${trimestresActivos} trimestres consecutivos, mostrando continuidad en su desarrollo profesional.`
+  }
+
+  // ── Autoconciencia ────────────────────────────────────────────
   let autoText = ''
   if (consistencia !== null && conAutoeval.length >= 2) {
     if (consistencia >= 80) {
-      autoText = `Demuestra alta autoconciencia profesional, con autoevaluaciones consistentes con la perspectiva de sus supervisores.`
+      autoText = `Además, demuestra alta autoconciencia profesional: sus autoevaluaciones son consistentes con el feedback recibido de supervisores.`
     } else if (consistencia >= 50) {
-      autoText = `Muestra capacidad de autoevaluación con alineación parcial respecto al feedback recibido.`
+      autoText = `Sus autoevaluaciones muestran alineación parcial con la perspectiva de sus líderes, indicando capacidad de reflexión sobre su propio desempeño.`
     }
   }
 
-  // Empresa actual
+  // ── Empresa ───────────────────────────────────────────────────
   const empresaText = empresa
     ? `Actualmente se desempeña en ${empresa}.`
     : ''
 
-  // Armar párrafo final
-  const partes = [apertura, metricasTexto, validacionTexto, autoText, empresaText]
+  const partes = [apertura, metricasTexto, validacionTexto, consistenciaTexto, autoText, empresaText]
     .filter(Boolean)
     .join(' ')
 

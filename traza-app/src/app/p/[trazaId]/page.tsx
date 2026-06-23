@@ -1,7 +1,29 @@
 import { createClient } from '@/lib/supabase-server'
 import { calcularIndiceTraza, generarPerfilNarrativo } from '@/lib/traza'
-import { ShieldCheck, TrendingUp, Star } from 'lucide-react'
+import { ShieldCheck, TrendingUp, Star, Calendar, CheckCircle2, Clock } from 'lucide-react'
 import type { Objetivo } from '@/types'
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+
+function formatFechaLarga(fecha: string) {
+  return new Date(fecha).toLocaleDateString('es-AR', {
+    day: '2-digit', month: 'long', year: 'numeric'
+  })
+}
+
+function getTrimestreKey(fecha: string) {
+  const d = new Date(fecha)
+  const q = Math.ceil((d.getMonth() + 1) / 3)
+  return `${d.getFullYear()}-Q${q}`
+}
+
+function formatTrimestreLabel(key: string) {
+  const [year, q] = key.split('-')
+  const labels: Record<string, string> = { Q1: 'Ene–Mar', Q2: 'Abr–Jun', Q3: 'Jul–Sep', Q4: 'Oct–Dic' }
+  return `${labels[q] ?? q} ${year}`
+}
+
+// ── Página ───────────────────────────────────────────────────────────────────
 
 export default async function CredencialTrazaPage({ params }: { params: { trazaId: string } }) {
   const supabase = createClient()
@@ -14,10 +36,10 @@ export default async function CredencialTrazaPage({ params }: { params: { trazaI
 
   if (!persona) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#f8fafc' }}>
         <div className="text-center">
-          <p className="text-5xl font-bold text-gray-200 mb-3">404</p>
-          <p className="text-gray-500 text-sm">Credencial TRAZA no encontrada.</p>
+          <p className="text-6xl font-bold mb-3" style={{ color: '#e5e7eb' }}>404</p>
+          <p className="text-gray-400 text-sm">Credencial TRAZA no encontrada.</p>
         </div>
       </div>
     )
@@ -27,7 +49,7 @@ export default async function CredencialTrazaPage({ params }: { params: { trazaI
     .from('objetivos')
     .select('*')
     .eq('persona_id', persona.id)
-    .order('fecha_limite', { ascending: false })
+    .order('fecha_limite', { ascending: true })
 
   const objs = (objetivos ?? []) as Objetivo[]
   const indice = calcularIndiceTraza(objs)
@@ -35,6 +57,7 @@ export default async function CredencialTrazaPage({ params }: { params: { trazaI
 
   const empresaNombre = (persona as any).empresa?.nombre ?? null
 
+  // Narrativa
   const narrativa = generarPerfilNarrativo({
     nombre: persona.nombre,
     apellido: persona.apellido,
@@ -44,160 +67,250 @@ export default async function CredencialTrazaPage({ params }: { params: { trazaI
     objetivos: objs,
   })
 
-  const scoreColor = score >= 85 ? '#16a34a' : score >= 65 ? '#0F4C81' : score >= 40 ? '#d97706' : '#9ca3af'
-  const validados = objs.filter(o => !!o.validacion)
-  const totalValidados = validados.length
+  // Última validación
+  const objsValidados = objs.filter(o => !!o.validacion)
+  const totalValidados = objsValidados.length
+  const ultimaValidacion = objsValidados
+    .filter(o => o.fecha_limite)
+    .sort((a, b) => new Date(b.fecha_limite!).getTime() - new Date(a.fecha_limite!).getTime())[0]
 
-  const ahora = new Date().toLocaleDateString('es-AR', {
-    day: '2-digit', month: 'long', year: 'numeric'
-  })
+  // Miembro desde
+  const miembroDesde = (persona as any).created_at
+    ? new Date((persona as any).created_at).toLocaleDateString('es-AR', { month: 'long', year: 'numeric' })
+    : null
+
+  // Timeline por trimestre
+  type TriEntry = { completados: number; validadosPos: number; validadosParcial: number; validadosNeg: number }
+  const timelineMap: Record<string, TriEntry> = {}
+  objs
+    .filter(o => o.estado === 'Completado' && o.fecha_limite)
+    .forEach(o => {
+      const key = getTrimestreKey(o.fecha_limite!)
+      if (!timelineMap[key]) timelineMap[key] = { completados: 0, validadosPos: 0, validadosParcial: 0, validadosNeg: 0 }
+      timelineMap[key].completados++
+      if (o.validacion === 'De acuerdo') timelineMap[key].validadosPos++
+      else if (o.validacion === 'Parcialmente de acuerdo') timelineMap[key].validadosParcial++
+      else if (o.validacion === 'En desacuerdo') timelineMap[key].validadosNeg++
+    })
+  const timelineEntries = Object.entries(timelineMap).sort(([a], [b]) => a.localeCompare(b))
+
+  // Score color
+  const scoreColor = score >= 85 ? '#16a34a' : score >= 65 ? '#0F4C81' : score >= 40 ? '#d97706' : '#9ca3af'
+  const scoreBg    = score >= 85 ? '#dcfce7' : score >= 65 ? '#dbeafe' : score >= 40 ? '#fef3c7' : '#f3f4f6'
+
+  const ahora = formatFechaLarga(new Date().toISOString())
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#f8fafc' }}>
+    <div className="min-h-screen" style={{ backgroundColor: '#f1f5f9' }}>
 
-      {/* Header */}
-      <div style={{ backgroundColor: '#0F4C81' }} className="px-6 py-10">
-        <div className="max-w-2xl mx-auto">
+      {/* ── HEADER ── */}
+      <div style={{ background: 'linear-gradient(135deg, #0F4C81 0%, #1a6bb5 100%)' }} className="px-5 pt-6 pb-10">
+        <div className="max-w-xl mx-auto">
 
-          <div className="flex items-center justify-between mb-8">
+          {/* Barra superior */}
+          <div className="flex items-center justify-between mb-7">
             <div className="flex items-center gap-2">
-              <span className="text-white font-bold text-lg tracking-tight">TRAZA</span>
-              <span className="text-blue-300 text-xs">· Credencial verificada</span>
+              <span className="text-white font-black text-base tracking-tight">TRAZA</span>
+              <span className="text-blue-300 text-xs font-medium">· Credencial verificada</span>
             </div>
-            <a
-              href="/dashboard"
-              className="flex items-center gap-1.5 text-blue-200 hover:text-white transition-colors text-xs"
+            <a href="/dashboard"
+              className="flex items-center gap-1.5 text-xs font-medium transition-colors"
+              style={{ color: 'rgba(255,255,255,0.6)' }}
             >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M19 12H5M12 5l-7 7 7 7"/>
               </svg>
-              Volver a TRAZA
+              Volver
             </a>
           </div>
 
-          <div className="flex items-start gap-5">
-            <div className="w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0"
-              style={{ backgroundColor: 'rgba(255,255,255,0.12)' }}>
-              <span className="text-white text-2xl font-bold">
-                {persona.nombre[0]}{persona.apellido[0]}
-              </span>
+          {/* Perfil */}
+          <div className="flex items-start gap-4">
+            {/* Avatar */}
+            <div className="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 text-white text-xl font-bold"
+              style={{ backgroundColor: 'rgba(255,255,255,0.15)' }}>
+              {persona.nombre[0]}{persona.apellido[0]}
             </div>
+
+            {/* Info */}
             <div className="flex-1 min-w-0">
-              <h1 className="text-2xl font-bold text-white leading-tight">
+              <h1 className="text-xl font-bold text-white leading-tight">
                 {persona.nombre} {persona.apellido}
               </h1>
-              <p className="text-blue-200 mt-1 text-sm">
-                {persona.cargo ?? ''}
-                {persona.area ? ` · ${persona.area}` : ''}
+              <p className="text-sm mt-0.5" style={{ color: 'rgba(255,255,255,0.7)' }}>
+                {[persona.cargo, persona.area].filter(Boolean).join(' · ')}
               </p>
               {empresaNombre && (
-                <p className="text-blue-300 text-xs mt-1">{empresaNombre}</p>
+                <p className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.5)' }}>{empresaNombre}</p>
               )}
-              <div className="flex items-center gap-2 mt-3">
-                <ShieldCheck size={13} className="text-blue-300" />
-                <span className="text-xs font-mono text-blue-200 tracking-widest">
+              <div className="flex items-center gap-1.5 mt-2.5">
+                <ShieldCheck size={12} style={{ color: 'rgba(255,255,255,0.5)' }} />
+                <span className="text-xs font-mono tracking-widest" style={{ color: 'rgba(255,255,255,0.6)' }}>
                   {persona.traza_id}
                 </span>
               </div>
             </div>
 
-            <div className="flex-shrink-0 text-right">
-              <div className="inline-flex flex-col items-center rounded-2xl px-5 py-3"
-                style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}>
-                <span className="text-4xl font-bold text-white">{score}</span>
-                <span className="text-blue-200 text-xs">/100</span>
-                <span className="text-blue-100 text-xs font-medium mt-1">{badge}</span>
-              </div>
+            {/* Score badge */}
+            <div className="flex-shrink-0 flex flex-col items-center rounded-2xl px-4 py-3"
+              style={{ backgroundColor: 'rgba(255,255,255,0.12)', minWidth: 72 }}>
+              <span className="text-3xl font-black text-white leading-none">{score}</span>
+              <span className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.55)' }}>/100</span>
+              <span className="text-xs font-semibold mt-1.5 text-center leading-tight" style={{ color: 'rgba(255,255,255,0.85)' }}>{badge}</span>
             </div>
+          </div>
+
+          {/* Chips de estado rápido */}
+          <div className="flex flex-wrap gap-2 mt-5">
+            {miembroDesde && (
+              <span className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-full"
+                style={{ backgroundColor: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.7)' }}>
+                <Clock size={10} />
+                Desde {miembroDesde}
+              </span>
+            )}
+            {ultimaValidacion?.fecha_limite && (
+              <span className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-full"
+                style={{ backgroundColor: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.7)' }}>
+                <CheckCircle2 size={10} />
+                Últ. validación: {formatFechaLarga(ultimaValidacion.fecha_limite)}
+              </span>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Contenido */}
-      <div className="max-w-2xl mx-auto px-6 py-8 space-y-5">
+      {/* ── CONTENIDO ── */}
+      <div className="max-w-xl mx-auto px-4 space-y-4" style={{ marginTop: -20 }}>
 
-        {/* Narrativa */}
-        <div className="bg-white rounded-2xl p-6 shadow-sm">
-          <div className="flex items-center gap-2 mb-4">
-            <Star size={15} style={{ color: '#0F4C81' }} strokeWidth={1.75} />
-            <h2 className="font-semibold text-gray-900 text-sm">Perfil profesional</h2>
+        {/* Sello de verificación */}
+        <div className="bg-white rounded-2xl px-5 py-3.5 shadow-sm flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+            style={{ backgroundColor: '#dbeafe' }}>
+            <ShieldCheck size={18} style={{ color: '#1d4ed8' }} />
           </div>
-          <p className="text-gray-700 leading-relaxed text-sm">{narrativa}</p>
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-semibold text-gray-900">Desempeño verificado por supervisores</p>
+            <p className="text-xs text-gray-400 mt-0.5">
+              {totalValidados} objetivo{totalValidados !== 1 ? 's' : ''} validado{totalValidados !== 1 ? 's' : ''} por líderes de {empresaNombre ?? 'la organización'}
+            </p>
+          </div>
+          <span className="text-xs font-bold px-2.5 py-1 rounded-full flex-shrink-0"
+            style={{ backgroundColor: scoreBg, color: scoreColor }}>
+            {score}/100
+          </span>
         </div>
 
-        {/* Métricas */}
-        <div className="grid grid-cols-2 gap-4">
-          <div className="bg-white rounded-2xl p-5 shadow-sm text-center">
-            <p className="text-3xl font-bold" style={{ color: scoreColor }}>{score}</p>
-            <p className="text-xs text-gray-400 mt-1">Índice Traza</p>
+        {/* Narrativa */}
+        <div className="bg-white rounded-2xl p-5 shadow-sm">
+          <div className="flex items-center gap-2 mb-3">
+            <Star size={14} style={{ color: '#0F4C81' }} strokeWidth={1.75} />
+            <h2 className="font-semibold text-gray-900 text-sm">Perfil profesional</h2>
           </div>
-          <div className="bg-white rounded-2xl p-5 shadow-sm text-center">
-            <p className="text-3xl font-bold text-gray-900">{cumplimiento}%</p>
-            <p className="text-xs text-gray-400 mt-1">Cumplimiento</p>
-          </div>
-          <div className="bg-white rounded-2xl p-5 shadow-sm text-center">
-            <p className="text-3xl font-bold text-green-600">{completados}</p>
-            <p className="text-xs text-gray-400 mt-1">Completados</p>
-          </div>
-          <div className="bg-white rounded-2xl p-5 shadow-sm text-center">
-            <p className="text-3xl font-bold text-gray-900">{total}</p>
-            <p className="text-xs text-gray-400 mt-1">Objetivos totales</p>
-          </div>
+          <p className="text-gray-600 leading-relaxed text-sm">{narrativa}</p>
+        </div>
+
+        {/* Métricas 2×2 */}
+        <div className="grid grid-cols-2 gap-3">
+          {[
+            { valor: score, label: 'Índice Traza', color: scoreColor },
+            { valor: `${cumplimiento}%`, label: 'Cumplimiento', color: '#111827' },
+            { valor: completados, label: 'Completados', color: '#16a34a' },
+            { valor: total, label: 'Objetivos totales', color: '#111827' },
+          ].map(({ valor, label, color }) => (
+            <div key={label} className="bg-white rounded-2xl p-4 shadow-sm text-center">
+              <p className="text-2xl font-bold" style={{ color }}>{valor}</p>
+              <p className="text-xs text-gray-400 mt-1">{label}</p>
+            </div>
+          ))}
         </div>
 
         {/* Distribución de validaciones */}
         {totalValidados > 0 && (
-          <div className="bg-white rounded-2xl p-6 shadow-sm">
+          <div className="bg-white rounded-2xl p-5 shadow-sm">
             <div className="flex items-center gap-2 mb-4">
-              <TrendingUp size={15} style={{ color: '#0F4C81' }} strokeWidth={1.75} />
-              <h2 className="font-semibold text-gray-900 text-sm">Validaciones del supervisor</h2>
-              <span className="ml-auto text-xs text-gray-400">{totalValidados} validado{totalValidados > 1 ? 's' : ''}</span>
+              <TrendingUp size={14} style={{ color: '#0F4C81' }} strokeWidth={1.75} />
+              <h2 className="font-semibold text-gray-900 text-sm">Calificaciones de supervisores</h2>
+              <span className="ml-auto text-xs text-gray-400">{totalValidados} total</span>
             </div>
 
-            <div className="flex h-3 rounded-full overflow-hidden gap-0.5 mb-4">
+            {/* Barra */}
+            <div className="flex h-2.5 rounded-full overflow-hidden mb-3" style={{ gap: 2 }}>
               {positivos > 0 && (
-                <div style={{ width: `${(positivos / totalValidados) * 100}%`, backgroundColor: '#1d4ed8', borderRadius: '9999px' }} />
+                <div style={{ flex: positivos, backgroundColor: '#1d4ed8', borderRadius: 9999 }} />
               )}
               {parciales > 0 && (
-                <div style={{ width: `${(parciales / totalValidados) * 100}%`, backgroundColor: '#6d28d9' }} />
+                <div style={{ flex: parciales, backgroundColor: '#7c3aed' }} />
               )}
               {negativos > 0 && (
-                <div style={{ width: `${(negativos / totalValidados) * 100}%`, backgroundColor: '#c2410c', borderRadius: '9999px' }} />
+                <div style={{ flex: negativos, backgroundColor: '#dc2626', borderRadius: 9999 }} />
               )}
             </div>
 
-            <div className="flex flex-wrap gap-4">
-              {positivos > 0 && (
-                <div className="flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded-full inline-block" style={{ backgroundColor: '#1d4ed8' }} />
-                  <span className="text-xs text-gray-600">De acuerdo <span className="font-semibold">{positivos}</span></span>
+            {/* Leyenda */}
+            <div className="flex flex-wrap gap-3 mt-3">
+              {[
+                { n: positivos, label: 'De acuerdo', color: '#1d4ed8' },
+                { n: parciales, label: 'Parcialmente', color: '#7c3aed' },
+                { n: negativos, label: 'En desacuerdo', color: '#dc2626' },
+              ].filter(x => x.n > 0).map(({ n, label, color }) => (
+                <div key={label} className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full inline-block" style={{ backgroundColor: color }} />
+                  <span className="text-xs text-gray-500">{label} <span className="font-semibold text-gray-700">{n}</span></span>
                 </div>
-              )}
-              {parciales > 0 && (
-                <div className="flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded-full inline-block" style={{ backgroundColor: '#6d28d9' }} />
-                  <span className="text-xs text-gray-600">Parcialmente <span className="font-semibold">{parciales}</span></span>
-                </div>
-              )}
-              {negativos > 0 && (
-                <div className="flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded-full inline-block" style={{ backgroundColor: '#c2410c' }} />
-                  <span className="text-xs text-gray-600">En desacuerdo <span className="font-semibold">{negativos}</span></span>
-                </div>
-              )}
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Timeline por trimestre */}
+        {timelineEntries.length > 0 && (
+          <div className="bg-white rounded-2xl p-5 shadow-sm">
+            <div className="flex items-center gap-2 mb-4">
+              <Calendar size={14} style={{ color: '#0F4C81' }} strokeWidth={1.75} />
+              <h2 className="font-semibold text-gray-900 text-sm">Historial de desempeño</h2>
+            </div>
+            <div className="space-y-3">
+              {timelineEntries.map(([key, entry]) => {
+                const totalTri = entry.completados
+                const pctPos = totalTri > 0 ? Math.round((entry.validadosPos / totalTri) * 100) : 0
+                return (
+                  <div key={key} className="flex items-center gap-3">
+                    <span className="text-xs font-medium text-gray-400 w-20 flex-shrink-0">
+                      {formatTrimestreLabel(key)}
+                    </span>
+                    <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: '#f1f5f9' }}>
+                      <div
+                        className="h-full rounded-full"
+                        style={{
+                          width: `${pctPos}%`,
+                          backgroundColor: pctPos >= 80 ? '#16a34a' : pctPos >= 50 ? '#0F4C81' : '#d97706'
+                        }}
+                      />
+                    </div>
+                    <span className="text-xs text-gray-500 flex-shrink-0 w-24 text-right">
+                      {entry.completados} completado{entry.completados !== 1 ? 's' : ''}
+                      {entry.validadosPos > 0 && ` · ${entry.validadosPos} ✓`}
+                    </span>
+                  </div>
+                )
+              })}
             </div>
           </div>
         )}
 
         {/* Footer */}
-        <div className="text-center py-4 space-y-1">
-          <div className="flex items-center justify-center gap-1.5">
-            <ShieldCheck size={13} className="text-gray-300" />
+        <div className="py-6 flex flex-col items-center gap-1.5">
+          <div className="flex items-center gap-1.5">
+            <ShieldCheck size={12} style={{ color: '#9ca3af' }} />
             <p className="text-xs text-gray-400">
-              Credencial verificada por <span className="font-semibold text-gray-500">TRAZA</span>
+              Credencial generada y verificada por <span className="font-bold text-gray-500">TRAZA</span>
             </p>
           </div>
-          <p className="text-xs text-gray-300">Actualizada el {ahora}</p>
+          <p className="text-xs" style={{ color: '#d1d5db' }}>Actualizada el {ahora}</p>
+          <p className="text-xs mt-1" style={{ color: '#e5e7eb' }}>
+            Esta credencial refleja datos reales validados por supervisores dentro de la plataforma.
+          </p>
         </div>
 
       </div>
