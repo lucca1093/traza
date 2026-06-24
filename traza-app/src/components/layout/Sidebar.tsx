@@ -37,7 +37,7 @@ export default function Sidebar({ profile }: SidebarProps) {
   return (
     <aside
       className="fixed inset-y-0 left-0 z-50 w-64 flex flex-col"
-      style={{ backgroundColor: '#0D1B2A', borderRight: '1px solid rgba(255,255,255,0.06)' }}
+      style={{ backgroundColor: '#16213E', borderRight: '1px solid rgba(255,255,255,0.07)' }}
     >
       {/* Logo */}
       <div className="px-6 py-6" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
@@ -69,10 +69,10 @@ export default function Sidebar({ profile }: SidebarProps) {
                   href={item.href}
                   className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all"
                   style={isActive
-                    ? { backgroundColor: '#1E3A54', color: '#E2E8F0' }
+                    ? { backgroundColor: '#243B6A', color: '#E2E8F0' }
                     : { color: '#64748B' }
                   }
-                  onMouseEnter={e => { if (!isActive) (e.currentTarget as HTMLElement).style.backgroundColor = '#1A2E42'; if (!isActive) (e.currentTarget as HTMLElement).style.color = '#CBD5E1' }}
+                  onMouseEnter={e => { if (!isActive) (e.currentTarget as HTMLElement).style.backgroundColor = '#1E3352'; if (!isActive) (e.currentTarget as HTMLElement).style.color = '#CBD5E1' }}
                   onMouseLeave={e => { if (!isActive) (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent'; if (!isActive) (e.currentTarget as HTMLElement).style.color = '#64748B' }}
                 >
                   {Icon && (
@@ -101,7 +101,7 @@ export default function Sidebar({ profile }: SidebarProps) {
         <div className="flex items-center gap-3 mb-3">
           <div
             className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0"
-            style={{ backgroundColor: '#1E3A54' }}
+            style={{ backgroundColor: '#243B6A' }}
           >
             <span className="text-sm font-semibold" style={{ color: '#93C5FD' }}>{initials}</span>
           </div>

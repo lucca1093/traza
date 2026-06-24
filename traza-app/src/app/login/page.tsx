@@ -32,7 +32,7 @@ export default function LoginPage() {
       {/* Panel izquierdo — branding oscuro */}
       <div
         className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12"
-        style={{ backgroundColor: '#0D1B2A' }}
+        style={{ backgroundColor: '#16213E' }}
       >
         <div className="flex items-center gap-3">
           <div
@@ -64,7 +64,7 @@ export default function LoginPage() {
               <div
                 key={item.label}
                 className="rounded-xl p-4 text-center"
-                style={{ backgroundColor: '#1A2E42' }}
+                style={{ backgroundColor: '#1E3352' }}
               >
                 <div className="flex justify-center mb-2" style={{ color: '#60A5FA' }}>{item.icon}</div>
                 <p className="text-white text-sm font-semibold">{item.label}</p>
