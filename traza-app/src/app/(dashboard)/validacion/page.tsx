@@ -215,7 +215,12 @@ export default function ValidacionPage() {
                               </span>
                               {obj.validacion && (
                                 <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={getValidacionStyle(obj.validacion)}>
-                                  {obj.validacion}
+                                  Sup: {obj.validacion}
+                                </span>
+                              )}
+                              {obj.validacion_admin && (
+                                <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={getValidacionStyle(obj.validacion_admin)}>
+                                  Admin: {obj.validacion_admin}
                                 </span>
                               )}
                             </div>
