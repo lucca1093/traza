@@ -55,6 +55,7 @@ export interface Objetivo {
   estado: EstadoObjetivo
   tipo: TipoObjetivo
   categoria: CategoriaObjetivo
+  es_continuo: boolean
   progreso: number
   evidencia_url: string | null
   validacion: ResultadoValidacion | null

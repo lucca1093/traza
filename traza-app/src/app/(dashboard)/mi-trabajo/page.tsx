@@ -26,6 +26,7 @@ export default function MiTrabajoPage() {
     descripcion: '',
     prioridad: 'Media' as const,
     categoria: 'Resultado' as CategoriaObjetivo,
+    es_continuo: false,
     fecha_limite: '',
   })
 
@@ -72,12 +73,13 @@ export default function MiTrabajoPage() {
       descripcion:  form.descripcion || null,
       prioridad:    form.prioridad,
       categoria:    form.categoria,
-      fecha_limite: form.fecha_limite || null,
+      es_continuo:  form.es_continuo,
+      fecha_limite: form.es_continuo ? null : (form.fecha_limite || null),
       tipo:         'Personal',
       estado:       'Pendiente',
     })
 
-    setForm({ titulo: '', descripcion: '', prioridad: 'Media', categoria: 'Resultado', fecha_limite: '' })
+    setForm({ titulo: '', descripcion: '', prioridad: 'Media', categoria: 'Resultado', es_continuo: false, fecha_limite: '' })
     setShowForm(false)
 
     const { data: obs } = await supabase
@@ -191,12 +193,23 @@ export default function MiTrabajoPage() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="traza-label">Categoría</label>
-                <select className="traza-input" value={form.categoria} onChange={e => setForm(f => ({ ...f, categoria: e.target.value as CategoriaObjetivo }))}>
+                <select className="traza-input" value={form.categoria} onChange={e => {
+                    const val = e.target.value as CategoriaObjetivo
+                    setForm(f => ({ ...f, categoria: val, es_continuo: val !== 'Hábito' ? false : f.es_continuo }))
+                  }}>
                   <option value="Resultado">Resultado</option>
                   <option value="Eficiencia">Eficiencia</option>
                   <option value="Aprendizaje">Aprendizaje</option>
                   <option value="Hábito">Hábito</option>
                 </select>
+                {form.categoria === 'Hábito' && (
+                  <label className="flex items-center gap-2 mt-2 cursor-pointer">
+                    <input type="checkbox" checked={form.es_continuo}
+                      onChange={e => setForm(f => ({ ...f, es_continuo: e.target.checked }))}
+                      className="w-4 h-4 rounded accent-traza-700" />
+                    <span className="text-xs text-gray-500">Objetivo continuo (sin fecha, no afecta el índice)</span>
+                  </label>
+                )}
               </div>
               <div>
                 <label className="traza-label">Prioridad</label>
@@ -209,7 +222,7 @@ export default function MiTrabajoPage() {
             </div>
             <div>
               <label className="traza-label">Fecha límite</label>
-              <input type="date" className="traza-input" value={form.fecha_limite} onChange={e => setForm(f => ({ ...f, fecha_limite: e.target.value }))} />
+              <input type="date" className={`traza-input ${form.es_continuo ? 'opacity-40 pointer-events-none' : ''}`} value={form.fecha_limite} onChange={e => setForm(f => ({ ...f, fecha_limite: e.target.value }))} disabled={form.es_continuo} />
             </div>
             <Button type="submit" loading={saving === 'new'}>Guardar objetivo</Button>
           </form>
@@ -623,26 +636,47 @@ function ObjetivoCard({
               <p className="text-xs text-gray-400">Sin avances todavía.</p>
             ) : (
               <div className="space-y-2.5">
-                {avances.map(a => (
-                  <div key={a.id} className="flex gap-2.5">
-                    <div className="flex-shrink-0 mt-0.5">
-                      {a.tipo === 'comentario' && <MessageSquare size={14} className="text-gray-400" />}
-                      {a.tipo === 'link'       && <Link2 size={14} className="text-traza-500" />}
-                      {a.tipo === 'archivo'    && <Paperclip size={14} className="text-orange-400" />}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      {(a.tipo === 'link' || a.tipo === 'archivo') ? (
-                        <a href={a.contenido} target="_blank" rel="noopener noreferrer"
-                          className="text-traza-700 hover:underline break-all text-xs">
-                          {a.contenido}
-                        </a>
-                      ) : (
-                        <p className="text-sm text-gray-700">{a.contenido}</p>
+                {avances.map(a => {
+                  const rev = a.estado_revision ?? 'sin_revisar'
+                  const revStyle: Record<string, { bg: string; border: string; dot: string; label: string }> = {
+                    sin_revisar: { bg: '#f9fafb', border: '#f3f4f6', dot: '#d1d5db', label: 'Sin revisar' },
+                    visto:       { bg: '#eff6ff', border: '#bfdbfe', dot: '#2563eb', label: 'Visto'       },
+                    aprobado:    { bg: '#f0fdf4', border: '#bbf7d0', dot: '#16a34a', label: 'Aprobado'    },
+                  }
+                  const rs = revStyle[rev] ?? revStyle.sin_revisar
+                  return (
+                    <div key={a.id} className="rounded-xl border" style={{ backgroundColor: rs.bg, borderColor: rs.border }}>
+                      <div className="flex gap-2.5 px-3 pt-3 pb-2">
+                        <div className="flex-shrink-0 mt-0.5">
+                          {a.tipo === 'comentario' && <MessageSquare size={14} className="text-gray-400" />}
+                          {a.tipo === 'link'       && <Link2 size={14} className="text-traza-500" />}
+                          {a.tipo === 'archivo'    && <Paperclip size={14} className="text-orange-400" />}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          {(a.tipo === 'link' || a.tipo === 'archivo') ? (
+                            <a href={a.contenido} target="_blank" rel="noopener noreferrer"
+                              className="text-traza-700 hover:underline break-all text-xs">{a.contenido}</a>
+                          ) : (
+                            <p className="text-sm text-gray-700">{a.contenido}</p>
+                          )}
+                          <p className="text-xs text-gray-400 mt-0.5">{formatDT(a.creado_en)}</p>
+                        </div>
+                        {/* Estado de revisión */}
+                        <div className="flex-shrink-0 flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: rs.dot }} />
+                          <span className="text-xs font-medium" style={{ color: rs.dot }}>{rs.label}</span>
+                        </div>
+                      </div>
+                      {/* Respuesta del supervisor */}
+                      {a.respuesta_supervisor && (
+                        <div className="mx-3 mb-3 px-3 py-2 rounded-lg" style={{ backgroundColor: '#f1f5f9' }}>
+                          <p className="text-xs font-semibold text-gray-500 mb-0.5">Respuesta del supervisor</p>
+                          <p className="text-sm text-gray-700">{a.respuesta_supervisor}</p>
+                        </div>
                       )}
-                      <p className="text-xs text-gray-400 mt-0.5">{formatDT(a.creado_en)}</p>
                     </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             )}
 

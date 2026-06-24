@@ -79,7 +79,49 @@ export default function AnalyticsPage() {
     // Sin validar (completados sin validación)
     const sinValidar = objs.filter(o => o.estado === 'Completado' && !o.validacion).length
 
-    setStats({ total, completados, pendientes, enProgreso, positivos, negativos, cumplimiento, indiceOrg, enRiesgo, totalPersonas: (personas ?? []).length, totalAvances: totalAvances ?? 0, areas, sinValidar })
+    // ── Evolución trimestral ──────────────────────────────────
+    // Agrupa objetivos completados por trimestre de su fecha_limite
+    const trimMap: Record<string, { completados: number; positivos: number; total: number }> = {}
+    objs.filter(o => o.fecha_limite).forEach(o => {
+      const d = new Date(o.fecha_limite!)
+      const q = Math.ceil((d.getMonth() + 1) / 3)
+      const key = `${d.getFullYear()}-Q${q}`
+      if (!trimMap[key]) trimMap[key] = { completados: 0, positivos: 0, total: 0 }
+      trimMap[key].total++
+      if (o.estado === 'Completado') trimMap[key].completados++
+      if (o.validacion === 'De acuerdo') trimMap[key].positivos++
+    })
+    const evolucion = Object.entries(trimMap)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([key, v]) => ({
+        trimestre: key,
+        cumplimiento: v.total > 0 ? Math.round(v.completados / v.total * 100) : 0,
+        calidad: v.completados > 0 ? Math.round(v.positivos / v.completados * 100) : 0,
+        total: v.total,
+      }))
+
+    // ── Gap de discrepancia (equipo) ──────────────────────────
+    const supScore:  Record<string, number> = { 'De acuerdo': 2, 'Parcialmente de acuerdo': 1, 'En desacuerdo': 0 }
+    const autoScore: Record<string, number> = { 'Satisfecho': 2, 'Parcialmente satisfecho': 1, 'Insatisfecho': 0 }
+    const conAmbas = objs.filter(o => o.validacion && (o as any).autoevaluacion)
+    const discAlta   = conAmbas.filter(o => Math.abs((supScore[o.validacion!] ?? 1) - (autoScore[(o as any).autoevaluacion] ?? 1)) === 2).length
+    const discMedia  = conAmbas.filter(o => Math.abs((supScore[o.validacion!] ?? 1) - (autoScore[(o as any).autoevaluacion] ?? 1)) === 1).length
+    const discNula   = conAmbas.filter(o => Math.abs((supScore[o.validacion!] ?? 1) - (autoScore[(o as any).autoevaluacion] ?? 1)) === 0).length
+
+    // ── Distribución por categoría ────────────────────────────
+    const cats = ['Resultado', 'Eficiencia', 'Aprendizaje', 'Hábito']
+    const porCategoria = cats.map(cat => ({
+      categoria: cat,
+      total: objs.filter(o => (o as any).categoria === cat).length,
+      completados: objs.filter(o => (o as any).categoria === cat && o.estado === 'Completado').length,
+    }))
+
+    setStats({
+      total, completados, pendientes, enProgreso, positivos, negativos, cumplimiento,
+      indiceOrg, enRiesgo, totalPersonas: (personas ?? []).length,
+      totalAvances: totalAvances ?? 0, areas, sinValidar,
+      evolucion, discAlta, discMedia, discNula, totalConAmbas: conAmbas.length, porCategoria,
+    })
     setRanking(rankingData)
     setLoading(false)
   }
@@ -231,24 +273,145 @@ export default function AnalyticsPage() {
           {ranking.length === 0 && (
             <p className="text-gray-400 text-center py-12">No hay datos todavía.</p>
           )}
-          {ranking.map((item, i) => (
-            <div key={item.persona.id} className="px-6 py-4 flex items-center gap-4">
-              <span className="text-sm font-bold text-gray-400 w-6 text-center">{i + 1}</span>
-              <div className="flex-1 min-w-0">
-                <p className="font-semibold text-gray-900">
-                  {item.persona.nombre} {item.persona.apellido}
-                </p>
-                <p className="text-xs text-gray-500">{item.persona.cargo ?? ''} {item.persona.area ? `· ${item.persona.area}` : ''}</p>
-                <div className="mt-2 max-w-xs">
-                  <TraceIndexBar indice={item.indice} showDetails={false} size="sm" />
+          {ranking.map((item, i) => {
+            const scoreColor = item.indice.score >= 85 ? '#16a34a' : item.indice.score >= 65 ? '#0F4C81' : item.indice.score >= 40 ? '#d97706' : '#9ca3af'
+            return (
+              <div key={item.persona.id} className="px-6 py-4 flex items-center gap-4">
+                <span className="text-sm font-bold text-gray-300 w-6 text-center">{i + 1}</span>
+                <div className="w-8 h-8 rounded-full bg-traza-100 flex items-center justify-center flex-shrink-0">
+                  <span className="text-traza-700 text-xs font-bold">
+                    {item.persona.nombre[0]}{item.persona.apellido[0]}
+                  </span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-gray-900">{item.persona.nombre} {item.persona.apellido}</p>
+                  <p className="text-xs text-gray-500">{item.persona.cargo ?? ''}{item.persona.area ? ` · ${item.persona.area}` : ''}</p>
+                  {/* Módulos mini */}
+                  <div className="flex gap-3 mt-1.5">
+                    {[
+                      { label: 'Validación', val: item.indice.moduloA },
+                      { label: 'Cumplimiento', val: item.indice.moduloB },
+                      { label: 'Consistencia', val: item.indice.moduloC },
+                    ].map(m => (
+                      <span key={m.label} className="text-xs text-gray-400">
+                        {m.label}: <span className="font-semibold text-gray-600">{m.val}</span>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+                <div className="text-right flex-shrink-0">
+                  <p className="text-2xl font-bold" style={{ color: scoreColor }}>{item.indice.score}</p>
+                  <p className="text-xs text-gray-400">/100 · {item.indice.badge}</p>
                 </div>
               </div>
-              <div className="text-right">
-                <p className="text-2xl font-bold text-traza-700">{item.indice.score}</p>
-                <p className="text-xs text-gray-400">/100</p>
-              </div>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* Evolución trimestral */}
+      {stats.evolucion?.length > 0 && (
+        <div className="traza-card p-6">
+          <h2 className="font-semibold text-gray-900 mb-4">Evolución trimestral</h2>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-xs text-gray-400 uppercase tracking-wide">
+                  <th className="text-left pb-3">Trimestre</th>
+                  <th className="text-right pb-3">Objetivos</th>
+                  <th className="text-right pb-3">Cumplimiento</th>
+                  <th className="text-right pb-3">Calidad validación</th>
+                  <th className="pb-3 w-40"></th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {stats.evolucion.map((t: any) => (
+                  <tr key={t.trimestre}>
+                    <td className="py-3 font-medium text-gray-900">{t.trimestre}</td>
+                    <td className="py-3 text-right text-gray-500">{t.total}</td>
+                    <td className="py-3 text-right font-semibold" style={{ color: t.cumplimiento >= 70 ? '#16a34a' : t.cumplimiento >= 40 ? '#d97706' : '#dc2626' }}>
+                      {t.cumplimiento}%
+                    </td>
+                    <td className="py-3 text-right font-semibold" style={{ color: t.calidad >= 70 ? '#1d4ed8' : '#9ca3af' }}>
+                      {t.calidad}%
+                    </td>
+                    <td className="py-3 pl-4">
+                      <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                        <div className="h-full rounded-full bg-traza-500" style={{ width: `${t.cumplimiento}%` }} />
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Distribución por categoría + Gap de discrepancia */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Por categoría */}
+        <div className="traza-card p-6">
+          <h2 className="font-semibold text-gray-900 mb-4">Objetivos por categoría</h2>
+          <div className="space-y-3">
+            {(stats.porCategoria ?? []).filter((c: any) => c.total > 0).map((c: any) => {
+              const catColors: Record<string, { bg: string; color: string }> = {
+                Resultado:   { bg: '#dbeafe', color: '#1d4ed8' },
+                Eficiencia:  { bg: '#d1fae5', color: '#065f46' },
+                Aprendizaje: { bg: '#ede9fe', color: '#5b21b6' },
+                Hábito:      { bg: '#fef3c7', color: '#92400e' },
+              }
+              const cs = catColors[c.categoria] ?? { bg: '#f3f4f6', color: '#6b7280' }
+              const pct = c.total > 0 ? Math.round(c.completados / c.total * 100) : 0
+              return (
+                <div key={c.categoria}>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{ backgroundColor: cs.bg, color: cs.color }}>{c.categoria}</span>
+                    <span className="text-xs text-gray-500">{c.completados}/{c.total} · <span className="font-semibold text-gray-900">{pct}%</span></span>
+                  </div>
+                  <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                    <div className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: cs.color }} />
+                  </div>
+                </div>
+              )
+            })}
+            {(stats.porCategoria ?? []).every((c: any) => c.total === 0) && (
+              <p className="text-xs text-gray-400 italic">Sin datos de categorías todavía.</p>
+            )}
+          </div>
+        </div>
+
+        {/* Gap de discrepancia */}
+        <div className="traza-card p-6">
+          <h2 className="font-semibold text-gray-900 mb-1">Gap de discrepancia</h2>
+          <p className="text-xs text-gray-400 mb-4">Diferencia entre autoevaluación del colaborador y validación del supervisor.</p>
+          {stats.totalConAmbas === 0 ? (
+            <p className="text-xs text-gray-400 italic">Aún no hay objetivos con ambas evaluaciones.</p>
+          ) : (
+            <div className="space-y-4">
+              {[
+                { label: 'Alineados', val: stats.discNula, color: '#16a34a', sub: 'Coinciden exactamente' },
+                { label: 'Diferencia leve', val: stats.discMedia, color: '#d97706', sub: '1 punto de diferencia' },
+                { label: 'Diferencia alta', val: stats.discAlta, color: '#dc2626', sub: '2 puntos de diferencia' },
+              ].map(item => (
+                <div key={item.label}>
+                  <div className="flex items-center justify-between mb-1">
+                    <div>
+                      <span className="text-sm font-semibold text-gray-900">{item.label}</span>
+                      <span className="text-xs text-gray-400 ml-2">{item.sub}</span>
+                    </div>
+                    <span className="text-sm font-bold" style={{ color: item.color }}>
+                      {item.val} <span className="font-normal text-gray-400 text-xs">({Math.round(item.val / stats.totalConAmbas * 100)}%)</span>
+                    </span>
+                  </div>
+                  <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div className="h-full rounded-full" style={{ width: `${Math.round(item.val / stats.totalConAmbas * 100)}%`, backgroundColor: item.color }} />
+                  </div>
+                </div>
+              ))}
+              <p className="text-xs text-gray-400 pt-1">Sobre {stats.totalConAmbas} objetivo{stats.totalConAmbas > 1 ? 's' : ''} con ambas evaluaciones.</p>
             </div>
-          ))}
+          )}
         </div>
       </div>
 

@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Button from '@/components/ui/Button'
 import { getEstadoClasses, getPrioridadClasses, getCategoriaStyle, formatFecha } from '@/lib/traza'
-import { ChevronDown, ChevronRight, Search, MessageSquare, Link2, Paperclip, CheckCircle2, Circle } from 'lucide-react'
+import { ChevronDown, ChevronRight, Search, MessageSquare, Link2, Paperclip } from 'lucide-react'
 import type { Objetivo, Persona, Profile, CategoriaObjetivo } from '@/types'
 
 export default function ObjetivosPage() {
@@ -27,6 +27,7 @@ export default function ObjetivosPage() {
     descripcion: '',
     prioridad: 'Media',
     categoria: 'Resultado' as CategoriaObjetivo,
+    es_continuo: false,
     fecha_limite: '',
     estado: 'Pendiente',
     tipo: 'Asignado',
@@ -78,7 +79,8 @@ export default function ObjetivosPage() {
       descripcion:   form.descripcion || null,
       prioridad:     form.prioridad,
       categoria:     form.categoria,
-      fecha_limite:  form.fecha_limite || null,
+      es_continuo:   form.es_continuo,
+      fecha_limite:  form.es_continuo ? null : (form.fecha_limite || null),
       estado:        form.estado,
       tipo:          profile?.rol === 'supervisor' ? 'Asignado' : form.tipo,
       evidencia_url: form.evidencia_url || null,
@@ -98,7 +100,7 @@ export default function ObjetivosPage() {
   }
 
   function resetForm() {
-    setForm({ persona_id: personas[0]?.id ?? '', titulo: '', descripcion: '', prioridad: 'Media', categoria: 'Resultado', fecha_limite: '', estado: 'Pendiente', tipo: 'Asignado', evidencia_url: '' })
+    setForm({ persona_id: personas[0]?.id ?? '', titulo: '', descripcion: '', prioridad: 'Media', categoria: 'Resultado', es_continuo: false, fecha_limite: '', estado: 'Pendiente', tipo: 'Asignado', evidencia_url: '' })
     setEditId(null)
   }
 
@@ -109,6 +111,7 @@ export default function ObjetivosPage() {
       descripcion:   obj.descripcion ?? '',
       prioridad:     obj.prioridad,
       categoria:     obj.categoria ?? 'Resultado',
+      es_continuo:   obj.es_continuo ?? false,
       fecha_limite:  obj.fecha_limite ?? '',
       estado:        obj.estado,
       tipo:          obj.tipo,
@@ -189,16 +192,36 @@ export default function ObjetivosPage() {
           </div>
           <div>
             <label className="traza-label">Categoría</label>
-            <select className="traza-input" value={form.categoria} onChange={e => f('categoria', e.target.value)}>
+            <select className="traza-input" value={form.categoria} onChange={e => {
+              f('categoria', e.target.value)
+              if (e.target.value !== 'Hábito') f('es_continuo', false)
+            }}>
               <option value="Resultado">Resultado</option>
               <option value="Eficiencia">Eficiencia</option>
               <option value="Aprendizaje">Aprendizaje</option>
               <option value="Hábito">Hábito</option>
             </select>
+            {form.categoria === 'Hábito' && (
+              <label className="flex items-center gap-2 mt-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={form.es_continuo}
+                  onChange={e => f('es_continuo', e.target.checked)}
+                  className="w-4 h-4 rounded accent-traza-700"
+                />
+                <span className="text-xs text-gray-600">Objetivo continuo (sin fecha de vencimiento, no afecta el índice)</span>
+              </label>
+            )}
           </div>
           <div>
             <label className="traza-label">Fecha límite</label>
-            <input type="date" className="traza-input" value={form.fecha_limite} onChange={e => f('fecha_limite', e.target.value)} />
+            <input
+              type="date"
+              className="traza-input disabled:opacity-40"
+              value={form.fecha_limite}
+              onChange={e => f('fecha_limite', e.target.value)}
+              disabled={form.es_continuo}
+            />
           </div>
           <div>
             <label className="traza-label">Estado</label>
@@ -363,6 +386,13 @@ export default function ObjetivosPage() {
   )
 }
 
+// Estado visual de revisión de avance
+const REVISION_STYLES: Record<string, { bg: string; border: string; label: string; labelColor: string }> = {
+  sin_revisar: { bg: '#f9fafb', border: '#f3f4f6', label: 'Sin revisar', labelColor: '#9ca3af' },
+  visto:       { bg: '#eff6ff', border: '#bfdbfe', label: 'Visto',       labelColor: '#2563eb' },
+  aprobado:    { bg: '#f0fdf4', border: '#bbf7d0', label: 'Aprobado',    labelColor: '#16a34a' },
+}
+
 // -------- Fila de objetivo expandible con avances --------
 function ObjetivoRow({ obj, autoExpand, onEdit, onDelete }: {
   obj: any
@@ -370,9 +400,11 @@ function ObjetivoRow({ obj, autoExpand, onEdit, onDelete }: {
   onEdit: (obj: any) => void
   onDelete: (id: string) => void
 }) {
-  const [open, setOpen]           = useState(autoExpand ?? false)
-  const [avances, setAvances]     = useState<any[]>([])
-  const [aprobando, setAprobando] = useState<string | null>(null)
+  const [open, setOpen]               = useState(autoExpand ?? false)
+  const [avances, setAvances]         = useState<any[]>([])
+  const [cambiando, setCambiando]     = useState<string | null>(null)
+  const [respondiendo, setRespondiendo] = useState<string | null>(null)
+  const [textoResp, setTextoResp]     = useState<Record<string, string>>({})
 
   useEffect(() => {
     if (autoExpand) {
@@ -396,19 +428,32 @@ function ObjetivoRow({ obj, autoExpand, onEdit, onDelete }: {
     setAvances(data ?? [])
   }
 
-  async function toggleAprobacion(avanceId: string, yaAprobado: boolean) {
-    setAprobando(avanceId)
+  async function cambiarEstado(avanceId: string, estado: string) {
+    setCambiando(avanceId)
     const { data: { user } } = await supabase.auth.getUser()
-    if (yaAprobado) {
-      await supabase.from('objetivo_avances').update({
-        aprobado: false, aprobado_por: null, aprobado_en: null
-      }).eq('id', avanceId)
-    } else {
-      await supabase.from('objetivo_avances').update({
-        aprobado: true, aprobado_por: user!.id, aprobado_en: new Date().toISOString()
-      }).eq('id', avanceId)
-    }
-    setAprobando(null)
+    await supabase.from('objetivo_avances').update({
+      estado_revision: estado,
+      aprobado: estado === 'aprobado',
+      aprobado_por: estado === 'aprobado' ? user!.id : null,
+      aprobado_en: estado === 'aprobado' ? new Date().toISOString() : null,
+    }).eq('id', avanceId)
+    setCambiando(null)
+    loadAvances()
+  }
+
+  async function enviarRespuesta(avanceId: string) {
+    const texto = textoResp[avanceId]?.trim()
+    if (!texto) return
+    setRespondiendo(avanceId)
+    const { data: { user } } = await supabase.auth.getUser()
+    await supabase.from('objetivo_avances').update({
+      respuesta_supervisor: texto,
+      respondido_por: user!.id,
+      respondido_en: new Date().toISOString(),
+      estado_revision: 'visto',
+    }).eq('id', avanceId)
+    setTextoResp(prev => ({ ...prev, [avanceId]: '' }))
+    setRespondiendo(null)
     loadAvances()
   }
 
@@ -423,9 +468,12 @@ function ObjetivoRow({ obj, autoExpand, onEdit, onDelete }: {
       {/* Fila resumen */}
       <div
         onClick={() => setOpen(!open)}
-        className={`flex items-center gap-3 pl-16 pr-4 py-3 cursor-pointer hover:bg-white transition-colors ${obj.id === (autoExpand ? obj.id : '') && !open ? 'bg-traza-50' : ''}`}
+        className="flex items-center gap-3 pl-16 pr-4 py-3 cursor-pointer hover:bg-white transition-colors"
       >
         <p className="flex-1 font-medium text-gray-900 text-sm truncate">{obj.titulo}</p>
+        {obj.es_continuo && (
+          <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ backgroundColor: '#f3e8ff', color: '#7c3aed' }}>Continuo</span>
+        )}
         {obj.categoria && (() => {
           const cat = getCategoriaStyle(obj.categoria)
           return (
@@ -436,7 +484,7 @@ function ObjetivoRow({ obj, autoExpand, onEdit, onDelete }: {
         })()}
         <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${getPrioridadClasses(obj.prioridad)}`}>{obj.prioridad}</span>
         <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${getEstadoClasses(obj.estado)}`}>{obj.estado}</span>
-        <span className="text-xs text-gray-400 w-20 text-right">{formatFecha(obj.fecha_limite)}</span>
+        <span className="text-xs text-gray-400 w-20 text-right">{obj.es_continuo ? '—' : formatFecha(obj.fecha_limite)}</span>
         <div className="flex gap-2 ml-2" onClick={e => e.stopPropagation()}>
           <button onClick={() => onEdit(obj)} className="text-xs text-traza-700 hover:underline">Editar</button>
           <button onClick={() => onDelete(obj.id)} className="text-xs text-red-500 hover:underline">Eliminar</button>
@@ -446,31 +494,17 @@ function ObjetivoRow({ obj, autoExpand, onEdit, onDelete }: {
 
       {/* Panel de avances */}
       {open && (
-        <div className="pl-16 pr-6 pb-4 space-y-2">
+        <div className="pl-16 pr-6 pb-5 space-y-3">
           {avances.length === 0 ? (
             <p className="text-xs text-gray-400 italic">El colaborador aún no registró avances.</p>
-          ) : (
-            <div className="space-y-2">
-              {avances.map(a => (
-                <div key={a.id}
-                  className="flex gap-2.5 rounded-xl px-3 py-2.5 border transition-colors"
-                  style={a.aprobado
-                    ? { backgroundColor: '#f0fdf4', borderColor: '#bbf7d0' }
-                    : { backgroundColor: '#f9fafb', borderColor: '#f3f4f6' }
-                  }
-                >
-                  {/* Botón de aprobación */}
-                  <button
-                    onClick={() => toggleAprobacion(a.id, a.aprobado)}
-                    disabled={aprobando === a.id}
-                    className="flex-shrink-0 mt-0.5 transition-opacity hover:opacity-70"
-                    title={a.aprobado ? 'Quitar aprobación' : 'Aprobar avance'}
-                  >
-                    {a.aprobado
-                      ? <CheckCircle2 size={16} color="#16a34a" />
-                      : <Circle size={16} color="#d1d5db" />
-                    }
-                  </button>
+          ) : avances.map(a => {
+            const rev = a.estado_revision ?? 'sin_revisar'
+            const style = REVISION_STYLES[rev] ?? REVISION_STYLES.sin_revisar
+            const mostrando = respondiendo === null || respondiendo === a.id
+            return (
+              <div key={a.id} className="rounded-xl border transition-colors" style={{ backgroundColor: style.bg, borderColor: style.border }}>
+                {/* Contenido del avance */}
+                <div className="flex gap-2.5 px-3 pt-3 pb-2">
                   <div className="flex-shrink-0 mt-0.5">
                     {a.tipo === 'comentario' && <MessageSquare size={13} className="text-gray-400" />}
                     {a.tipo === 'link'       && <Link2 size={13} className="text-traza-500" />}
@@ -479,21 +513,65 @@ function ObjetivoRow({ obj, autoExpand, onEdit, onDelete }: {
                   <div className="flex-1 min-w-0">
                     {(a.tipo === 'link' || a.tipo === 'archivo') ? (
                       <a href={a.contenido} target="_blank" rel="noopener noreferrer"
-                        className="text-traza-700 hover:underline break-all text-xs">
-                        {a.contenido}
-                      </a>
+                        className="text-traza-700 hover:underline break-all text-xs">{a.contenido}</a>
                     ) : (
                       <p className="text-sm text-gray-700">{a.contenido}</p>
                     )}
-                    <p className="text-xs text-gray-400 mt-0.5">
-                      {formatDT(a.creado_en)}
-                      {a.aprobado && <span className="ml-2 text-green-600 font-medium">· Aprobado</span>}
-                    </p>
+                    <p className="text-xs text-gray-400 mt-0.5">{formatDT(a.creado_en)}</p>
+                  </div>
+                  {/* Controles de estado */}
+                  <div className="flex-shrink-0 flex items-center gap-1" onClick={e => e.stopPropagation()}>
+                    {(['sin_revisar', 'visto', 'aprobado'] as const).map(estado => {
+                      const s = REVISION_STYLES[estado]
+                      const activo = rev === estado
+                      return (
+                        <button key={estado}
+                          onClick={() => cambiarEstado(a.id, estado)}
+                          disabled={cambiando === a.id}
+                          title={s.label}
+                          className="text-xs px-2 py-0.5 rounded-full border font-medium transition-all"
+                          style={activo
+                            ? { backgroundColor: style.border, color: style.labelColor, borderColor: style.border }
+                            : { backgroundColor: 'transparent', color: '#d1d5db', borderColor: '#e5e7eb' }
+                          }
+                        >
+                          {s.label}
+                        </button>
+                      )
+                    })}
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
+
+                {/* Respuesta del supervisor si ya existe */}
+                {a.respuesta_supervisor && (
+                  <div className="mx-3 mb-2 px-3 py-2 rounded-lg" style={{ backgroundColor: '#f1f5f9' }}>
+                    <p className="text-xs font-semibold text-gray-500 mb-0.5">Supervisor</p>
+                    <p className="text-sm text-gray-700">{a.respuesta_supervisor}</p>
+                    <p className="text-xs text-gray-400 mt-0.5">{a.respondido_en ? formatDT(a.respondido_en) : ''}</p>
+                  </div>
+                )}
+
+                {/* Input para responder */}
+                <div className="px-3 pb-3 flex gap-2" onClick={e => e.stopPropagation()}>
+                  <input
+                    className="flex-1 text-xs border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:border-traza-400 bg-white"
+                    placeholder={a.respuesta_supervisor ? 'Editar respuesta...' : 'Responder al colaborador...'}
+                    value={textoResp[a.id] ?? ''}
+                    onChange={e => setTextoResp(prev => ({ ...prev, [a.id]: e.target.value }))}
+                    onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); enviarRespuesta(a.id) }}}
+                  />
+                  <button
+                    onClick={() => enviarRespuesta(a.id)}
+                    disabled={respondiendo === a.id || !textoResp[a.id]?.trim()}
+                    className="text-xs px-3 py-1.5 rounded-lg font-medium transition-colors disabled:opacity-40"
+                    style={{ backgroundColor: '#0F4C81', color: 'white' }}
+                  >
+                    {respondiendo === a.id ? '...' : 'Enviar'}
+                  </button>
+                </div>
+              </div>
+            )
+          })}
         </div>
       )}
     </div>

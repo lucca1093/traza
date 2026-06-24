@@ -67,9 +67,13 @@ export function calcularIndiceTraza(objetivos: Objetivo[]): IndiceTraza {
   }
 
   // ── Módulo B: Cumplimiento ajustado (0–100) ───────────────
+  // Excluye objetivos continuos (es_continuo=true) — hábitos permanentes
+  // que no deben penalizar por no completarse en una fecha.
   const hoy = new Date()
   const vencidos = objetivos.filter(o =>
-    o.fecha_limite && new Date(o.fecha_limite) < hoy
+    !(o as any).es_continuo &&
+    o.fecha_limite &&
+    new Date(o.fecha_limite) < hoy
   )
   let moduloB = 75 // neutro si no hay objetivos vencidos
   if (vencidos.length > 0) {
