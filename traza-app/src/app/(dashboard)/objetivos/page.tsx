@@ -192,26 +192,12 @@ export default function ObjetivosPage() {
           </div>
           <div>
             <label className="traza-label">Categoría</label>
-            <select className="traza-input" value={form.categoria} onChange={e => {
-              f('categoria', e.target.value)
-              if (e.target.value !== 'Hábito') f('es_continuo', false)
-            }}>
+            <select className="traza-input" value={form.categoria} onChange={e => f('categoria', e.target.value)}>
               <option value="Resultado">Resultado</option>
               <option value="Eficiencia">Eficiencia</option>
               <option value="Aprendizaje">Aprendizaje</option>
               <option value="Hábito">Hábito</option>
             </select>
-            {form.categoria === 'Hábito' && (
-              <label className="flex items-center gap-2 mt-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={form.es_continuo}
-                  onChange={e => f('es_continuo', e.target.checked)}
-                  className="w-4 h-4 rounded accent-traza-700"
-                />
-                <span className="text-xs text-gray-600">Objetivo continuo (sin fecha de vencimiento, no afecta el índice)</span>
-              </label>
-            )}
           </div>
           <div>
             <label className="traza-label">Fecha límite</label>
@@ -222,6 +208,18 @@ export default function ObjetivosPage() {
               onChange={e => f('fecha_limite', e.target.value)}
               disabled={form.es_continuo}
             />
+            <label className="flex items-center gap-2 mt-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={form.es_continuo}
+                onChange={e => {
+                  f('es_continuo', e.target.checked)
+                  if (e.target.checked) f('fecha_limite', '')
+                }}
+                className="w-4 h-4 rounded accent-traza-700"
+              />
+              <span className="text-xs text-gray-500">Sin fecha de vencimiento</span>
+            </label>
           </div>
           <div>
             <label className="traza-label">Estado</label>
