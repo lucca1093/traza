@@ -259,7 +259,7 @@ export default function ValidacionPage() {
                   <div className="mb-3">
                     <span className="text-xs px-2.5 py-1 rounded-full font-medium"
                       style={{ backgroundColor: cat.backgroundColor, color: cat.color }}>
-                      {cat.emoji} {cat.label}
+                      {cat.label}
                     </span>
                   </div>
                 )
@@ -329,7 +329,7 @@ export default function ValidacionPage() {
               {/* Panel validación: resumen o formulario según tab y modo */}
               {tab === 'validados' && objSeleccionado.validacion && !editando ? (
                 <div className="space-y-3">
-                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Tu validación</p>
+                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Validación del supervisor</p>
                   <div className="bg-gray-50 rounded-xl p-4 space-y-2">
                     <span className="text-sm font-semibold text-gray-900 inline-block px-3 py-1 rounded-full" style={getValidacionStyle(objSeleccionado.validacion)}>
                       {objSeleccionado.validacion}
@@ -345,7 +345,7 @@ export default function ValidacionPage() {
               ) : (
                 <form onSubmit={async (e) => { await handleValidar(e); setEditando(false) }} className="space-y-4">
                   <div>
-                    <label className="traza-label">Resultado</label>
+                    <label className="traza-label">Validación supervisor</label>
                     <div className="grid grid-cols-1 gap-2">
                       {['De acuerdo', 'Parcialmente de acuerdo', 'En desacuerdo'].map(opt => (
                         <label

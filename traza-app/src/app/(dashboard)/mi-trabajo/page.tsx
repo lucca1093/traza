@@ -192,10 +192,10 @@ export default function MiTrabajoPage() {
               <div>
                 <label className="traza-label">Categoría</label>
                 <select className="traza-input" value={form.categoria} onChange={e => setForm(f => ({ ...f, categoria: e.target.value as CategoriaObjetivo }))}>
-                  <option value="Resultado">🎯 Resultado</option>
-                  <option value="Eficiencia">⚡ Eficiencia</option>
-                  <option value="Aprendizaje">📚 Aprendizaje</option>
-                  <option value="Hábito">🔁 Hábito</option>
+                  <option value="Resultado">Resultado</option>
+                  <option value="Eficiencia">Eficiencia</option>
+                  <option value="Aprendizaje">Aprendizaje</option>
+                  <option value="Hábito">Hábito</option>
                 </select>
               </div>
               <div>
@@ -513,7 +513,7 @@ function ObjetivoCard({
             return (
               <span className="text-xs px-2 py-0.5 rounded-full font-medium"
                 style={{ backgroundColor: cat.backgroundColor, color: cat.color }}>
-                {cat.emoji} {cat.label}
+                {cat.label}
               </span>
             )
           })()}

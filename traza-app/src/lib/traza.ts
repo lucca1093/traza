@@ -12,29 +12,96 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 // ============================================================
-// ÍNDICE TRAZA
-// Fórmula:
-//   puntos = completados×10 + positivos×10 + parciales×5 - negativos×10
-//   score  = clamp(puntos / (total×20) × 100, 0, 100)
+// ÍNDICE TRAZA v2 — Fórmula multi-fuente
+//
+// Compuesto por 3 módulos:
+//
+// A. Calidad de validación (50%)
+//    Promedio ponderado de las 3 fuentes disponibles:
+//    - Supervisor (peso 1.0): De acuerdo=1.0 / Parcial=0.5 / Desacuerdo=0.0
+//    - Admin (peso 1.0, si existe): misma escala
+//    - Autoevaluación (peso 0.5): Satisfecho=1.0 / Parcial=0.5 / Insatisfecho=0.0
+//    Solo se consideran objetivos con AL MENOS una validación.
+//
+// B. Cumplimiento ajustado (30%)
+//    Completados / objetivos vencidos (fecha_limite < hoy).
+//    Los objetivos sin fecha o con fecha futura NO penalizan.
+//    Los Hábitos sin fecha tampoco penalizan.
+//
+// C. Consistencia (20%)
+//    % de objetivos donde autoevaluación y validación supervisor coinciden
+//    (o difieren en 1 punto). Discrepancias altas reducen este módulo.
+//    Si no hay autoevaluaciones, este módulo es neutro (50).
+//
+// Score final: A×0.50 + B×0.30 + C×0.20  → escala 0–100
 // ============================================================
 
 export function calcularIndiceTraza(objetivos: Objetivo[]): IndiceTraza {
-  const total      = objetivos.length
+  const total       = objetivos.length
   const completados = objetivos.filter(o => o.estado === 'Completado').length
-  const positivos  = objetivos.filter(o => o.validacion === 'De acuerdo').length
-  const parciales  = objetivos.filter(o => o.validacion === 'Parcialmente de acuerdo').length
-  const negativos  = objetivos.filter(o => o.validacion === 'En desacuerdo').length
+  const positivos   = objetivos.filter(o => o.validacion === 'De acuerdo').length
+  const parciales   = objetivos.filter(o => o.validacion === 'Parcialmente de acuerdo').length
+  const negativos   = objetivos.filter(o => o.validacion === 'En desacuerdo').length
 
   const cumplimiento = total > 0 ? Math.round((completados / total) * 1000) / 10 : 0
 
-  const puntos    = completados * 10 + positivos * 10 + parciales * 5 - negativos * 10
-  const maxPuntos = total * 20
-  let score = maxPuntos > 0 ? Math.round((puntos / maxPuntos) * 1000) / 10 : 0
+  // ── Módulo A: Calidad de validación (0–100) ───────────────
+  const supScore:  Record<string, number> = { 'De acuerdo': 1.0, 'Parcialmente de acuerdo': 0.5, 'En desacuerdo': 0.0 }
+  const adminScore: Record<string, number> = { 'De acuerdo': 1.0, 'Parcialmente de acuerdo': 0.5, 'En desacuerdo': 0.0 }
+  const autoScore: Record<string, number> = { 'Satisfecho': 1.0, 'Parcialmente satisfecho': 0.5, 'Insatisfecho': 0.0 }
+
+  const conValidacion = objetivos.filter(o => o.validacion)
+  let moduloA = 50 // neutro si no hay validaciones
+  if (conValidacion.length > 0) {
+    const promedios = conValidacion.map(o => {
+      let suma = 0, pesoTotal = 0
+      // Supervisor
+      if (o.validacion) { suma += supScore[o.validacion] * 1.0; pesoTotal += 1.0 }
+      // Admin
+      if ((o as any).validacion_admin) { suma += adminScore[(o as any).validacion_admin] * 1.0; pesoTotal += 1.0 }
+      // Autoevaluación
+      if ((o as any).autoevaluacion) { suma += autoScore[(o as any).autoevaluacion] * 0.5; pesoTotal += 0.5 }
+      return pesoTotal > 0 ? suma / pesoTotal : 0.5
+    })
+    moduloA = Math.round((promedios.reduce((a, b) => a + b, 0) / promedios.length) * 100)
+  }
+
+  // ── Módulo B: Cumplimiento ajustado (0–100) ───────────────
+  const hoy = new Date()
+  const vencidos = objetivos.filter(o =>
+    o.fecha_limite && new Date(o.fecha_limite) < hoy
+  )
+  let moduloB = 75 // neutro si no hay objetivos vencidos
+  if (vencidos.length > 0) {
+    const completadosVencidos = vencidos.filter(o => o.estado === 'Completado').length
+    moduloB = Math.round((completadosVencidos / vencidos.length) * 100)
+  }
+
+  // ── Módulo C: Consistencia autoevaluación (0–100) ─────────
+  const conAmbas = objetivos.filter(o => o.validacion && (o as any).autoevaluacion)
+  let moduloC = 50 // neutro si no hay autoevaluaciones
+  if (conAmbas.length > 0) {
+    const sup2num:  Record<string, number> = { 'De acuerdo': 2, 'Parcialmente de acuerdo': 1, 'En desacuerdo': 0 }
+    const auto2num: Record<string, number> = { 'Satisfecho': 2, 'Parcialmente satisfecho': 1, 'Insatisfecho': 0 }
+    const consistentes = conAmbas.filter(o => {
+      const diff = Math.abs((sup2num[o.validacion!] ?? 1) - (auto2num[(o as any).autoevaluacion] ?? 1))
+      return diff <= 1 // coinciden o difieren en 1 punto
+    }).length
+    moduloC = Math.round((consistentes / conAmbas.length) * 100)
+  }
+
+  // ── Score final ───────────────────────────────────────────
+  let score = Math.round(moduloA * 0.50 + moduloB * 0.30 + moduloC * 0.20)
   score = Math.max(0, Math.min(100, score))
 
   const nivel = getNivel(score)
 
-  return { score, nivel, badge: getBadge(nivel), cumplimiento, total, completados, positivos, parciales, negativos }
+  return {
+    score, nivel, badge: getBadge(nivel), cumplimiento,
+    total, completados, positivos, parciales, negativos,
+    // Módulos para mostrar en la credencial
+    moduloA, moduloB, moduloC,
+  }
 }
 
 function getNivel(score: number): NivelTraza {
@@ -90,14 +157,14 @@ export function getValidacionClasses(validacion: string | null): string {
   return 'bg-gray-100 text-gray-500' // legacy, usar getValidacionStyle
 }
 
-export function getCategoriaStyle(categoria: string): { backgroundColor: string; color: string; label: string; emoji: string } {
-  const map: Record<string, { backgroundColor: string; color: string; label: string; emoji: string }> = {
-    'Resultado':    { backgroundColor: '#dbeafe', color: '#1d4ed8', label: 'Resultado',   emoji: '🎯' },
-    'Eficiencia':   { backgroundColor: '#d1fae5', color: '#065f46', label: 'Eficiencia',  emoji: '⚡' },
-    'Aprendizaje':  { backgroundColor: '#ede9fe', color: '#5b21b6', label: 'Aprendizaje', emoji: '📚' },
-    'Hábito':       { backgroundColor: '#fef3c7', color: '#92400e', label: 'Hábito',      emoji: '🔁' },
+export function getCategoriaStyle(categoria: string): { backgroundColor: string; color: string; label: string } {
+  const map: Record<string, { backgroundColor: string; color: string; label: string }> = {
+    'Resultado':    { backgroundColor: '#dbeafe', color: '#1d4ed8', label: 'Resultado'   },
+    'Eficiencia':   { backgroundColor: '#d1fae5', color: '#065f46', label: 'Eficiencia'  },
+    'Aprendizaje':  { backgroundColor: '#ede9fe', color: '#5b21b6', label: 'Aprendizaje' },
+    'Hábito':       { backgroundColor: '#fef3c7', color: '#92400e', label: 'Hábito'      },
   }
-  return map[categoria] ?? { backgroundColor: '#f3f4f6', color: '#6b7280', label: categoria, emoji: '📌' }
+  return map[categoria] ?? { backgroundColor: '#f3f4f6', color: '#6b7280', label: categoria }
 }
 
 // Detecta discrepancia entre autoevaluación del empleado y validación del supervisor

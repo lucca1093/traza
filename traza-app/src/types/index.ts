@@ -83,15 +83,19 @@ export interface Evidencia {
 
 // Índice Traza calculado
 export interface IndiceTraza {
-  score: number           // 0-100
+  score: number           // 0-100 (compuesto)
   nivel: NivelTraza
   badge: string
-  cumplimiento: number    // porcentaje de completados
+  cumplimiento: number    // porcentaje de completados sobre total
   total: number
   completados: number
   positivos: number
   parciales: number
   negativos: number
+  // Módulos del Índice v2
+  moduloA: number         // Calidad de validación multi-fuente (0-100)
+  moduloB: number         // Cumplimiento ajustado por vencimiento (0-100)
+  moduloC: number         // Consistencia autoevaluación (0-100)
 }
 
 export type NivelTraza = 'Elite' | 'Avanzado' | 'Profesional' | 'Inicial'

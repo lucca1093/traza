@@ -53,7 +53,7 @@ export default async function CredencialTrazaPage({ params }: { params: { trazaI
 
   const objs = (objetivos ?? []) as Objetivo[]
   const indice = calcularIndiceTraza(objs)
-  const { score, badge, cumplimiento, total, completados, positivos, parciales, negativos } = indice
+  const { score, badge, cumplimiento, total, completados, positivos, parciales, negativos, moduloA, moduloB, moduloC } = indice
 
   const empresaNombre = (persona as any).empresa?.nombre ?? null
 
@@ -210,19 +210,52 @@ export default async function CredencialTrazaPage({ params }: { params: { trazaI
           <p className="text-gray-600 leading-relaxed text-sm">{narrativa}</p>
         </div>
 
-        {/* Métricas 2×2 */}
-        <div className="grid grid-cols-2 gap-3">
-          {[
-            { valor: score, label: 'Índice Traza', color: scoreColor },
-            { valor: `${cumplimiento}%`, label: 'Cumplimiento', color: '#111827' },
-            { valor: completados, label: 'Completados', color: '#16a34a' },
-            { valor: total, label: 'Objetivos totales', color: '#111827' },
-          ].map(({ valor, label, color }) => (
-            <div key={label} className="bg-white rounded-2xl p-4 shadow-sm text-center">
-              <p className="text-2xl font-bold" style={{ color }}>{valor}</p>
-              <p className="text-xs text-gray-400 mt-1">{label}</p>
-            </div>
-          ))}
+        {/* Módulos del Índice TRAZA */}
+        <div className="bg-white rounded-2xl p-5 shadow-sm">
+          <h2 className="font-semibold text-gray-900 text-sm mb-4">Composición del Índice TRAZA</h2>
+          <div className="space-y-4">
+            {[
+              {
+                label: 'Calidad de validación',
+                sub: 'Promedio ponderado: supervisor + admin + autoevaluación',
+                valor: moduloA,
+                peso: '50%',
+                color: '#1d4ed8',
+              },
+              {
+                label: 'Cumplimiento',
+                sub: 'Objetivos completados sobre los que ya vencieron',
+                valor: moduloB,
+                peso: '30%',
+                color: '#16a34a',
+              },
+              {
+                label: 'Consistencia',
+                sub: 'Alineación entre autoevaluación y validación del supervisor',
+                valor: moduloC,
+                peso: '20%',
+                color: '#7c3aed',
+              },
+            ].map(({ label, sub, valor, peso, color }) => (
+              <div key={label}>
+                <div className="flex items-center justify-between mb-1">
+                  <div>
+                    <span className="text-sm font-semibold text-gray-900">{label}</span>
+                    <span className="ml-2 text-xs text-gray-400">({peso})</span>
+                  </div>
+                  <span className="text-sm font-bold" style={{ color }}>{valor}/100</span>
+                </div>
+                <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="h-full rounded-full transition-all" style={{ width: `${valor}%`, backgroundColor: color }} />
+                </div>
+                <p className="text-xs text-gray-400 mt-1">{sub}</p>
+              </div>
+            ))}
+          </div>
+          <div className="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between">
+            <span className="text-xs text-gray-400">{total} objetivos · {completados} completados</span>
+            <span className="text-xs text-gray-500">Índice final: <span className="font-bold" style={{ color: scoreColor }}>{score}/100</span></span>
+          </div>
         </div>
 
         {/* Distribución de validaciones */}

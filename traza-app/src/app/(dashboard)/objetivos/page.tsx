@@ -4,9 +4,9 @@ import { useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Button from '@/components/ui/Button'
-import { getEstadoClasses, getPrioridadClasses, formatFecha } from '@/lib/traza'
-import { ChevronDown, ChevronRight, Search, MessageSquare, Link2, Paperclip } from 'lucide-react'
-import type { Objetivo, Persona, Profile } from '@/types'
+import { getEstadoClasses, getPrioridadClasses, getCategoriaStyle, formatFecha } from '@/lib/traza'
+import { ChevronDown, ChevronRight, Search, MessageSquare, Link2, Paperclip, CheckCircle2, Circle } from 'lucide-react'
+import type { Objetivo, Persona, Profile, CategoriaObjetivo } from '@/types'
 
 export default function ObjetivosPage() {
   const [objetivos, setObjetivos] = useState<any[]>([])
@@ -26,6 +26,7 @@ export default function ObjetivosPage() {
     titulo: '',
     descripcion: '',
     prioridad: 'Media',
+    categoria: 'Resultado' as CategoriaObjetivo,
     fecha_limite: '',
     estado: 'Pendiente',
     tipo: 'Asignado',
@@ -76,6 +77,7 @@ export default function ObjetivosPage() {
       titulo:        form.titulo,
       descripcion:   form.descripcion || null,
       prioridad:     form.prioridad,
+      categoria:     form.categoria,
       fecha_limite:  form.fecha_limite || null,
       estado:        form.estado,
       tipo:          profile?.rol === 'supervisor' ? 'Asignado' : form.tipo,
@@ -96,7 +98,7 @@ export default function ObjetivosPage() {
   }
 
   function resetForm() {
-    setForm({ persona_id: personas[0]?.id ?? '', titulo: '', descripcion: '', prioridad: 'Media', fecha_limite: '', estado: 'Pendiente', tipo: 'Asignado', evidencia_url: '' })
+    setForm({ persona_id: personas[0]?.id ?? '', titulo: '', descripcion: '', prioridad: 'Media', categoria: 'Resultado', fecha_limite: '', estado: 'Pendiente', tipo: 'Asignado', evidencia_url: '' })
     setEditId(null)
   }
 
@@ -106,6 +108,7 @@ export default function ObjetivosPage() {
       titulo:        obj.titulo,
       descripcion:   obj.descripcion ?? '',
       prioridad:     obj.prioridad,
+      categoria:     obj.categoria ?? 'Resultado',
       fecha_limite:  obj.fecha_limite ?? '',
       estado:        obj.estado,
       tipo:          obj.tipo,
@@ -182,6 +185,15 @@ export default function ObjetivosPage() {
             <label className="traza-label">Prioridad</label>
             <select className="traza-input" value={form.prioridad} onChange={e => f('prioridad', e.target.value)}>
               <option>Alta</option><option>Media</option><option>Baja</option>
+            </select>
+          </div>
+          <div>
+            <label className="traza-label">Categoría</label>
+            <select className="traza-input" value={form.categoria} onChange={e => f('categoria', e.target.value)}>
+              <option value="Resultado">Resultado</option>
+              <option value="Eficiencia">Eficiencia</option>
+              <option value="Aprendizaje">Aprendizaje</option>
+              <option value="Hábito">Hábito</option>
             </select>
           </div>
           <div>
@@ -358,8 +370,9 @@ function ObjetivoRow({ obj, autoExpand, onEdit, onDelete }: {
   onEdit: (obj: any) => void
   onDelete: (id: string) => void
 }) {
-  const [open, setOpen]       = useState(autoExpand ?? false)
-  const [avances, setAvances] = useState<any[]>([])
+  const [open, setOpen]           = useState(autoExpand ?? false)
+  const [avances, setAvances]     = useState<any[]>([])
+  const [aprobando, setAprobando] = useState<string | null>(null)
 
   useEffect(() => {
     if (autoExpand) {
@@ -371,15 +384,33 @@ function ObjetivoRow({ obj, autoExpand, onEdit, onDelete }: {
   }, [autoExpand])
 
   useEffect(() => {
-    if (open) {
-      supabase
-        .from('objetivo_avances')
-        .select('*')
-        .eq('objetivo_id', obj.id)
-        .order('creado_en', { ascending: true })
-        .then(({ data }) => setAvances(data ?? []))
-    }
+    if (open) loadAvances()
   }, [open])
+
+  async function loadAvances() {
+    const { data } = await supabase
+      .from('objetivo_avances')
+      .select('*')
+      .eq('objetivo_id', obj.id)
+      .order('creado_en', { ascending: true })
+    setAvances(data ?? [])
+  }
+
+  async function toggleAprobacion(avanceId: string, yaAprobado: boolean) {
+    setAprobando(avanceId)
+    const { data: { user } } = await supabase.auth.getUser()
+    if (yaAprobado) {
+      await supabase.from('objetivo_avances').update({
+        aprobado: false, aprobado_por: null, aprobado_en: null
+      }).eq('id', avanceId)
+    } else {
+      await supabase.from('objetivo_avances').update({
+        aprobado: true, aprobado_por: user!.id, aprobado_en: new Date().toISOString()
+      }).eq('id', avanceId)
+    }
+    setAprobando(null)
+    loadAvances()
+  }
 
   function formatDT(dt: string) {
     return new Date(dt).toLocaleString('es-AR', {
@@ -395,6 +426,14 @@ function ObjetivoRow({ obj, autoExpand, onEdit, onDelete }: {
         className={`flex items-center gap-3 pl-16 pr-4 py-3 cursor-pointer hover:bg-white transition-colors ${obj.id === (autoExpand ? obj.id : '') && !open ? 'bg-traza-50' : ''}`}
       >
         <p className="flex-1 font-medium text-gray-900 text-sm truncate">{obj.titulo}</p>
+        {obj.categoria && (() => {
+          const cat = getCategoriaStyle(obj.categoria)
+          return (
+            <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ backgroundColor: cat.backgroundColor, color: cat.color }}>
+              {cat.label}
+            </span>
+          )
+        })()}
         <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${getPrioridadClasses(obj.prioridad)}`}>{obj.prioridad}</span>
         <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${getEstadoClasses(obj.estado)}`}>{obj.estado}</span>
         <span className="text-xs text-gray-400 w-20 text-right">{formatFecha(obj.fecha_limite)}</span>
@@ -413,7 +452,25 @@ function ObjetivoRow({ obj, autoExpand, onEdit, onDelete }: {
           ) : (
             <div className="space-y-2">
               {avances.map(a => (
-                <div key={a.id} className="flex gap-2.5 bg-gray-50 rounded-xl px-3 py-2.5">
+                <div key={a.id}
+                  className="flex gap-2.5 rounded-xl px-3 py-2.5 border transition-colors"
+                  style={a.aprobado
+                    ? { backgroundColor: '#f0fdf4', borderColor: '#bbf7d0' }
+                    : { backgroundColor: '#f9fafb', borderColor: '#f3f4f6' }
+                  }
+                >
+                  {/* Botón de aprobación */}
+                  <button
+                    onClick={() => toggleAprobacion(a.id, a.aprobado)}
+                    disabled={aprobando === a.id}
+                    className="flex-shrink-0 mt-0.5 transition-opacity hover:opacity-70"
+                    title={a.aprobado ? 'Quitar aprobación' : 'Aprobar avance'}
+                  >
+                    {a.aprobado
+                      ? <CheckCircle2 size={16} color="#16a34a" />
+                      : <Circle size={16} color="#d1d5db" />
+                    }
+                  </button>
                   <div className="flex-shrink-0 mt-0.5">
                     {a.tipo === 'comentario' && <MessageSquare size={13} className="text-gray-400" />}
                     {a.tipo === 'link'       && <Link2 size={13} className="text-traza-500" />}
@@ -428,7 +485,10 @@ function ObjetivoRow({ obj, autoExpand, onEdit, onDelete }: {
                     ) : (
                       <p className="text-sm text-gray-700">{a.contenido}</p>
                     )}
-                    <p className="text-xs text-gray-400 mt-0.5">{formatDT(a.creado_en)}</p>
+                    <p className="text-xs text-gray-400 mt-0.5">
+                      {formatDT(a.creado_en)}
+                      {a.aprobado && <span className="ml-2 text-green-600 font-medium">· Aprobado</span>}
+                    </p>
                   </div>
                 </div>
               ))}
