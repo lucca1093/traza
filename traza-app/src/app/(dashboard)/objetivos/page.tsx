@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Button from '@/components/ui/Button'
 import { getEstadoClasses, getPrioridadClasses, getCategoriaStyle, formatFecha } from '@/lib/traza'
-import { ChevronDown, ChevronRight, Search, MessageSquare, Link2, Paperclip } from 'lucide-react'
+import { ChevronDown, ChevronRight, Search, MessageSquare, Link2, Paperclip, X } from 'lucide-react'
 import type { Objetivo, Persona, Profile, CategoriaObjetivo } from '@/types'
 
 export default function ObjetivosPage() {
@@ -235,9 +235,12 @@ export default function ObjetivosPage() {
               </select>
             </div>
           )}
+          {/* Evidencia: inline discreta */}
           <div className="md:col-span-2">
-            <label className="traza-label">Link de evidencia</label>
-            <input className="traza-input" value={form.evidencia_url} onChange={e => f('evidencia_url', e.target.value)} placeholder="https://..." />
+            <EvidenciaInline
+              value={form.evidencia_url}
+              onChange={v => f('evidencia_url', v)}
+            />
           </div>
           <div className="md:col-span-2 flex items-center gap-3">
             <Button type="submit" loading={loading}>{editId ? 'Guardar cambios' : 'Guardar objetivo'}</Button>
@@ -570,6 +573,53 @@ function ObjetivoRow({ obj, autoExpand, onEdit, onDelete }: {
               </div>
             )
           })}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// -------- Evidencia inline discreta --------
+function EvidenciaInline({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const [open, setOpen] = useState(!!value)
+  const [input, setInput] = useState(value)
+
+  function handleChange(v: string) {
+    setInput(v)
+    onChange(v)
+  }
+
+  function handleClear() {
+    setInput('')
+    onChange('')
+    setOpen(false)
+  }
+
+  return (
+    <div>
+      {!open && !value ? (
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-gray-600 transition-colors mt-1"
+        >
+          <Paperclip size={13} strokeWidth={1.75} />
+          <span>Agregar evidencia</span>
+          <Link2 size={13} strokeWidth={1.75} className="ml-0.5" />
+        </button>
+      ) : (
+        <div className="flex items-center gap-2 mt-1">
+          <Link2 size={13} className="text-gray-400 flex-shrink-0" />
+          <input
+            className="flex-1 text-xs border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:border-traza-400 bg-white placeholder:text-gray-300"
+            placeholder="https://..."
+            value={input}
+            onChange={e => handleChange(e.target.value)}
+            autoFocus={!value}
+          />
+          <button type="button" onClick={handleClear} className="text-gray-300 hover:text-gray-500 transition-colors">
+            <X size={14} />
+          </button>
         </div>
       )}
     </div>

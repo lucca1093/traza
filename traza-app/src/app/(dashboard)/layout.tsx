@@ -23,7 +23,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50">
+    <div className="flex h-screen overflow-hidden" style={{ backgroundColor: '#F5F4F0' }}>
       <Sidebar profile={profile as Profile} />
       <main className="flex-1 ml-64 overflow-y-auto">
         <div className="max-w-7xl mx-auto px-8 py-8">

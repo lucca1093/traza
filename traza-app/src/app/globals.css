@@ -1,12 +1,15 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800;1,14..32,400&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --traza-primary: #0F4C81;
-  --traza-bg: #F8FAFC;
-  --traza-border: #E5E7EB;
+  --traza-primary:   #0F4C81;
+  --traza-bg:        #F5F4F0;
+  --traza-border:    #E8E6E1;
+  --sidebar-bg:      #0D1B2A;
+  --sidebar-hover:   #1A2E42;
+  --sidebar-active:  #1E3A54;
 }
 
 * {
@@ -15,39 +18,68 @@
   padding: 0;
 }
 
-html,
-body {
+html, body {
   font-family: 'Inter', system-ui, sans-serif;
   background-color: var(--traza-bg);
-  color: #1F2937;
+  color: #111827;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
 }
 
 /* Scrollbar sutil */
-::-webkit-scrollbar {
-  width: 6px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: #D1D5DB;
-  border-radius: 3px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #9CA3AF;
-}
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #D1C9BC; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #A09485; }
 
 @layer utilities {
+  /* ── Cards ─────────────────────────────────────────── */
   .traza-card {
-    @apply bg-white border border-gray-200 rounded-2xl shadow-sm;
+    @apply bg-white rounded-2xl shadow-sm;
+    border: 1px solid #EDEAE4;
   }
+
+  /* ── Inputs ─────────────────────────────────────────── */
   .traza-input {
-    @apply w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm
-           focus:outline-none focus:ring-2 focus:ring-traza-700/20 focus:border-traza-700
-           transition-colors placeholder-gray-400 bg-white;
+    @apply w-full px-4 py-2.5 rounded-xl text-sm
+           focus:outline-none transition-colors placeholder-gray-400 bg-white;
+    border: 1px solid #DDD9D3;
+    color: #111827;
   }
+  .traza-input:focus {
+    border-color: #0F4C81;
+    box-shadow: 0 0 0 3px rgba(15, 76, 129, 0.08);
+  }
+  .traza-input:disabled {
+    opacity: 0.4;
+    background-color: #F5F4F0;
+  }
+
+  /* ── Labels ─────────────────────────────────────────── */
   .traza-label {
-    @apply block text-sm font-medium text-gray-700 mb-1.5;
+    @apply block text-xs font-semibold uppercase tracking-wide mb-1.5;
+    color: #6B7280;
+    letter-spacing: 0.05em;
+  }
+
+  /* ── Page headers ───────────────────────────────────── */
+  .traza-page-title {
+    @apply text-2xl font-bold tracking-tight;
+    color: #111827;
+  }
+  .traza-page-sub {
+    @apply text-sm mt-1;
+    color: #6B7280;
+  }
+
+  /* ── Badges de estado (sobrescriben los anteriores) ─── */
+  .badge-completado  { background: #DCFCE7; color: #15803D; }
+  .badge-progreso    { background: #FEF9C3; color: #A16207; }
+  .badge-pendiente   { background: #FEE2E2; color: #B91C1C; }
+
+  /* ── Dividers ───────────────────────────────────────── */
+  .traza-divider {
+    border-color: #EDEAE4;
   }
 }

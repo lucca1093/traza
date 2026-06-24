@@ -35,16 +35,22 @@ export default function Sidebar({ profile }: SidebarProps) {
   }
 
   return (
-    <aside className="fixed inset-y-0 left-0 z-50 w-64 flex flex-col bg-white border-r border-gray-200">
+    <aside
+      className="fixed inset-y-0 left-0 z-50 w-64 flex flex-col"
+      style={{ backgroundColor: '#0D1B2A', borderRight: '1px solid rgba(255,255,255,0.06)' }}
+    >
       {/* Logo */}
-      <div className="px-6 py-6 border-b border-gray-100">
+      <div className="px-6 py-6" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-traza-700 flex items-center justify-center">
-            <span className="text-white text-sm font-bold">T</span>
+          <div
+            className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+            style={{ backgroundColor: '#0F4C81' }}
+          >
+            <span className="text-white text-sm font-bold tracking-tight">T</span>
           </div>
           <div>
-            <p className="font-bold text-traza-700 text-lg leading-none">TRAZA</p>
-            <p className="text-xs text-gray-400 mt-0.5">Performance Platform</p>
+            <p className="font-bold text-white text-base leading-none tracking-tight">TRAZA</p>
+            <p className="text-xs mt-0.5" style={{ color: '#475569' }}>Performance Platform</p>
           </div>
         </div>
       </div>
@@ -55,20 +61,34 @@ export default function Sidebar({ profile }: SidebarProps) {
           {navItems.map(item => {
             const isActive = pathname === item.href ||
               (item.href !== '/dashboard' && pathname.startsWith(item.href))
+            const Icon = ICON_MAP[item.icon]
 
             return (
               <li key={item.href}>
                 <Link
                   href={item.href}
-                  className={cn(
-                    'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all',
-                    isActive
-                      ? 'bg-traza-700 text-white shadow-sm'
-                      : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-                  )}
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all"
+                  style={isActive
+                    ? { backgroundColor: '#1E3A54', color: '#E2E8F0' }
+                    : { color: '#64748B' }
+                  }
+                  onMouseEnter={e => { if (!isActive) (e.currentTarget as HTMLElement).style.backgroundColor = '#1A2E42'; if (!isActive) (e.currentTarget as HTMLElement).style.color = '#CBD5E1' }}
+                  onMouseLeave={e => { if (!isActive) (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent'; if (!isActive) (e.currentTarget as HTMLElement).style.color = '#64748B' }}
                 >
-                  {(() => { const Icon = ICON_MAP[item.icon]; return Icon ? <Icon size={16} strokeWidth={1.75} /> : null })()}
+                  {Icon && (
+                    <Icon
+                      size={16}
+                      strokeWidth={isActive ? 2 : 1.75}
+                      style={{ color: isActive ? '#60A5FA' : 'inherit', flexShrink: 0 }}
+                    />
+                  )}
                   <span>{item.label}</span>
+                  {isActive && (
+                    <span
+                      className="ml-auto w-1.5 h-1.5 rounded-full"
+                      style={{ backgroundColor: '#3B82F6' }}
+                    />
+                  )}
                 </Link>
               </li>
             )
@@ -77,19 +97,25 @@ export default function Sidebar({ profile }: SidebarProps) {
       </nav>
 
       {/* Usuario + cerrar sesión */}
-      <div className="px-4 py-4 border-t border-gray-100">
+      <div className="px-4 py-4" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
         <div className="flex items-center gap-3 mb-3">
-          <div className="w-9 h-9 rounded-full bg-traza-100 flex items-center justify-center flex-shrink-0">
-            <span className="text-traza-700 text-sm font-semibold">{initials}</span>
+          <div
+            className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0"
+            style={{ backgroundColor: '#1E3A54' }}
+          >
+            <span className="text-sm font-semibold" style={{ color: '#93C5FD' }}>{initials}</span>
           </div>
           <div className="min-w-0">
-            <p className="text-sm font-semibold text-gray-900 truncate">{fullName}</p>
-            <p className="text-xs text-gray-500 capitalize">{profile.rol.replace('_', ' ')}</p>
+            <p className="text-sm font-semibold truncate" style={{ color: '#E2E8F0' }}>{fullName}</p>
+            <p className="text-xs capitalize" style={{ color: '#475569' }}>{profile.rol.replace('_', ' ')}</p>
           </div>
         </div>
         <button
           onClick={handleSignOut}
-          className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-gray-500 hover:bg-red-50 hover:text-red-600 transition-colors"
+          className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm transition-all"
+          style={{ color: '#475569' }}
+          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.backgroundColor = 'rgba(239,68,68,0.1)'; (e.currentTarget as HTMLElement).style.color = '#FCA5A5' }}
+          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent'; (e.currentTarget as HTMLElement).style.color = '#475569' }}
         >
           <LogOut size={16} strokeWidth={1.75} />
           Cerrar sesión
