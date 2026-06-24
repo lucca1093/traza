@@ -102,7 +102,7 @@ export default function AnalyticsPage() {
 
     // ── Gap de discrepancia (equipo) ──────────────────────────
     const supScore:  Record<string, number> = { 'De acuerdo': 2, 'Parcialmente de acuerdo': 1, 'En desacuerdo': 0 }
-    const autoScore: Record<string, number> = { 'Satisfecho': 2, 'Parcialmente satisfecho': 1, 'Insatisfecho': 0 }
+    const autoScore: Record<string, number> = { 'De acuerdo': 2, 'Parcialmente de acuerdo': 1, 'En desacuerdo': 0 }
     const conAmbas = objs.filter(o => o.validacion && (o as any).autoevaluacion)
     const discAlta   = conAmbas.filter(o => Math.abs((supScore[o.validacion!] ?? 1) - (autoScore[(o as any).autoevaluacion] ?? 1)) === 2).length
     const discMedia  = conAmbas.filter(o => Math.abs((supScore[o.validacion!] ?? 1) - (autoScore[(o as any).autoevaluacion] ?? 1)) === 1).length

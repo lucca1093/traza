@@ -569,7 +569,7 @@ function ObjetivoCard({
                   {autoSaved && <span className="text-xs text-green-500">Guardada ✓</span>}
                 </div>
                 <div className="grid grid-cols-1 gap-2">
-                  {['Satisfecho', 'Parcialmente satisfecho', 'Insatisfecho'].map(opt => (
+                  {['De acuerdo', 'Parcialmente de acuerdo', 'En desacuerdo'].map(opt => (
                     <label
                       key={opt}
                       className={`flex items-center gap-3 px-3 py-2.5 rounded-xl border cursor-pointer transition-colors text-sm ${autoEval === opt ? 'border-traza-700 bg-traza-50 font-medium' : 'border-gray-200 hover:bg-white'}`}
