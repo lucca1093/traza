@@ -135,7 +135,7 @@ export default function ObjetivosPage() {
     })
   }
 
-  const f = (k: string, v: string) => setForm(prev => ({ ...prev, [k]: v }))
+  const f = (k: string, v: string | boolean) => setForm(prev => ({ ...prev, [k]: v }))
 
   // Filtrar y agrupar objetivos por persona
   const objFiltradosPorTab = objetivos.filter(o =>
