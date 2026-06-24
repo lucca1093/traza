@@ -90,6 +90,36 @@ export function getValidacionClasses(validacion: string | null): string {
   return 'bg-gray-100 text-gray-500' // legacy, usar getValidacionStyle
 }
 
+export function getCategoriaStyle(categoria: string): { backgroundColor: string; color: string; label: string; emoji: string } {
+  const map: Record<string, { backgroundColor: string; color: string; label: string; emoji: string }> = {
+    'Resultado':    { backgroundColor: '#dbeafe', color: '#1d4ed8', label: 'Resultado',   emoji: '🎯' },
+    'Eficiencia':   { backgroundColor: '#d1fae5', color: '#065f46', label: 'Eficiencia',  emoji: '⚡' },
+    'Aprendizaje':  { backgroundColor: '#ede9fe', color: '#5b21b6', label: 'Aprendizaje', emoji: '📚' },
+    'Hábito':       { backgroundColor: '#fef3c7', color: '#92400e', label: 'Hábito',      emoji: '🔁' },
+  }
+  return map[categoria] ?? { backgroundColor: '#f3f4f6', color: '#6b7280', label: categoria, emoji: '📌' }
+}
+
+// Detecta discrepancia entre autoevaluación del empleado y validación del supervisor
+export function detectarDiscrepancia(
+  autoevaluacion: string | null | undefined,
+  validacion: string | null | undefined
+): 'alta' | 'media' | null {
+  if (!autoevaluacion || !validacion) return null
+
+  const autoScore: Record<string, number> = {
+    'Satisfecho': 2, 'Parcialmente satisfecho': 1, 'Insatisfecho': 0
+  }
+  const supScore: Record<string, number> = {
+    'De acuerdo': 2, 'Parcialmente de acuerdo': 1, 'En desacuerdo': 0
+  }
+
+  const diff = Math.abs((autoScore[autoevaluacion] ?? 1) - (supScore[validacion] ?? 1))
+  if (diff === 2) return 'alta'
+  if (diff === 1) return 'media'
+  return null
+}
+
 export function getValidacionStyle(validacion: string | null): { backgroundColor: string; color: string } {
   const map: Record<string, { backgroundColor: string; color: string }> = {
     'De acuerdo':              { backgroundColor: '#dbeafe', color: '#1d4ed8' },

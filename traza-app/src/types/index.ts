@@ -41,6 +41,7 @@ export type Prioridad = 'Alta' | 'Media' | 'Baja'
 export type EstadoObjetivo = 'Pendiente' | 'En progreso' | 'Completado'
 export type TipoObjetivo = 'Asignado' | 'Personal'
 export type ResultadoValidacion = 'De acuerdo' | 'Parcialmente de acuerdo' | 'En desacuerdo'
+export type CategoriaObjetivo = 'Resultado' | 'Eficiencia' | 'Aprendizaje' | 'Hábito'
 
 export interface Objetivo {
   id: string
@@ -53,10 +54,17 @@ export interface Objetivo {
   fecha_limite: string | null
   estado: EstadoObjetivo
   tipo: TipoObjetivo
+  categoria: CategoriaObjetivo
+  progreso: number
   evidencia_url: string | null
   validacion: ResultadoValidacion | null
   validado_por: string | null
   comentario_supervisor: string | null
+  validacion_admin: ResultadoValidacion | null
+  validacion_admin_por: string | null
+  comentario_admin: string | null
+  autoevaluacion?: string | null
+  comentario_empleado?: string | null
   created_at: string
   updated_at: string
   // joins opcionales

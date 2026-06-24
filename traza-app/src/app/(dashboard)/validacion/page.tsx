@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import Button from '@/components/ui/Button'
-import { getEstadoClasses, getValidacionStyle, formatFecha } from '@/lib/traza'
-import { MessageSquare, Link2, Paperclip, ChevronDown, ChevronRight } from 'lucide-react'
+import { getEstadoClasses, getValidacionStyle, getCategoriaStyle, detectarDiscrepancia, formatFecha } from '@/lib/traza'
+import { MessageSquare, Link2, Paperclip, ChevronDown, ChevronRight, AlertTriangle } from 'lucide-react'
 
 export default function ValidacionPage() {
   const [objetivos, setObjetivos]   = useState<any[]>([])
@@ -18,6 +18,11 @@ export default function ValidacionPage() {
   const [tab, setTab]               = useState<'pendientes' | 'validados'>('pendientes')
   const [expanded, setExpanded]     = useState<Set<string>>(new Set())
   const [editando, setEditando]     = useState(false)
+  const [profile, setProfile]       = useState<any>(null)
+  const [validacionAdmin, setValidacionAdmin] = useState('De acuerdo')
+  const [comentarioAdmin, setComentarioAdmin] = useState('')
+  const [savingAdmin, setSavingAdmin] = useState(false)
+  const [successAdmin, setSuccessAdmin] = useState(false)
 
   async function fetchData() {
     const { data: obs } = await supabase
@@ -34,7 +39,12 @@ export default function ValidacionPage() {
     setPersonas(Object.values(personasMap))
   }
 
-  useEffect(() => { fetchData() }, [])
+  useEffect(() => {
+    fetchData()
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) supabase.from('profiles').select('*').eq('id', user.id).single().then(({ data }) => setProfile(data))
+    })
+  }, [])
 
   async function fetchAvances(objetivoId: string) {
     const { data } = await supabase
@@ -43,6 +53,22 @@ export default function ValidacionPage() {
       .eq('objetivo_id', objetivoId)
       .order('creado_en', { ascending: true })
     setAvances(data ?? [])
+  }
+
+  async function handleValidarAdmin(e: React.FormEvent) {
+    e.preventDefault()
+    if (!selected) return
+    setSavingAdmin(true)
+    const { data: { user } } = await supabase.auth.getUser()
+    await supabase.from('objetivos').update({
+      validacion_admin: validacionAdmin,
+      comentario_admin: comentarioAdmin || null,
+      validacion_admin_por: user!.id,
+    }).eq('id', selected)
+    setSuccessAdmin(true)
+    setTimeout(() => setSuccessAdmin(false), 3000)
+    fetchData()
+    setSavingAdmin(false)
   }
 
   function handleSelect(objId: string) {
@@ -226,9 +252,22 @@ export default function ValidacionPage() {
                 </p>
               </div>
 
+              {/* Categoría del objetivo */}
+              {objSeleccionado.categoria && (() => {
+                const cat = getCategoriaStyle(objSeleccionado.categoria)
+                return (
+                  <div className="mb-3">
+                    <span className="text-xs px-2.5 py-1 rounded-full font-medium"
+                      style={{ backgroundColor: cat.backgroundColor, color: cat.color }}>
+                      {cat.emoji} {cat.label}
+                    </span>
+                  </div>
+                )
+              })()}
+
               {/* Autoevaluación del empleado */}
               {(objSeleccionado.autoevaluacion || objSeleccionado.comentario_empleado) && (
-                <div className="mb-5 bg-amber-50 border border-amber-100 rounded-xl p-4">
+                <div className="mb-4 bg-amber-50 border border-amber-100 rounded-xl p-4">
                   <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide mb-2">Autoevaluación del colaborador</p>
                   {objSeleccionado.autoevaluacion && (
                     <p className="text-sm font-semibold text-gray-900 mb-1">{objSeleccionado.autoevaluacion}</p>
@@ -238,6 +277,27 @@ export default function ValidacionPage() {
                   )}
                 </div>
               )}
+
+              {/* Alerta de discrepancia — visible DESPUÉS de validar */}
+              {objSeleccionado.validacion && objSeleccionado.autoevaluacion && (() => {
+                const disc = detectarDiscrepancia(objSeleccionado.autoevaluacion, objSeleccionado.validacion)
+                if (!disc) return null
+                return (
+                  <div className={`mb-4 flex items-start gap-2 rounded-xl px-4 py-3 text-xs ${disc === 'alta' ? 'bg-red-50 border border-red-200 text-red-700' : 'bg-amber-50 border border-amber-200 text-amber-700'}`}>
+                    <AlertTriangle size={14} className="flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-semibold mb-0.5">
+                        {disc === 'alta' ? 'Alta discrepancia detectada' : 'Discrepancia moderada'}
+                      </p>
+                      <p>
+                        {disc === 'alta'
+                          ? 'El colaborador se evaluó muy diferente a tu validación. Considerá revisar el feedback o abrir una conversación al respecto.'
+                          : 'Hay una diferencia entre la autoevaluación del colaborador y tu validación.'}
+                      </p>
+                    </div>
+                  </div>
+                )
+              })()}
 
               {/* Avances del empleado */}
               {avances.length > 0 && (
@@ -315,6 +375,50 @@ export default function ValidacionPage() {
                     {success && <p className="text-green-600 text-sm">Validación guardada</p>}
                   </div>
                 </form>
+              )}
+
+              {/* Segunda validación — solo para admin/super_admin */}
+              {objSeleccionado && objSeleccionado.validacion && profile && ['admin', 'super_admin'].includes(profile.rol) && (
+                <div className="mt-5 pt-5 border-t border-gray-100">
+                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">
+                    Segunda validación (Admin)
+                  </p>
+                  {objSeleccionado.validacion_admin && (
+                    <div className="mb-3 bg-blue-50 border border-blue-100 rounded-xl p-3 space-y-1">
+                      <span className="text-xs px-2.5 py-1 rounded-full font-medium inline-block"
+                        style={getValidacionStyle(objSeleccionado.validacion_admin)}>
+                        {objSeleccionado.validacion_admin}
+                      </span>
+                      {objSeleccionado.comentario_admin && (
+                        <p className="text-sm text-gray-600 italic">"{objSeleccionado.comentario_admin}"</p>
+                      )}
+                    </div>
+                  )}
+                  <form onSubmit={handleValidarAdmin} className="space-y-3">
+                    <div className="grid grid-cols-1 gap-2">
+                      {['De acuerdo', 'Parcialmente de acuerdo', 'En desacuerdo'].map(opt => (
+                        <label key={opt}
+                          className={`flex items-center gap-3 p-2.5 rounded-xl border cursor-pointer transition-colors text-sm ${validacionAdmin === opt ? 'border-traza-700 bg-traza-50' : 'border-gray-200 hover:bg-gray-50'}`}>
+                          <input type="radio" value={opt} checked={validacionAdmin === opt}
+                            onChange={e => setValidacionAdmin(e.target.value)} className="text-traza-700" />
+                          <span className="font-medium">{opt}</span>
+                        </label>
+                      ))}
+                    </div>
+                    <textarea
+                      className="traza-input min-h-[60px] resize-none text-sm"
+                      value={comentarioAdmin}
+                      onChange={e => setComentarioAdmin(e.target.value)}
+                      placeholder="Comentario del admin (opcional)..."
+                    />
+                    <div className="flex items-center gap-3">
+                      <Button type="submit" size="sm" loading={savingAdmin}>
+                        {objSeleccionado.validacion_admin ? 'Actualizar' : 'Confirmar'} segunda validación
+                      </Button>
+                      {successAdmin && <p className="text-green-600 text-xs">Guardada ✓</p>}
+                    </div>
+                  </form>
+                </div>
               )}
             </>
           )}

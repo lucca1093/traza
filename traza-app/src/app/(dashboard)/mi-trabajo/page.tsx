@@ -5,9 +5,9 @@ import { useSearchParams } from 'next/navigation'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Button from '@/components/ui/Button'
-import { getEstadoClasses, getPrioridadClasses, isVencido, formatFecha, cn } from '@/lib/traza'
+import { getEstadoClasses, getPrioridadClasses, getCategoriaStyle, detectarDiscrepancia, isVencido, formatFecha, cn } from '@/lib/traza'
 import { AlertTriangle, ArrowLeft, MessageSquare, Link2, Paperclip, Plus, CheckCircle2, Star } from 'lucide-react'
-import type { Objetivo, Persona } from '@/types'
+import type { Objetivo, Persona, CategoriaObjetivo } from '@/types'
 
 export default function MiTrabajoPage() {
   const searchParams = useSearchParams()
@@ -25,6 +25,7 @@ export default function MiTrabajoPage() {
     titulo: '',
     descripcion: '',
     prioridad: 'Media' as const,
+    categoria: 'Resultado' as CategoriaObjetivo,
     fecha_limite: '',
   })
 
@@ -70,12 +71,13 @@ export default function MiTrabajoPage() {
       titulo:       form.titulo,
       descripcion:  form.descripcion || null,
       prioridad:    form.prioridad,
+      categoria:    form.categoria,
       fecha_limite: form.fecha_limite || null,
       tipo:         'Personal',
       estado:       'Pendiente',
     })
 
-    setForm({ titulo: '', descripcion: '', prioridad: 'Media', fecha_limite: '' })
+    setForm({ titulo: '', descripcion: '', prioridad: 'Media', categoria: 'Resultado', fecha_limite: '' })
     setShowForm(false)
 
     const { data: obs } = await supabase
@@ -188,6 +190,15 @@ export default function MiTrabajoPage() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
+                <label className="traza-label">Categoría</label>
+                <select className="traza-input" value={form.categoria} onChange={e => setForm(f => ({ ...f, categoria: e.target.value as CategoriaObjetivo }))}>
+                  <option value="Resultado">🎯 Resultado</option>
+                  <option value="Eficiencia">⚡ Eficiencia</option>
+                  <option value="Aprendizaje">📚 Aprendizaje</option>
+                  <option value="Hábito">🔁 Hábito</option>
+                </select>
+              </div>
+              <div>
                 <label className="traza-label">Prioridad</label>
                 <select className="traza-input" value={form.prioridad} onChange={e => setForm(f => ({ ...f, prioridad: e.target.value as any }))}>
                   <option>Alta</option>
@@ -195,10 +206,10 @@ export default function MiTrabajoPage() {
                   <option>Baja</option>
                 </select>
               </div>
-              <div>
-                <label className="traza-label">Fecha límite</label>
-                <input type="date" className="traza-input" value={form.fecha_limite} onChange={e => setForm(f => ({ ...f, fecha_limite: e.target.value }))} />
-              </div>
+            </div>
+            <div>
+              <label className="traza-label">Fecha límite</label>
+              <input type="date" className="traza-input" value={form.fecha_limite} onChange={e => setForm(f => ({ ...f, fecha_limite: e.target.value }))} />
             </div>
             <Button type="submit" loading={saving === 'new'}>Guardar objetivo</Button>
           </form>
@@ -496,7 +507,16 @@ function ObjetivoCard({
           </div>
           <p className="text-xs text-gray-500 mt-0.5">{formatFecha(obj.fecha_limite)}</p>
         </div>
-        <div className="flex items-center gap-2 ml-4">
+        <div className="flex items-center gap-2 ml-4 flex-shrink-0">
+          {obj.categoria && (() => {
+            const cat = getCategoriaStyle(obj.categoria)
+            return (
+              <span className="text-xs px-2 py-0.5 rounded-full font-medium"
+                style={{ backgroundColor: cat.backgroundColor, color: cat.color }}>
+                {cat.emoji} {cat.label}
+              </span>
+            )
+          })()}
           <span className={cn('text-xs px-2.5 py-1 rounded-full font-medium', getPrioridadClasses(obj.prioridad))}>
             {obj.prioridad}
           </span>
@@ -564,12 +584,27 @@ function ObjetivoCard({
             )}
 
             {obj.validacion && (
-              <div className="bg-gray-50 rounded-xl p-3">
-                <p className="text-xs font-medium text-gray-500 mb-1">Validación del supervisor</p>
+              <div className="bg-gray-50 rounded-xl p-3 space-y-2">
+                <p className="text-xs font-medium text-gray-500">Validación del supervisor</p>
                 <p className="text-sm font-semibold text-gray-900">{obj.validacion}</p>
                 {obj.comentario_supervisor && (
-                  <p className="text-sm text-gray-600 mt-1 italic">"{obj.comentario_supervisor}"</p>
+                  <p className="text-sm text-gray-600 italic">"{obj.comentario_supervisor}"</p>
                 )}
+                {/* Alerta de discrepancia */}
+                {(() => {
+                  const disc = detectarDiscrepancia(obj.autoevaluacion, obj.validacion)
+                  if (!disc) return null
+                  return (
+                    <div className={`flex items-start gap-2 rounded-lg px-3 py-2 text-xs mt-1 ${disc === 'alta' ? 'bg-red-50 text-red-700' : 'bg-amber-50 text-amber-700'}`}>
+                      <AlertTriangle size={13} className="flex-shrink-0 mt-0.5" />
+                      <span>
+                        {disc === 'alta'
+                          ? 'Tu autoevaluación difiere significativamente de la validación del supervisor. Si creés que hubo un error, podés solicitarle una revisión.'
+                          : 'Hay una diferencia entre tu autoevaluación y la validación del supervisor.'}
+                      </span>
+                    </div>
+                  )
+                })()}
               </div>
             )}
 
