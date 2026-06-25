@@ -101,10 +101,32 @@ export interface IndiceTraza {
 
 export type NivelTraza = 'Elite' | 'Avanzado' | 'Profesional' | 'Inicial'
 
+// ── TRAZA Autónomo ───────────────────────────────────────────
+// Índice calculado 100% desde comportamiento observable.
+// No depende de ninguna validación humana.
+export interface IndiceAutonomo {
+  score: number              // 0-100 (promedio de las 5 señales)
+  consistencia: number       // regularidad temporal de avances
+  densidadEvidencia: number  // % avances con archivo o link adjunto
+  proactividad: number       // avances sin esperar respuesta del supervisor
+  precisionHistorica: number // alineación autoevaluación vs validación
+  progresion: number         // tasa de completado + promedio de progreso
+}
+
+// Índice Dual: combina validado (60%) + autónomo (40%)
+export interface IndiceDual {
+  validado: number      // score del IndiceTraza
+  autonomo: number      // score del IndiceAutonomo
+  dual: number          // 0.6 * validado + 0.4 * autonomo
+  alertaSesgo: boolean  // autonomo > validado + 20 (posible supervisor injusto)
+}
+
 // Para analytics
 export interface RankingEmpleado {
   persona: Persona
   indice: IndiceTraza
+  autonomo?: IndiceAutonomo
+  dual?: IndiceDual
 }
 
 export interface NavItem {

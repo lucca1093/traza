@@ -202,6 +202,138 @@ export function getValidacionStyle(validacion: string | null): { backgroundColor
 
 
 // ============================================================
+// TRAZA AUTÓNOMO — Índice de comportamiento observable
+//
+// No depende de ninguna validación humana.
+// Se calcula 100% desde datos de comportamiento en la plataforma.
+//
+// 5 señales (peso igual, promedio simple):
+//   1. Consistencia        — regularidad temporal de avances
+//   2. Densidad evidencia  — % avances con archivo o link adjunto
+//   3. Proactividad        — avances sin esperar respuesta del supervisor
+//   4. Precisión histórica — alineación autoevaluación vs validación
+//   5. Progresión          — tasa de completado + progreso promedio
+//
+// Requiere: objetivos[] + avances[] (objetivo_avances)
+// ============================================================
+
+export function calcularIndiceAutonomo(
+  objetivos: Objetivo[],
+  avances: any[]
+): IndiceAutonomo {
+
+  // ── 1. Consistencia ──────────────────────────────────────────
+  // Mide la regularidad con que el empleado registra avances.
+  // Gap promedio entre avances consecutivos → menor gap = mayor consistencia.
+  let consistencia = 0
+  if (avances.length >= 2) {
+    const fechas = avances
+      .map(a => new Date(a.creado_en).getTime())
+      .sort((a, b) => a - b)
+    const gaps: number[] = []
+    for (let i = 1; i < fechas.length; i++) {
+      gaps.push((fechas[i] - fechas[i - 1]) / (1000 * 60 * 60 * 24))
+    }
+    const avgGap = gaps.reduce((a, b) => a + b, 0) / gaps.length
+    if (avgGap <= 5)       consistencia = 100
+    else if (avgGap <= 10) consistencia = 85
+    else if (avgGap <= 14) consistencia = 70
+    else if (avgGap <= 21) consistencia = 50
+    else if (avgGap <= 30) consistencia = 30
+    else                   consistencia = 15
+  } else if (avances.length === 1) {
+    consistencia = 20
+  }
+
+  // ── 2. Densidad de evidencia ──────────────────────────────────
+  // % de avances con tipo 'archivo' o 'link' (evidencia verificable).
+  let densidadEvidencia = 0
+  if (avances.length > 0) {
+    const conEvidencia = avances.filter(a => a.tipo === 'archivo' || a.tipo === 'link').length
+    densidadEvidencia = Math.round((conEvidencia / avances.length) * 100)
+  }
+
+  // ── 3. Proactividad ───────────────────────────────────────────
+  // % de avances que el empleado subió sin esperar respuesta del supervisor.
+  // Proxy: avances sin respondido_en (el supervisor nunca respondió ese avance,
+  // pero el empleado siguió actualizando de todas formas).
+  let proactividad = 0
+  if (avances.length > 0) {
+    const sinRespuesta = avances.filter(a => !a.respondido_en).length
+    proactividad = Math.round((sinRespuesta / avances.length) * 100)
+    // Bonus leve si el empleado sube más de 2 avances por objetivo en promedio
+    if (objetivos.length > 0 && avances.length / objetivos.length >= 2.5) {
+      proactividad = Math.min(100, proactividad + 10)
+    }
+  }
+
+  // ── 4. Precisión histórica ────────────────────────────────────
+  // % de objetivos donde autoevaluación y validación coinciden (o difieren ≤ 1 punto).
+  // Mide si el empleado se conoce bien a sí mismo.
+  const conAmbas = objetivos.filter(o => o.validacion && (o as any).autoevaluacion)
+  let precisionHistorica = 50 // neutro si no hay datos suficientes
+  if (conAmbas.length > 0) {
+    const score2num: Record<string, number> = {
+      'De acuerdo': 2, 'Parcialmente de acuerdo': 1, 'En desacuerdo': 0
+    }
+    const precisos = conAmbas.filter(o => {
+      const diff = Math.abs(
+        (score2num[o.validacion!] ?? 1) - (score2num[(o as any).autoevaluacion] ?? 1)
+      )
+      return diff <= 1
+    }).length
+    precisionHistorica = Math.round((precisos / conAmbas.length) * 100)
+  }
+
+  // ── 5. Progresión ─────────────────────────────────────────────
+  // Combinación de tasa de completado (60%) + promedio de progreso (40%).
+  let progresion = 50
+  if (objetivos.length > 0) {
+    const completados = objetivos.filter(o => o.estado === 'Completado').length
+    const tasaCompletado = completados / objetivos.length
+    const avgProgreso = objetivos.reduce((sum, o) => sum + (o.progreso || 0), 0) / objetivos.length
+    progresion = Math.round(tasaCompletado * 60 + (avgProgreso / 100) * 40)
+  }
+
+  // ── Score final ───────────────────────────────────────────────
+  const score = Math.round(
+    (consistencia + densidadEvidencia + proactividad + precisionHistorica + progresion) / 5
+  )
+
+  return {
+    score:             Math.max(0, Math.min(100, score)),
+    consistencia,
+    densidadEvidencia,
+    proactividad,
+    precisionHistorica,
+    progresion,
+  }
+}
+
+// ============================================================
+// ÍNDICE DUAL — Combina Validado + Autónomo
+//
+// dual = validado × 0.60 + autónomo × 0.40
+// alertaSesgo = autónomo > validado + 20
+//   → posible supervisor que no está reconociendo el trabajo
+// ============================================================
+
+export function calcularIndiceDual(
+  scoreValidado: number,
+  indiceAutonomo: IndiceAutonomo
+): IndiceDual {
+  const dual = Math.round(scoreValidado * 0.6 + indiceAutonomo.score * 0.4)
+  const alertaSesgo = indiceAutonomo.score > scoreValidado + 20
+
+  return {
+    validado:    scoreValidado,
+    autonomo:    indiceAutonomo.score,
+    dual:        Math.max(0, Math.min(100, dual)),
+    alertaSesgo,
+  }
+}
+
+// ============================================================
 // HELPERS DE FECHA
 // ============================================================
 
@@ -210,7 +342,7 @@ export function isVencido(fechaLimite: string | null, estado: EstadoObjetivo): b
   return new Date(fechaLimite) < new Date()
 }
 
-import type { EstadoObjetivo } from '@/types'
+import type { EstadoObjetivo, IndiceAutonomo, IndiceDual } from '@/types'
 
 export function formatFecha(fecha: string | null): string {
   if (!fecha) return '-'

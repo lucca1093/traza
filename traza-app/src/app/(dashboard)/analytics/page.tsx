@@ -4,8 +4,8 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import MetricCard from '@/components/ui/MetricCard'
 import TraceIndexBar from '@/components/ui/TraceIndexBar'
-import { calcularIndiceTraza } from '@/lib/traza'
-import { CheckCircle2, AlertTriangle, Trophy } from 'lucide-react'
+import { calcularIndiceTraza, calcularIndiceAutonomo, calcularIndiceDual } from '@/lib/traza'
+import { CheckCircle2, AlertTriangle, Trophy, ShieldAlert } from 'lucide-react'
 import type { Objetivo, Persona } from '@/types'
 
 export default function AnalyticsPage() {
@@ -47,24 +47,30 @@ export default function AnalyticsPage() {
     const negativos    = objs.filter(o => o.validacion === 'En desacuerdo').length
     const cumplimiento = total > 0 ? Math.round(completados / total * 100) : 0
 
-    // Ranking por persona
+    // Ranking por persona (con índice autónomo y dual)
     const rankingData = (personas ?? []).map((p: any) => {
-      const obsPersona = objs.filter(o => o.persona_id === p.id)
-      const indice = calcularIndiceTraza(obsPersona)
-      return { persona: p, indice }
-    }).sort((a, b) => b.indice.score - a.indice.score)
+      const obsPersona    = objs.filter(o => o.persona_id === p.id)
+      const avPersona     = allAvances.filter((a: any) => a.persona_id === p.id)
+      const indice        = calcularIndiceTraza(obsPersona)
+      const autonomo      = calcularIndiceAutonomo(obsPersona, avPersona)
+      const dual          = calcularIndiceDual(indice.score, autonomo)
+      return { persona: p, indice, autonomo, dual }
+    }).sort((a, b) => b.dual.dual - a.dual.dual)
 
-    // Índice organizacional
+    // Índice organizacional (usa score dual)
     const indiceOrg = rankingData.length > 0
-      ? Math.round(rankingData.reduce((sum, r) => sum + r.indice.score, 0) / rankingData.length * 10) / 10
+      ? Math.round(rankingData.reduce((sum, r) => sum + r.dual.dual, 0) / rankingData.length * 10) / 10
       : 0
 
-    const enRiesgo = rankingData.filter(r => r.indice.score < 40).length
+    const enRiesgo    = rankingData.filter(r => r.dual.dual < 40).length
+    const alertasSesgo = rankingData.filter(r => r.dual.alertaSesgo)
 
-    // Avances registrados
-    let avQuery = supabase.from('objetivo_avances').select('*', { count: 'exact', head: true })
+    // Avances registrados (con datos para calcular índice autónomo)
+    let avQuery = supabase.from('objetivo_avances').select('*')
     if (empresaId !== 'todas') avQuery = avQuery.eq('empresa_id', empresaId)
-    const { count: totalAvances } = await avQuery
+    const { data: avancesData } = await avQuery
+    const allAvances = avancesData ?? []
+    const totalAvances = allAvances.length
 
     // Por área
     const areas: Record<string, { total: number; completados: number }> = {}
@@ -119,8 +125,9 @@ export default function AnalyticsPage() {
     setStats({
       total, completados, pendientes, enProgreso, positivos, negativos, cumplimiento,
       indiceOrg, enRiesgo, totalPersonas: (personas ?? []).length,
-      totalAvances: totalAvances ?? 0, areas, sinValidar,
+      totalAvances, areas, sinValidar,
       evolucion, discAlta, discMedia, discNula, totalConAmbas: conAmbas.length, porCategoria,
+      alertasSesgo,
     })
     setRanking(rankingData)
     setLoading(false)
@@ -274,9 +281,11 @@ export default function AnalyticsPage() {
             <p className="text-gray-400 text-center py-12">No hay datos todavía.</p>
           )}
           {ranking.map((item, i) => {
-            const scoreColor = item.indice.score >= 85 ? '#16a34a' : item.indice.score >= 65 ? '#0F4C81' : item.indice.score >= 40 ? '#d97706' : '#9ca3af'
+            const dualScore  = item.dual?.dual ?? item.indice.score
+            const scoreColor = dualScore >= 85 ? '#16a34a' : dualScore >= 65 ? '#0F4C81' : dualScore >= 40 ? '#d97706' : '#9ca3af'
+            const hasSesgo   = item.dual?.alertaSesgo
             return (
-              <div key={item.persona.id} className="px-6 py-4 flex items-center gap-4">
+              <div key={item.persona.id} className={`px-6 py-4 flex items-center gap-4 ${hasSesgo ? 'bg-amber-50' : ''}`}>
                 <span className="text-sm font-bold text-gray-300 w-6 text-center">{i + 1}</span>
                 <div className="w-8 h-8 rounded-full bg-traza-100 flex items-center justify-center flex-shrink-0">
                   <span className="text-traza-700 text-xs font-bold">
@@ -284,30 +293,78 @@ export default function AnalyticsPage() {
                   </span>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-gray-900">{item.persona.nombre} {item.persona.apellido}</p>
-                  <p className="text-xs text-gray-500">{item.persona.cargo ?? ''}{item.persona.area ? ` · ${item.persona.area}` : ''}</p>
-                  {/* Módulos mini */}
-                  <div className="flex gap-3 mt-1.5">
-                    {[
-                      { label: 'Validación', val: item.indice.moduloA },
-                      { label: 'Cumplimiento', val: item.indice.moduloB },
-                      { label: 'Consistencia', val: item.indice.moduloC },
-                    ].map(m => (
-                      <span key={m.label} className="text-xs text-gray-400">
-                        {m.label}: <span className="font-semibold text-gray-600">{m.val}</span>
+                  <div className="flex items-center gap-2">
+                    <p className="font-semibold text-gray-900">{item.persona.nombre} {item.persona.apellido}</p>
+                    {hasSesgo && (
+                      <span className="flex items-center gap-1 text-xs font-medium text-amber-600 bg-amber-100 px-2 py-0.5 rounded-full">
+                        <ShieldAlert size={11} /> Posible sesgo
                       </span>
-                    ))}
+                    )}
+                  </div>
+                  <p className="text-xs text-gray-500">{item.persona.cargo ?? ''}{item.persona.area ? ` · ${item.persona.area}` : ''}</p>
+                  {/* Doble índice mini */}
+                  <div className="flex gap-3 mt-1.5">
+                    <span className="text-xs text-gray-400">
+                      Validado: <span className="font-semibold text-gray-600">{item.dual?.validado ?? item.indice.score}</span>
+                    </span>
+                    <span className="text-xs text-gray-400">
+                      Autónomo: <span className="font-semibold text-gray-600">{item.autonomo?.score ?? '-'}</span>
+                    </span>
+                    <span className="text-xs text-gray-400">
+                      Consistencia: <span className="font-semibold text-gray-600">{item.autonomo?.consistencia ?? '-'}</span>
+                    </span>
+                    <span className="text-xs text-gray-400">
+                      Evidencia: <span className="font-semibold text-gray-600">{item.autonomo?.densidadEvidencia ?? '-'}%</span>
+                    </span>
                   </div>
                 </div>
                 <div className="text-right flex-shrink-0">
-                  <p className="text-2xl font-bold" style={{ color: scoreColor }}>{item.indice.score}</p>
-                  <p className="text-xs text-gray-400">/100 · {item.indice.badge}</p>
+                  <p className="text-2xl font-bold" style={{ color: scoreColor }}>{dualScore}</p>
+                  <p className="text-xs text-gray-400">/100 dual · {item.indice.badge}</p>
                 </div>
               </div>
             )
           })}
         </div>
       </div>
+
+      {/* Alertas de sesgo */}
+      {stats.alertasSesgo?.length > 0 && (
+        <div className="traza-card p-6 border border-amber-200" style={{ backgroundColor: '#fffbeb' }}>
+          <div className="flex items-center gap-2 mb-3">
+            <ShieldAlert size={18} className="text-amber-500" />
+            <h2 className="font-semibold text-amber-800">Alertas de posible sesgo del supervisor</h2>
+          </div>
+          <p className="text-xs text-amber-600 mb-4">
+            Las siguientes personas tienen un Índice Autónomo significativamente mayor que su Índice Validado.
+            Esto puede indicar que el supervisor no está reconociendo adecuadamente su trabajo.
+          </p>
+          <div className="space-y-3">
+            {stats.alertasSesgo.map((item: any) => (
+              <div key={item.persona.id} className="flex items-center justify-between bg-white rounded-xl px-4 py-3 border border-amber-100">
+                <div>
+                  <p className="font-semibold text-gray-900 text-sm">{item.persona.nombre} {item.persona.apellido}</p>
+                  <p className="text-xs text-gray-500">{item.persona.cargo ?? ''}{item.persona.area ? ` · ${item.persona.area}` : ''}</p>
+                </div>
+                <div className="flex gap-6 text-right">
+                  <div>
+                    <p className="text-xs text-gray-400">Validado</p>
+                    <p className="font-bold text-gray-700">{item.dual.validado}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-400">Autónomo</p>
+                    <p className="font-bold text-amber-600">{item.dual.autonomo}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-400">Diferencia</p>
+                    <p className="font-bold text-red-500">+{item.dual.autonomo - item.dual.validado}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Evolución trimestral */}
       {stats.evolucion?.length > 0 && (

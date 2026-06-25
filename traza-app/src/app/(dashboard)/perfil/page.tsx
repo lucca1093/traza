@@ -242,13 +242,18 @@ function ObjetivoHistorialRow({ obj }: { obj: Objetivo }) {
           <p className="text-sm font-medium text-gray-900 truncate">{obj.titulo}</p>
           <p className="text-xs text-gray-400 mt-0.5">{formatFecha(obj.fecha_limite)}</p>
         </div>
-        <div className="flex items-center gap-2 flex-shrink-0">
+        <div className="flex items-center gap-1.5 flex-shrink-0">
           <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${getEstadoClasses(obj.estado)}`}>
             {obj.estado}
           </span>
           {obj.validacion && (
             <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={getValidacionStyle(obj.validacion)}>
-              {obj.validacion}
+              Sup: {obj.validacion}
+            </span>
+          )}
+          {(obj as any).validacion_admin && (
+            <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={getValidacionStyle((obj as any).validacion_admin)}>
+              Admin: {(obj as any).validacion_admin}
             </span>
           )}
         </div>
@@ -261,7 +266,7 @@ function ObjetivoHistorialRow({ obj }: { obj: Objetivo }) {
           {/* Feedback del supervisor */}
           {(obj.validacion || obj.comentario_supervisor) && (
             <div className="mt-3">
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Feedback del supervisor</p>
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Validación del supervisor</p>
               <div className="bg-gray-50 rounded-xl px-4 py-3 space-y-1">
                 {obj.validacion && (
                   <span className="text-xs px-2 py-0.5 rounded-full font-medium inline-block" style={getValidacionStyle(obj.validacion)}>
@@ -275,6 +280,23 @@ function ObjetivoHistorialRow({ obj }: { obj: Objetivo }) {
             </div>
           )}
 
+          {/* Feedback del admin */}
+          {((obj as any).validacion_admin || (obj as any).comentario_admin) && (
+            <div>
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Validación del administrador</p>
+              <div className="bg-blue-50 rounded-xl px-4 py-3 space-y-1">
+                {(obj as any).validacion_admin && (
+                  <span className="text-xs px-2 py-0.5 rounded-full font-medium inline-block" style={getValidacionStyle((obj as any).validacion_admin)}>
+                    {(obj as any).validacion_admin}
+                  </span>
+                )}
+                {(obj as any).comentario_admin && (
+                  <p className="text-sm text-gray-600 italic">"{(obj as any).comentario_admin}"</p>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Avances */}
           <div>
             <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Avances registrados</p>
@@ -283,21 +305,43 @@ function ObjetivoHistorialRow({ obj }: { obj: Objetivo }) {
             ) : (
               <div className="space-y-2.5">
                 {avances.map(a => (
-                  <div key={a.id} className="flex gap-2.5 bg-gray-50 rounded-xl px-3 py-2.5">
-                    <div className="flex-shrink-0 mt-0.5">
-                      {a.tipo === 'comentario' && <MessageSquare size={13} className="text-gray-400" />}
-                      {a.tipo === 'link'       && <Link2 size={13} className="text-traza-500" />}
-                      {a.tipo === 'archivo'    && <Paperclip size={13} className="text-orange-400" />}
+                  <div key={a.id} className="bg-gray-50 rounded-xl px-3 py-2.5 space-y-2">
+                    {/* Contenido del avance */}
+                    <div className="flex gap-2.5">
+                      <div className="flex-shrink-0 mt-0.5">
+                        {a.tipo === 'comentario' && <MessageSquare size={13} className="text-gray-400" />}
+                        {a.tipo === 'link'       && <Link2 size={13} className="text-traza-500" />}
+                        {a.tipo === 'archivo'    && <Paperclip size={13} className="text-orange-400" />}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        {(a.tipo === 'link' || a.tipo === 'archivo') ? (
+                          <a href={a.contenido} target="_blank" rel="noopener noreferrer"
+                            className="text-traza-700 hover:underline break-all text-xs">{a.contenido}</a>
+                        ) : (
+                          <p className="text-sm text-gray-700">{a.contenido}</p>
+                        )}
+                        <div className="flex items-center gap-2 mt-1">
+                          <p className="text-xs text-gray-400">{formatDT(a.creado_en)}</p>
+                          {/* Badge estado revisión */}
+                          {a.estado_revision === 'aprobado' && (
+                            <span className="text-xs px-1.5 py-0.5 rounded-full font-medium bg-green-100 text-green-700">✓ Aprobado</span>
+                          )}
+                          {a.estado_revision === 'visto' && (
+                            <span className="text-xs px-1.5 py-0.5 rounded-full font-medium bg-blue-100 text-blue-700">Visto</span>
+                          )}
+                          {a.estado_revision === 'sin_revisar' && (
+                            <span className="text-xs px-1.5 py-0.5 rounded-full font-medium bg-gray-100 text-gray-500">Sin revisar</span>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      {(a.tipo === 'link' || a.tipo === 'archivo') ? (
-                        <a href={a.contenido} target="_blank" rel="noopener noreferrer"
-                          className="text-traza-700 hover:underline break-all text-xs">{a.contenido}</a>
-                      ) : (
-                        <p className="text-sm text-gray-700">{a.contenido}</p>
-                      )}
-                      <p className="text-xs text-gray-400 mt-0.5">{formatDT(a.creado_en)}</p>
-                    </div>
+                    {/* Respuesta del supervisor */}
+                    {a.respuesta_supervisor && (
+                      <div className="ml-5 pl-3 border-l-2 border-traza-200">
+                        <p className="text-xs text-gray-500 font-medium mb-0.5">Supervisor respondió:</p>
+                        <p className="text-xs text-gray-600 italic">"{a.respuesta_supervisor}"</p>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
