@@ -14,6 +14,7 @@ export default function AnalyticsPage() {
   const [filtroEmpresa, setFiltro] = useState('todas')
   const [stats, setStats]         = useState<any>(null)
   const [ranking, setRanking]     = useState<any[]>([])
+  const [showRankingInfo, setShowRankingInfo] = useState(false)
 
   useEffect(() => {
     async function load() {
@@ -281,7 +282,58 @@ export default function AnalyticsPage() {
       {/* Ranking */}
       <div className="traza-card overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-100">
-          <h2 className="font-semibold text-gray-900">Ranking Traza</h2>
+          <div className="flex items-center justify-between">
+            <h2 className="font-semibold text-gray-900">Ranking Traza</h2>
+            <div className="relative">
+              <button
+                onClick={() => setShowRankingInfo(v => !v)}
+                className="w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold transition-colors"
+                style={{ backgroundColor: showRankingInfo ? '#0F4C81' : '#e5e7eb', color: showRankingInfo ? 'white' : '#6b7280' }}
+                title="¿Cómo se calcula el ranking?"
+              >
+                i
+              </button>
+              {showRankingInfo && (
+                <div className="absolute right-0 top-7 z-20 w-72 rounded-xl shadow-lg border border-gray-100 bg-white p-4 text-xs leading-relaxed"
+                  style={{ boxShadow: '0 8px 24px rgba(0,0,0,0.12)' }}>
+                  <p className="font-semibold text-gray-900 mb-2">¿Cómo se compone el Ranking?</p>
+                  <p className="text-gray-500 mb-3">Cada persona se ordena por su <span className="font-semibold text-gray-700">Score Dual</span>, que combina dos fuentes independientes:</p>
+                  <div className="space-y-2.5">
+                    <div className="flex gap-2">
+                      <span className="text-base leading-none mt-0.5">👤</span>
+                      <div>
+                        <p className="font-semibold text-gray-800">Validado (60%)</p>
+                        <p className="text-gray-500">Índice TRAZA clásico. Surge de los objetivos evaluados por supervisores: cumplimiento, calidad de validación y consistencia con otros.</p>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <span className="text-base leading-none mt-0.5">⚡</span>
+                      <div>
+                        <p className="font-semibold text-gray-800">Autónomo (40%)</p>
+                        <p className="text-gray-500">Mide el comportamiento del empleado independientemente de lo que dijo el supervisor. Se calcula con:</p>
+                        <ul className="mt-1 space-y-1 text-gray-500">
+                          <li><span className="font-medium text-gray-700">· Consistencia:</span> frecuencia con que registra avances</li>
+                          <li><span className="font-medium text-gray-700">· Evidencia:</span> % de avances con archivos o links adjuntos</li>
+                          <li><span className="font-medium text-gray-700">· Proactividad:</span> avances subidos sin esperar respuesta del supervisor</li>
+                        </ul>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <span className="text-base leading-none mt-0.5">⚠️</span>
+                      <div>
+                        <p className="font-semibold text-gray-800">Posible sesgo</p>
+                        <p className="text-gray-500">Se marca cuando el índice autónomo supera al validado por más de 20 puntos — puede indicar una evaluación demasiado baja por parte del supervisor.</p>
+                      </div>
+                    </div>
+                  </div>
+                  <button onClick={() => setShowRankingInfo(false)}
+                    className="mt-3 text-gray-400 hover:text-gray-600 transition-colors">
+                    Cerrar ×
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
         <div className="divide-y divide-gray-100">
           {ranking.length === 0 && (
