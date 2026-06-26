@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import TraceIndexBar from '@/components/ui/TraceIndexBar'
-import { calcularIndiceTraza, getValidacionStyle, getEstadoClasses, formatFecha } from '@/lib/traza'
+import { calcularIndiceTraza, calcularIndiceAutonomo, calcularIndiceDual, getValidacionStyle, getEstadoClasses, formatFecha } from '@/lib/traza'
 import { CheckCircle2, Trophy, Award, MessageSquare, ChevronDown, ChevronRight, Link2, Paperclip } from 'lucide-react'
 import type { Objetivo, Persona, Profile } from '@/types'
 
@@ -17,7 +17,8 @@ export default function PerfilPage() {
   const [data, setData]             = useState<{
     persona: Persona | null
     objetivos: Objetivo[]
-  }>({ persona: null, objetivos: [] })
+    avances: any[]
+  }>({ persona: null, objetivos: [], avances: [] })
 
   useEffect(() => {
     async function load() {
@@ -50,7 +51,17 @@ export default function PerfilPage() {
       supabase.from('personas').select('*').eq('id', personaId).single(),
       supabase.from('objetivos').select('*').eq('persona_id', personaId).order('created_at', { ascending: false }),
     ])
-    setData({ persona: persona ?? null, objetivos: (obs ?? []) as Objetivo[] })
+    const objs = (obs ?? []) as Objetivo[]
+    // Traer avances para calcular índice autónomo
+    let avances: any[] = []
+    if (objs.length > 0) {
+      const { data: av } = await supabase
+        .from('objetivo_avances')
+        .select('*')
+        .in('objetivo_id', objs.map(o => o.id))
+      avances = av ?? []
+    }
+    setData({ persona: persona ?? null, objetivos: objs, avances })
   }
 
   async function handleSelect(personaId: string) {
@@ -72,11 +83,11 @@ export default function PerfilPage() {
           apellido:    data.persona.apellido,
           cargo:       data.persona.cargo,
           area:        data.persona.area,
-          score:       indice.score,
+          score:       dual.dual,
           moduloA:     indice.moduloA,
           moduloB:     indice.moduloB,
           moduloC:     indice.moduloC,
-          autonomo:    0, // se puede expandir después
+          autonomo:    autonomo.score,
           cumplimiento: indice.cumplimiento,
           total:       indice.total,
           completados: indice.completados,
@@ -93,8 +104,13 @@ export default function PerfilPage() {
 
   if (loading) return <div className="text-gray-400 py-12 text-center">Cargando...</div>
 
-  const indice = calcularIndiceTraza(data.objetivos)
+  const indice    = calcularIndiceTraza(data.objetivos)
+  const autonomo  = calcularIndiceAutonomo(data.objetivos, data.avances)
+  const dual      = calcularIndiceDual(indice.score, autonomo)
   const { persona, objetivos } = data
+
+  const scoreColor = dual.dual >= 85 ? '#16a34a' : dual.dual >= 65 ? '#0F4C81' : dual.dual >= 40 ? '#d97706' : '#9ca3af'
+  const scoreBg    = dual.dual >= 85 ? '#dcfce7' : dual.dual >= 65 ? '#dbeafe' : dual.dual >= 40 ? '#fef3c7' : '#f3f4f6'
   const ultimasFeedbacks = objetivos.filter(o => o.comentario_supervisor).slice(0, 5)
   const logros = objetivos.filter(o => o.estado === 'Completado').slice(0, 5)
 
@@ -183,22 +199,67 @@ export default function PerfilPage() {
             </div>
           </div>
 
-          {/* Índice Traza */}
+          {/* Índice TRAZA */}
           <div className="traza-card p-6">
-            <h3 className="flex items-center gap-2 font-semibold text-gray-900 mb-4">
-              <Trophy size={16} strokeWidth={1.75} className="text-traza-700" />
-              Índice Traza
-            </h3>
-            <TraceIndexBar indice={indice} size="lg" />
-            <p className="text-sm text-gray-500 mt-4">
-              {indice.score >= 85
-                ? 'Desempeño sobresaliente. Ejecución consistente y resultados validados.'
-                : indice.score >= 65
-                ? 'Desempeño sólido y consistente.'
-                : indice.score >= 40
-                ? 'Hay oportunidades de mejora identificadas.'
-                : 'Requiere acompañamiento y seguimiento.'}
-            </p>
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="font-semibold text-gray-900">Índice TRAZA</h3>
+              <span className="text-xs font-semibold px-2.5 py-1 rounded-full"
+                style={{ backgroundColor: scoreBg, color: scoreColor }}>
+                {indice.badge}
+              </span>
+            </div>
+
+            {/* Score principal */}
+            <div className="flex items-end gap-3 mb-5">
+              <span className="text-5xl font-bold leading-none" style={{ color: scoreColor }}>{dual.dual}</span>
+              <div className="pb-1">
+                <span className="text-sm text-gray-400">/100</span>
+                <p className="text-xs text-gray-400 mt-0.5">Score verificado</p>
+              </div>
+            </div>
+
+            {/* Barras */}
+            <div className="space-y-3 mb-5">
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-xs text-gray-500">Evaluación de supervisores</span>
+                  <span className="text-xs font-semibold text-gray-700">{dual.validado}</span>
+                </div>
+                <div className="h-1.5 rounded-full overflow-hidden bg-gray-100">
+                  <div className="h-full rounded-full" style={{ width: `${dual.validado}%`, backgroundColor: '#0F4C81' }} />
+                </div>
+              </div>
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-xs text-gray-500">Comportamiento autónomo</span>
+                  <span className="text-xs font-semibold text-gray-700">{dual.autonomo}</span>
+                </div>
+                <div className="h-1.5 rounded-full overflow-hidden bg-gray-100">
+                  <div className="h-full rounded-full" style={{ width: `${dual.autonomo}%`, backgroundColor: '#7c3aed' }} />
+                </div>
+              </div>
+            </div>
+
+            {/* Módulos — detalle */}
+            <div className="border-t border-gray-100 pt-4">
+              <p className="text-xs text-gray-400 mb-3">Detalle por módulo</p>
+              <div className="grid grid-cols-3 gap-3">
+                {[
+                  { label: 'Módulo A', sub: 'Validación', val: indice.moduloA, max: 50 },
+                  { label: 'Módulo B', sub: 'Cumplimiento', val: indice.moduloB, max: 30 },
+                  { label: 'Módulo C', sub: 'Consistencia', val: indice.moduloC, max: 20 },
+                ].map(m => (
+                  <div key={m.label} className="bg-gray-50 rounded-xl p-3 text-center">
+                    <p className="text-lg font-bold text-gray-900">{m.val}</p>
+                    <p className="text-xs text-gray-500 leading-tight mt-0.5">{m.label}</p>
+                    <p className="text-xs text-gray-400">{m.sub}</p>
+                    <div className="mt-1.5 h-1 rounded-full bg-gray-200 overflow-hidden">
+                      <div className="h-full rounded-full bg-traza-500" style={{ width: `${(m.val / m.max) * 100}%` }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
 
           {/* Grid de detalles */}

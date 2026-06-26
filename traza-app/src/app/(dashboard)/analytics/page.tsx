@@ -63,8 +63,8 @@ export default function AnalyticsPage() {
     if (empresaId !== 'todas') obsQuery = obsQuery.eq('empresa_id', empresaId)
     const { data: objetivos } = await obsQuery
 
-    // Personas
-    let persQuery = supabase.from('personas').select('*')
+    // Personas — solo empleo activo para evitar duplicados por historial multi-empresa
+    let persQuery = supabase.from('personas').select('*').eq('empleo_activo', true)
     if (empresaId !== 'todas') persQuery = persQuery.eq('empresa_id', empresaId)
     const { data: personas } = await persQuery
 
@@ -403,7 +403,7 @@ export default function AnalyticsPage() {
                 </div>
                 <div className="text-right flex-shrink-0">
                   <p className="text-2xl font-bold" style={{ color: scoreColor }}>{dualScore}</p>
-                  <p className="text-xs text-gray-400">/100 dual · {item.indice.badge}</p>
+                  <p className="text-xs text-gray-400">/100 · {item.indice.badge}</p>
                 </div>
               </div>
             )

@@ -285,8 +285,7 @@ Instrucciones:
             <div className="flex-shrink-0 flex flex-col items-center rounded-2xl px-4 py-3"
               style={{ backgroundColor: 'rgba(255,255,255,0.12)', minWidth: 76 }}>
               <span className="text-3xl font-black text-white leading-none">{scoreDisplay}</span>
-              <span className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.55)' }}>/100</span>
-              <span className="text-xs font-semibold mt-1.5 text-center leading-tight" style={{ color: 'rgba(255,255,255,0.85)' }}>{badge}</span>
+              <span className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.55)' }}>/100 · {badge}</span>
             </div>
           </div>
 
