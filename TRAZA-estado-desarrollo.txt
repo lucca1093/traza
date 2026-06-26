@@ -1,0 +1,141 @@
+TRAZA — Estado de desarrollo
+Última actualización: Junio 2026
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+
+✅ MODIFICACIONES CORREGIDAS (implementadas y en producción)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+PROBLEMA                          SOLUCIÓN IMPLEMENTADA
+────────────────────────────────────────────────────────────
+Emojis en badges de categoría   → Eliminados. Solo texto: Resultado, Eficiencia, Aprendizaje, Hábito.
+
+"Tu validación" texto incorrecto → Corregido a "Validación del supervisor" en toda la interfaz.
+
+Sin categoría en Gestión         → Agregado selector Resultado/Eficiencia/Aprendizaje/Hábito
+de Objetivos                       en el formulario del supervisor.
+
+Avances sin aprobación           → Sistema de 3 estados implementado:
+ni respuesta del supervisor        · Sin revisar (gris) — el empleado publicó, nadie lo vio
+                                   · Visto (azul) — supervisor leyó y respondió
+                                   · Aprobado (verde) — tick de aprobación formal
+                                   El supervisor puede responder inline en cada avance.
+
+Objetivos continuos              → Flag es_continuo en base de datos.
+penalizaban el índice              Al activarlo: sin fecha de vencimiento, excluido del
+                                   cálculo de cumplimiento en el Índice TRAZA.
+                                   Disponible para TODOS los tipos de objetivo.
+
+Campo de evidencia               → Reemplazado por componente discreto:
+muy visible y pesado               dos íconos (clip + link). Se expande al hacer click.
+                                   Oculto por defecto, no ocupa espacio innecesario.
+
+Diseño visual genérico           → Rediseño completo:
+y demasiado blanco                 · Sidebar oscuro: #16213E (navy), texto #64748B
+                                   · Fondo general: #F5F4F0 (off-white cálido)
+                                   · Cards con borde cálido y sombra sutil
+                                   · Tipografía Inter con antialiasing y optical sizing
+                                   · Login con panel izquierdo oscuro + panel derecho cálido
+
+Índice TRAZA demasiado           → Rediseñado con fórmula de 3 módulos:
+simple y susceptible al sesgo      · Módulo A (50%): calidad de validación multi-fuente
+                                     (supervisor + admin + autoevaluación ponderada)
+                                   · Módulo B (30%): cumplimiento ajustado
+                                     (excluye continuos y objetivos sin vencer)
+                                   · Módulo C (20%): consistencia de autoevaluación
+
+Analytics sin profundidad        → Nuevas secciones agregadas:
+                                   · Evolución trimestral (Q1–Q4) por persona
+                                   · Distribución de objetivos por categoría
+                                   · Gap de discrepancia autoevaluación vs supervisor
+                                   · Ranking con sub-puntajes por módulo A, B, C
+
+Objetivos existentes             → SQL ejecutado con historial realista:
+sin historial de ida y vuelta      · 52 avances insertados (comentarios, links, archivos)
+                                   · Estados variados: sin_revisar / visto / aprobado
+                                   · Respuestas del supervisor con feedback real
+                                   · 3 objetivos marcados como continuos
+                                   · Fechas variadas: corto y largo plazo
+
+Valores de autoevaluación        → Actualizados en DB, código y UI:
+no coherentes con el contexto      "Satisfecho" → "De acuerdo"
+                                   "Parcialmente satisfecho" → "Parcialmente de acuerdo"
+                                   "Insatisfecho" → "En desacuerdo"
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔜 MODIFICACIONES PENDIENTES (definidas, por implementar)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. SISTEMA DE INVITACIONES POR ROL
+   Problema: no hay forma de agregar usuarios sin acceso técnico a la base de datos.
+   Solución:
+   · El super admin genera un link de invitación con rol y empresa pre-configurados.
+   · El invitado abre el link, completa nombre/apellido/email/contraseña y queda registrado.
+   · El super admin gestiona usuarios desde un panel: ver, agregar, eliminar.
+   Estado: diseñado, pendiente de desarrollo.
+
+2. REDISEÑO DE CARD TOP PERFORMER
+   Problema: el número del índice como protagonista es frío y poco informativo.
+   Solución:
+   · El protagonista pasan a ser las fortalezas cualitativas derivadas de las métricas:
+     "Validación perfecta" / "Consistencia excepcional" / "Alta evidencia" / "Autoevaluación precisa"
+   · El número del índice queda como dato secundario en la tabla de ranking.
+   Estado: concepto definido, pendiente de desarrollo.
+
+3. ÍNDICE TRAZA AUTÓNOMO (doble índice)
+   Problema: el desempeño de un empleado no puede depender solo del criterio
+   de un supervisor. Un supervisor injusto, sesgado o ausente distorsiona el índice.
+   Solución: sistema de doble índice paralelo.
+
+   TRAZA Validado (60%) — el módulo actual con validaciones humanas.
+
+   TRAZA Autónomo (40%) — calculado 100% a partir de comportamiento observable,
+   sin que ninguna persona pueda influirlo. Mide 5 señales:
+     · Consistencia: regularidad con que registra avances
+     · Densidad de evidencia: % de avances con prueba adjunta
+     · Proactividad: si actualiza por iniciativa propia o esperando al supervisor
+     · Precisión histórica: alineación entre autoevaluación y validación final a lo largo del tiempo
+     · Progresión: si sus objetivos crecen en ambición y complejidad
+
+   Protección automática: si TRAZA Autónomo >> TRAZA Validado, la plataforma
+   genera una alerta para el super admin (posible sesgo del supervisor).
+
+   Nota técnica: no requiere API externa. Se calcula con datos ya en la plataforma.
+   Estado: concepto definido y documentado, pendiente de desarrollo.
+
+4. NARRATIVA AUTOMÁTICA CON IA (Anthropic API)
+   Problema: el índice es un número; los empleados necesitan contexto para entenderlo.
+   Solución: usar la API de Anthropic para generar un párrafo personalizado
+   por empleado que explique su índice en lenguaje natural.
+   Ejemplo: "Tu consistencia es alta y tu evidencia está bien documentada.
+   El principal foco de mejora es la alineación con tu supervisor, donde
+   existe una brecha de 18 puntos en el último trimestre."
+   Este texto aparecería en la credencial y en el perfil del empleado.
+   Estado: diseñado, requiere activar clave de API de Anthropic.
+
+5. PLATAFORMA MULTI-EMPRESA
+   Problema: TRAZA funciona para una empresa pero no está preparada para escalar.
+   Solución: permitir que cualquier empresa se registre con su propio espacio,
+   usuarios y datos completamente aislados.
+   Cada empresa tendría:
+   · Su propio super admin
+   · Sus supervisores y empleados
+   · Objetivos, avances y métricas aislados por empresa
+   · Posibilidad de configurar el peso de los módulos del índice
+   Nota: la arquitectura de empresa_id ya está en la base de datos.
+   El siguiente paso es el sistema de onboarding de nuevas empresas.
+   Estado: arquitectura lista en DB, falta el flujo de registro y onboarding.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📋 RESUMEN DE ESTADO
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Corregido y en producción:    11 cambios
+Pendiente de implementar:      5 funcionalidades
+Base de datos:                 Supabase (PostgreSQL)
+Frontend:                      Next.js 14 + TypeScript + Tailwind
+Deploy:                        Vercel (automático desde GitHub)
+Repositorio:                   github.com/lucca1093/traza
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

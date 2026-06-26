@@ -8,11 +8,13 @@ import { CheckCircle2, Trophy, Award, MessageSquare, ChevronDown, ChevronRight, 
 import type { Objetivo, Persona, Profile } from '@/types'
 
 export default function PerfilPage() {
-  const [loading, setLoading]   = useState(true)
-  const [personas, setPersonas] = useState<Persona[]>([])
-  const [selected, setSelected] = useState<string>('')
-  const [profile, setProfile]   = useState<Profile | null>(null)
-  const [data, setData]         = useState<{
+  const [loading, setLoading]       = useState(true)
+  const [personas, setPersonas]     = useState<Persona[]>([])
+  const [selected, setSelected]     = useState<string>('')
+  const [profile, setProfile]       = useState<Profile | null>(null)
+  const [narrativa, setNarrativa]   = useState<string>('')
+  const [loadingIA, setLoadingIA]   = useState(false)
+  const [data, setData]             = useState<{
     persona: Persona | null
     objetivos: Objetivo[]
   }>({ persona: null, objetivos: [] })
@@ -53,7 +55,40 @@ export default function PerfilPage() {
 
   async function handleSelect(personaId: string) {
     setSelected(personaId)
+    setNarrativa('')
     await fetchPersonaData(personaId)
+  }
+
+  async function generarNarrativaIA() {
+    if (!data.persona) return
+    setLoadingIA(true)
+    const indice = calcularIndiceTraza(data.objetivos)
+    try {
+      const res = await fetch('/api/narrativa', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          nombre:      data.persona.nombre,
+          apellido:    data.persona.apellido,
+          cargo:       data.persona.cargo,
+          area:        data.persona.area,
+          score:       indice.score,
+          moduloA:     indice.moduloA,
+          moduloB:     indice.moduloB,
+          moduloC:     indice.moduloC,
+          autonomo:    0, // se puede expandir después
+          cumplimiento: indice.cumplimiento,
+          total:       indice.total,
+          completados: indice.completados,
+          positivos:   indice.positivos,
+        }),
+      })
+      const json = await res.json()
+      setNarrativa(json.narrativa ?? '')
+    } catch {
+      setNarrativa('No se pudo generar la narrativa.')
+    }
+    setLoadingIA(false)
   }
 
   if (loading) return <div className="text-gray-400 py-12 text-center">Cargando...</div>
@@ -113,6 +148,37 @@ export default function PerfilPage() {
                     Ver Credencial TRAZA →
                   </a>
                 </div>
+              )}
+            </div>
+
+            {/* Narrativa IA */}
+            <div className="mt-5 pt-5 border-t border-gray-100">
+              {narrativa ? (
+                <div className="space-y-2">
+                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Análisis TRAZA · IA</p>
+                  <p className="text-sm text-gray-700 leading-relaxed">{narrativa}</p>
+                  <button
+                    onClick={generarNarrativaIA}
+                    className="text-xs text-gray-400 hover:text-traza-700 transition-colors mt-1"
+                  >
+                    Regenerar →
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={generarNarrativaIA}
+                  disabled={loadingIA}
+                  className="flex items-center gap-2 text-sm font-medium text-traza-700 hover:text-traza-900 transition-colors disabled:opacity-50"
+                >
+                  {loadingIA ? (
+                    <>
+                      <span className="animate-spin inline-block w-3.5 h-3.5 border-2 border-traza-300 border-t-traza-700 rounded-full" />
+                      Generando análisis...
+                    </>
+                  ) : (
+                    <>✦ Generar análisis con IA</>
+                  )}
+                </button>
               )}
             </div>
           </div>
