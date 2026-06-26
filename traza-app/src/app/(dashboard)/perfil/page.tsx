@@ -28,13 +28,13 @@ export default function PerfilPage() {
 
       if (p?.rol === 'empleado') {
         // Solo ve su propio perfil
-        const { data: persona } = await supabase.from('personas').select('*').eq('user_id', user!.id).single()
+        const { data: persona } = await supabase.from('personas').select('*').eq('user_id', user!.id).eq('empleo_activo', true).single()
         if (persona) {
           setSelected(persona.id)
           await fetchPersonaData(persona.id)
         }
       } else {
-        const { data: ps } = await supabase.from('personas').select('*').order('apellido')
+        const { data: ps } = await supabase.from('personas').select('*').eq('empleo_activo', true).order('apellido')
         setPersonas(ps ?? [])
         if (ps && ps.length > 0) {
           setSelected(ps[0].id)

@@ -60,7 +60,7 @@ export default function CalendarioPage() {
 
       if (profile?.rol === 'empleado') {
         const { data: persona } = await supabase
-          .from('personas').select('id').eq('user_id', user.id).single()
+          .from('personas').select('id').eq('user_id', user.id).eq('empleo_activo', true).single()
         if (persona) {
           const { data: obs } = await supabase
             .from('objetivos')
@@ -77,7 +77,7 @@ export default function CalendarioPage() {
           .order('fecha_limite')
 
         const { data: pers } = await supabase
-          .from('personas').select('id, nombre, apellido').order('apellido')
+          .from('personas').select('id, nombre, apellido').eq('empleo_activo', true).order('apellido')
 
         setObjetivos(obs ?? [])
         setPersonas(pers ?? [])

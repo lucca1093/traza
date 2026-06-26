@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import TraceIndexBar from '@/components/ui/TraceIndexBar'
-import { calcularIndiceTraza } from '@/lib/traza'
+import { calcularIndiceTraza, calcularIndiceAutonomo, calcularIndiceDual } from '@/lib/traza'
 import { Award, CheckCircle2 } from 'lucide-react'
 import type { Objetivo, Persona, Profile } from '@/types'
 
@@ -13,6 +13,7 @@ export default function TalentCardPage() {
   const [selected, setSelected] = useState<string>('')
   const [profile, setProfile]   = useState<Profile | null>(null)
   const [persona, setPersona]   = useState<Persona | null>(null)
+  const [avances, setAvances]   = useState<any[]>([])
   const [objetivos, setObjetivos] = useState<Objetivo[]>([])
 
   useEffect(() => {
@@ -22,10 +23,10 @@ export default function TalentCardPage() {
       setProfile(p)
 
       if (p?.rol === 'empleado') {
-        const { data: pers } = await supabase.from('personas').select('*').eq('user_id', user!.id).single()
+        const { data: pers } = await supabase.from('personas').select('*').eq('user_id', user!.id).eq('empleo_activo', true).single()
         if (pers) await loadPersonaData(pers.id)
       } else {
-        const { data: ps } = await supabase.from('personas').select('*').order('apellido')
+        const { data: ps } = await supabase.from('personas').select('*').eq('empleo_activo', true).order('apellido')
         setPersonas(ps ?? [])
         if (ps && ps.length > 0) {
           setSelected(ps[0].id)
@@ -42,8 +43,17 @@ export default function TalentCardPage() {
       supabase.from('personas').select('*').eq('id', id).single(),
       supabase.from('objetivos').select('*').eq('persona_id', id),
     ])
+    const objs = (obs ?? []) as Objetivo[]
     setPersona(p ?? null)
-    setObjetivos((obs ?? []) as Objetivo[])
+    setObjetivos(objs)
+    if (objs.length > 0) {
+      const { data: av } = await supabase
+        .from('objetivo_avances').select('*')
+        .in('objetivo_id', objs.map(o => o.id))
+      setAvances(av ?? [])
+    } else {
+      setAvances([])
+    }
   }
 
   async function handleSelect(id: string) {
@@ -53,8 +63,10 @@ export default function TalentCardPage() {
 
   if (loading) return <div className="text-gray-400 py-12 text-center">Cargando...</div>
 
-  const indice = calcularIndiceTraza(objetivos)
-  const logros = objetivos.filter(o => o.estado === 'Completado').slice(0, 5)
+  const indice   = calcularIndiceTraza(objetivos)
+  const autonomo = calcularIndiceAutonomo(objetivos, avances)
+  const dual     = calcularIndiceDual(indice.score, autonomo)
+  const logros   = objetivos.filter(o => o.estado === 'Completado').slice(0, 5)
 
   return (
     <div className="space-y-6">
@@ -94,8 +106,8 @@ export default function TalentCardPage() {
                   <p className="text-traza-300 text-sm">{persona.area ?? '—'}</p>
                 </div>
                 <div className="bg-white/10 rounded-2xl p-4 text-center min-w-[120px]">
-                  <p className="text-traza-200 text-xs mb-1">Índice Traza</p>
-                  <p className="text-white text-4xl font-bold">{indice.score}</p>
+                  <p className="text-traza-200 text-xs mb-1">Índice TRAZA</p>
+                  <p className="text-white text-4xl font-bold">{dual.dual}</p>
                   <p className="text-traza-300 text-sm">/100</p>
                 </div>
               </div>
@@ -103,8 +115,31 @@ export default function TalentCardPage() {
 
             {/* Body */}
             <div className="px-8 py-6 space-y-6">
-              {/* Barra de progreso con nivel */}
-              <TraceIndexBar indice={indice} size="md" />
+              {/* Score verificado */}
+              <div className="space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-semibold text-gray-700">{indice.badge}</span>
+                  <span className="text-sm text-gray-400">{dual.dual}/100 · score verificado</span>
+                </div>
+                <div>
+                  <div className="flex justify-between text-xs text-gray-500 mb-1">
+                    <span>Evaluación de supervisores</span>
+                    <span className="font-semibold text-gray-700">{dual.validado}</span>
+                  </div>
+                  <div className="h-1.5 rounded-full overflow-hidden bg-gray-100">
+                    <div className="h-full rounded-full" style={{ width: `${dual.validado}%`, backgroundColor: '#0F4C81' }} />
+                  </div>
+                </div>
+                <div>
+                  <div className="flex justify-between text-xs text-gray-500 mb-1">
+                    <span>Comportamiento autónomo</span>
+                    <span className="font-semibold text-gray-700">{dual.autonomo}</span>
+                  </div>
+                  <div className="h-1.5 rounded-full overflow-hidden bg-gray-100">
+                    <div className="h-full rounded-full" style={{ width: `${dual.autonomo}%`, backgroundColor: '#7c3aed' }} />
+                  </div>
+                </div>
+              </div>
 
               {/* Métricas */}
               <div className="grid grid-cols-2 gap-4 pt-2">
@@ -150,7 +185,7 @@ export default function TalentCardPage() {
                   <strong>{persona.nombre} {persona.apellido}</strong> se desempeña
                   {persona.area ? ` en el área de ${persona.area}` : ''}
                   {persona.cargo ? ` como ${persona.cargo}` : ''}.
-                  {' '}Posee un Índice Traza de <strong>{indice.score}/100</strong>,
+                  {' '}Posee un Índice TRAZA de <strong>{dual.dual}/100</strong>,
                   nivel <strong>{indice.nivel}</strong>, con un cumplimiento
                   de objetivos del <strong>{indice.cumplimiento}%</strong>.
                 </p>

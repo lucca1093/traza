@@ -22,7 +22,7 @@ export default async function DashboardPage() {
   /* ── ADMIN / SUPERVISOR ── */
   if (esAdmin) {
     const { count: totalPersonas } = await supabase
-      .from('personas').select('*', { count: 'exact', head: true })
+      .from('personas').select('*', { count: 'exact', head: true }).eq('empleo_activo', true)
 
     const { data: objetivos } = await supabase.from('objetivos').select('*')
     const objs        = (objetivos ?? []) as Objetivo[]
