@@ -3,6 +3,9 @@ import { calcularIndiceTraza, generarPerfilNarrativo } from '@/lib/traza'
 import { ShieldCheck, TrendingUp, Star, Calendar, CheckCircle2, Clock, Building2, Briefcase } from 'lucide-react'
 import type { Objetivo } from '@/types'
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 function formatFechaLarga(fecha: string) {
