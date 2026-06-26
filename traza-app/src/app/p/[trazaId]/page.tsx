@@ -281,16 +281,12 @@ Instrucciones:
               </div>
             </div>
 
-            {/* Score dual badge */}
+            {/* Score principal */}
             <div className="flex-shrink-0 flex flex-col items-center rounded-2xl px-4 py-3"
-              style={{ backgroundColor: 'rgba(255,255,255,0.12)', minWidth: 80 }}>
+              style={{ backgroundColor: 'rgba(255,255,255,0.12)', minWidth: 76 }}>
               <span className="text-3xl font-black text-white leading-none">{scoreDisplay}</span>
-              <span className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.55)' }}>/100 dual</span>
+              <span className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.55)' }}>/100</span>
               <span className="text-xs font-semibold mt-1.5 text-center leading-tight" style={{ color: 'rgba(255,255,255,0.85)' }}>{badge}</span>
-              <div className="mt-1.5 flex flex-col items-center gap-0.5">
-                <span className="text-xs" style={{ color: 'rgba(255,255,255,0.5)' }}>✓ {indiceDual.validado}</span>
-                <span className="text-xs" style={{ color: 'rgba(255,255,255,0.5)' }}>⚡ {indiceDual.autonomo}</span>
-              </div>
             </div>
           </div>
 
@@ -322,22 +318,42 @@ Instrucciones:
       {/* ── CONTENIDO ── */}
       <div className="max-w-xl mx-auto px-4 space-y-4" style={{ marginTop: -20 }}>
 
-        {/* Sello de verificación global */}
-        <div className="bg-white rounded-2xl px-5 py-3.5 shadow-sm flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-            style={{ backgroundColor: '#dbeafe' }}>
-            <ShieldCheck size={18} style={{ color: '#1d4ed8' }} />
+        {/* Score verificado — desglose visual */}
+        <div className="bg-white rounded-2xl px-5 py-4 shadow-sm">
+          <div className="flex items-center gap-2 mb-3">
+            <ShieldCheck size={14} style={{ color: '#1d4ed8' }} />
+            <span className="text-xs font-semibold text-gray-900">Score verificado</span>
+            <span className="ml-auto text-xs font-bold px-2 py-0.5 rounded-full"
+              style={{ backgroundColor: scoreBg, color: scoreColor }}>
+              {scoreDisplay}/100
+            </span>
           </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-xs font-semibold text-gray-900">Desempeño verificado · Historial multi-empresa</p>
-            <p className="text-xs text-gray-400 mt-0.5">
-              {positivosGlobal} objetivos validados positivamente · {totalObjGlobal} en total
-            </p>
+
+          {/* Barra supervisores */}
+          <div className="mb-2.5">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-xs text-gray-500">👤 Evaluación de supervisores</span>
+              <span className="text-xs font-semibold text-gray-700">{indiceDual.validado}</span>
+            </div>
+            <div className="h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: '#e5e7eb' }}>
+              <div className="h-full rounded-full" style={{ width: `${indiceDual.validado}%`, backgroundColor: '#0F4C81' }} />
+            </div>
           </div>
-          <span className="text-xs font-bold px-2.5 py-1 rounded-full flex-shrink-0"
-            style={{ backgroundColor: scoreBg, color: scoreColor }}>
-            Dual {scoreDisplay}/100
-          </span>
+
+          {/* Barra autónoma */}
+          <div className="mb-3">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-xs text-gray-500">⚡ Comportamiento autónomo</span>
+              <span className="text-xs font-semibold text-gray-700">{indiceDual.autonomo}</span>
+            </div>
+            <div className="h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: '#e5e7eb' }}>
+              <div className="h-full rounded-full" style={{ width: `${indiceDual.autonomo}%`, backgroundColor: '#7c3aed' }} />
+            </div>
+          </div>
+
+          <p className="text-xs text-gray-400 leading-relaxed">
+            Score combinado: supervisores (60%) + actividad registrada sin validar (40%). Más difícil de inflar que una evaluación tradicional.
+          </p>
         </div>
 
         {/* Narrativa IA */}

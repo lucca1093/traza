@@ -47,13 +47,27 @@ export default function AnalyticsPage() {
     const negativos    = objs.filter(o => o.validacion === 'En desacuerdo').length
     const cumplimiento = total > 0 ? Math.round(completados / total * 100) : 0
 
+    // Avances PRIMERO — necesarios para el índice autónomo y dual
+    const objIds = objs.map(o => o.id)
+    let avancesData: any[] = []
+    if (objIds.length > 0) {
+      const { data: av } = await supabase
+        .from('objetivo_avances')
+        .select('*')
+        .in('objetivo_id', objIds)
+      avancesData = av ?? []
+    }
+    const allAvances = avancesData
+    const totalAvances = allAvances.length
+
     // Ranking por persona (con índice autónomo y dual)
     const rankingData = (personas ?? []).map((p: any) => {
-      const obsPersona    = objs.filter(o => o.persona_id === p.id)
-      const avPersona     = allAvances.filter((a: any) => a.persona_id === p.id)
-      const indice        = calcularIndiceTraza(obsPersona)
-      const autonomo      = calcularIndiceAutonomo(obsPersona, avPersona)
-      const dual          = calcularIndiceDual(indice.score, autonomo)
+      const obsPersona = objs.filter(o => o.persona_id === p.id)
+      const objIdsPersona = obsPersona.map(o => o.id)
+      const avPersona  = allAvances.filter((a: any) => objIdsPersona.includes(a.objetivo_id))
+      const indice     = calcularIndiceTraza(obsPersona)
+      const autonomo   = calcularIndiceAutonomo(obsPersona, avPersona)
+      const dual       = calcularIndiceDual(indice.score, autonomo)
       return { persona: p, indice, autonomo, dual }
     }).sort((a, b) => b.dual.dual - a.dual.dual)
 
@@ -62,15 +76,8 @@ export default function AnalyticsPage() {
       ? Math.round(rankingData.reduce((sum, r) => sum + r.dual.dual, 0) / rankingData.length * 10) / 10
       : 0
 
-    const enRiesgo    = rankingData.filter(r => r.dual.dual < 40).length
+    const enRiesgo     = rankingData.filter(r => r.dual.dual < 40).length
     const alertasSesgo = rankingData.filter(r => r.dual.alertaSesgo)
-
-    // Avances registrados (con datos para calcular índice autónomo)
-    let avQuery = supabase.from('objetivo_avances').select('*')
-    if (empresaId !== 'todas') avQuery = avQuery.eq('empresa_id', empresaId)
-    const { data: avancesData } = await avQuery
-    const allAvances = avancesData ?? []
-    const totalAvances = allAvances.length
 
     // Por área
     const areas: Record<string, { total: number; completados: number }> = {}
