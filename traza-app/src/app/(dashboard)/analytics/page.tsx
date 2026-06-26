@@ -225,12 +225,20 @@ export default function AnalyticsPage() {
                 {topPerformer.persona.cargo ?? ''}{topPerformer.persona.area ? ` · ${topPerformer.persona.area}` : ''}
               </p>
               <p className="text-5xl font-bold" style={{ color: '#ffffff' }}>
-                {topPerformer.indice.score}
+                {topPerformer.dual?.dual ?? topPerformer.indice.score}
                 <span className="text-2xl font-normal" style={{ color: '#85AADF' }}>/100</span>
               </p>
               <p className="text-sm mt-1" style={{ color: '#85AADF' }}>
                 {topPerformer.indice.badge} · {topPerformer.indice.cumplimiento}% cumplimiento
               </p>
+              <div className="flex gap-4 mt-3">
+                <span className="text-xs" style={{ color: '#85AADF' }}>
+                  Supervisores <span className="font-semibold text-white">{topPerformer.dual?.validado ?? '—'}</span>
+                </span>
+                <span className="text-xs" style={{ color: '#85AADF' }}>
+                  Autónomo <span className="font-semibold text-white">{topPerformer.dual?.autonomo ?? '—'}</span>
+                </span>
+              </div>
             </>
           ) : (
             <p className="text-sm mt-2" style={{ color: '#85AADF' }}>Sin datos suficientes todavía.</p>
