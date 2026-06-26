@@ -1,5 +1,5 @@
 import { createAdminClient } from '@/lib/supabase-server'
-import { calcularIndiceTraza, generarPerfilNarrativo } from '@/lib/traza'
+import { calcularIndiceTraza, calcularIndiceAutonomo, calcularIndiceDual, generarPerfilNarrativo } from '@/lib/traza'
 import { ShieldCheck, TrendingUp, Star, Calendar, CheckCircle2, Clock, Building2, Briefcase } from 'lucide-react'
 import type { Objetivo } from '@/types'
 
@@ -69,6 +69,16 @@ export default async function CredencialTrazaPage({ params }: { params: { trazaI
   const objsActuales = (objetivosActuales ?? []) as Objetivo[]
   const indiceActual = calcularIndiceTraza(objsActuales)
   const { score, badge, cumplimiento, total, completados, positivos, parciales, negativos, moduloA, moduloB, moduloC } = indiceActual
+
+  // Avances para el índice autónomo
+  const { data: avancesRaw } = await supabase
+    .from('objetivo_avances')
+    .select('*')
+    .in('objetivo_id', objsActuales.length > 0 ? objsActuales.map(o => o.id) : ['00000000-0000-0000-0000-000000000000'])
+
+  const indiceAutonomo = calcularIndiceAutonomo(objsActuales, avancesRaw ?? [])
+  const indiceDual = calcularIndiceDual(score, indiceAutonomo)
+  const scoreDisplay = indiceDual.dual  // score principal que se muestra
 
   // Traer objetivos de empresas anteriores (agregados)
   const historialEmpresas: Array<{
@@ -148,7 +158,7 @@ export default async function CredencialTrazaPage({ params }: { params: { trazaI
 Datos del profesional:
 - Nombre: ${personaActual.nombre} ${personaActual.apellido}
 - Empresa actual: ${empresaNombreActual ?? 'No registrada'} · Cargo: ${personaActual.cargo ?? 'N/D'}
-- Índice TRAZA actual: ${score}/100 (${badge})
+- Índice TRAZA actual: ${score}/100 (${badge}) · Índice Dual: ${scoreDisplay}/100 (validado ${indiceDual.validado} × 60% + autónomo ${indiceDual.autonomo} × 40%)
 - Total objetivos en toda su trayectoria: ${totalObjGlobal}, Completados: ${completadosGlobal}, Validados positivos: ${positivosGlobal}
 - Score global acumulado: ${scoreGlobal}/100
 - Empresas anteriores:
@@ -218,8 +228,8 @@ Instrucciones:
       })()
     : null
 
-  const scoreColor = scoreGlobal >= 85 ? '#16a34a' : scoreGlobal >= 65 ? '#0F4C81' : scoreGlobal >= 40 ? '#d97706' : '#9ca3af'
-  const scoreBg    = scoreGlobal >= 85 ? '#dcfce7' : scoreGlobal >= 65 ? '#dbeafe' : scoreGlobal >= 40 ? '#fef3c7' : '#f3f4f6'
+  const scoreColor = scoreDisplay >= 85 ? '#16a34a' : scoreDisplay >= 65 ? '#0F4C81' : scoreDisplay >= 40 ? '#d97706' : '#9ca3af'
+  const scoreBg    = scoreDisplay >= 85 ? '#dcfce7' : scoreDisplay >= 65 ? '#dbeafe' : scoreDisplay >= 40 ? '#fef3c7' : '#f3f4f6'
 
   const ahora = formatFechaLarga(new Date().toISOString())
 
@@ -271,12 +281,16 @@ Instrucciones:
               </div>
             </div>
 
-            {/* Score global badge */}
+            {/* Score dual badge */}
             <div className="flex-shrink-0 flex flex-col items-center rounded-2xl px-4 py-3"
-              style={{ backgroundColor: 'rgba(255,255,255,0.12)', minWidth: 72 }}>
-              <span className="text-3xl font-black text-white leading-none">{scoreGlobal}</span>
-              <span className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.55)' }}>/100</span>
+              style={{ backgroundColor: 'rgba(255,255,255,0.12)', minWidth: 80 }}>
+              <span className="text-3xl font-black text-white leading-none">{scoreDisplay}</span>
+              <span className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.55)' }}>/100 dual</span>
               <span className="text-xs font-semibold mt-1.5 text-center leading-tight" style={{ color: 'rgba(255,255,255,0.85)' }}>{badge}</span>
+              <div className="mt-1.5 flex flex-col items-center gap-0.5">
+                <span className="text-xs" style={{ color: 'rgba(255,255,255,0.5)' }}>✓ {indiceDual.validado}</span>
+                <span className="text-xs" style={{ color: 'rgba(255,255,255,0.5)' }}>⚡ {indiceDual.autonomo}</span>
+              </div>
             </div>
           </div>
 
@@ -322,7 +336,7 @@ Instrucciones:
           </div>
           <span className="text-xs font-bold px-2.5 py-1 rounded-full flex-shrink-0"
             style={{ backgroundColor: scoreBg, color: scoreColor }}>
-            {scoreGlobal}/100
+            Dual {scoreDisplay}/100
           </span>
         </div>
 
@@ -432,7 +446,7 @@ Instrucciones:
           </div>
           <div className="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between">
             <span className="text-xs text-gray-400">{total} objetivos · {completados} completados</span>
-            <span className="text-xs text-gray-500">Score actual: <span className="font-bold" style={{ color: scoreColor }}>{score}/100</span></span>
+            <span className="text-xs text-gray-500">TRAZA: <span className="font-bold" style={{ color: scoreColor }}>{score}</span> · Dual: <span className="font-bold" style={{ color: scoreColor }}>{scoreDisplay}/100</span></span>
           </div>
         </div>
 
