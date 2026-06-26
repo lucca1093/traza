@@ -14,7 +14,36 @@ export default function AnalyticsPage() {
   const [filtroEmpresa, setFiltro] = useState('todas')
   const [stats, setStats]         = useState<any>(null)
   const [ranking, setRanking]     = useState<any[]>([])
-  const [showRankingInfo, setShowRankingInfo] = useState(false)
+  const [openInfo, setOpenInfo]   = useState<string | null>(null)
+
+  function InfoBtn({ id, children }: { id: string; children: React.ReactNode }) {
+    const open = openInfo === id
+    return (
+      <div className="relative">
+        <button
+          onClick={() => setOpenInfo(open ? null : id)}
+          className="w-5 h-5 rounded-full flex items-center justify-center text-xs font-semibold transition-colors"
+          style={{ backgroundColor: open ? '#0F4C81' : '#e5e7eb', color: open ? 'white' : '#9ca3af' }}
+        >
+          i
+        </button>
+        {open && (
+          <div
+            className="absolute right-0 top-7 z-20 w-72 rounded-xl bg-white border border-gray-100 p-4"
+            style={{ boxShadow: '0 8px 24px rgba(0,0,0,0.10)' }}
+          >
+            <div className="text-xs text-gray-600 leading-relaxed space-y-2.5">{children}</div>
+            <button
+              onClick={() => setOpenInfo(null)}
+              className="mt-3 text-xs text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              Cerrar
+            </button>
+          </div>
+        )}
+      </div>
+    )
+  }
 
   useEffect(() => {
     async function load() {
@@ -210,7 +239,28 @@ export default function AnalyticsPage() {
 
         {/* Estado de objetivos */}
         <div className="traza-card p-6">
-          <p className="font-semibold text-gray-900 mb-4">Estado de objetivos</p>
+          <div className="flex items-center justify-between mb-4">
+            <p className="font-semibold text-gray-900">Estado de objetivos</p>
+            <InfoBtn id="estado">
+              <p className="font-semibold text-gray-800 mb-1">Estados posibles</p>
+              <div>
+                <p className="font-medium text-gray-800">Completados</p>
+                <p>Objetivos marcados como terminados, con o sin validación del supervisor.</p>
+              </div>
+              <div>
+                <p className="font-medium text-gray-800">En progreso</p>
+                <p>El colaborador registró avances pero el objetivo aún no se cerró.</p>
+              </div>
+              <div>
+                <p className="font-medium text-gray-800">Pendientes</p>
+                <p>Sin actividad registrada. Pueden ser objetivos nuevos o no iniciados.</p>
+              </div>
+              <div>
+                <p className="font-medium text-gray-800">Validaciones positivas</p>
+                <p>Completados donde el supervisor eligió "De acuerdo". Incide directamente en el Índice TRAZA.</p>
+              </div>
+            </InfoBtn>
+          </div>
           <div className="space-y-3">
             {[
               { label: 'Completados', val: stats.completados, color: '#22c55e' },
@@ -257,7 +307,14 @@ export default function AnalyticsPage() {
       {/* Por área */}
       {Object.keys(stats.areas).length > 0 && (
         <div className="traza-card p-6">
-          <h2 className="font-semibold text-gray-900 mb-4">Cumplimiento por área</h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-semibold text-gray-900">Cumplimiento por área</h2>
+            <InfoBtn id="area">
+              <p className="font-semibold text-gray-800 mb-1">Cómo se calcula</p>
+              <p>Porcentaje de objetivos completados sobre el total asignado en cada área, ordenado de mayor a menor. Las áreas se toman del campo correspondiente en el perfil de cada colaborador.</p>
+              <p>Un área con bajo cumplimiento puede reflejar objetivos mal dimensionados, recursos insuficientes o falta de seguimiento — no necesariamente bajo desempeño individual.</p>
+            </InfoBtn>
+          </div>
           <div className="space-y-3">
             {Object.entries(stats.areas as Record<string, { total: number; completados: number }>)
               .sort((a, b) => b[1].completados / (b[1].total || 1) - a[1].completados / (a[1].total || 1))
@@ -284,55 +341,22 @@ export default function AnalyticsPage() {
         <div className="px-6 py-4 border-b border-gray-100">
           <div className="flex items-center justify-between">
             <h2 className="font-semibold text-gray-900">Ranking Traza</h2>
-            <div className="relative">
-              <button
-                onClick={() => setShowRankingInfo(v => !v)}
-                className="w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold transition-colors"
-                style={{ backgroundColor: showRankingInfo ? '#0F4C81' : '#e5e7eb', color: showRankingInfo ? 'white' : '#6b7280' }}
-                title="¿Cómo se calcula el ranking?"
-              >
-                i
-              </button>
-              {showRankingInfo && (
-                <div className="absolute right-0 top-7 z-20 w-72 rounded-xl shadow-lg border border-gray-100 bg-white p-4 text-xs leading-relaxed"
-                  style={{ boxShadow: '0 8px 24px rgba(0,0,0,0.12)' }}>
-                  <p className="font-semibold text-gray-900 mb-2">¿Cómo se compone el Ranking?</p>
-                  <p className="text-gray-500 mb-3">Cada persona se ordena por su <span className="font-semibold text-gray-700">Score Dual</span>, que combina dos fuentes independientes:</p>
-                  <div className="space-y-2.5">
-                    <div className="flex gap-2">
-                      <span className="text-base leading-none mt-0.5">👤</span>
-                      <div>
-                        <p className="font-semibold text-gray-800">Validado (60%)</p>
-                        <p className="text-gray-500">Índice TRAZA clásico. Surge de los objetivos evaluados por supervisores: cumplimiento, calidad de validación y consistencia con otros.</p>
-                      </div>
-                    </div>
-                    <div className="flex gap-2">
-                      <span className="text-base leading-none mt-0.5">⚡</span>
-                      <div>
-                        <p className="font-semibold text-gray-800">Autónomo (40%)</p>
-                        <p className="text-gray-500">Mide el comportamiento del empleado independientemente de lo que dijo el supervisor. Se calcula con:</p>
-                        <ul className="mt-1 space-y-1 text-gray-500">
-                          <li><span className="font-medium text-gray-700">· Consistencia:</span> frecuencia con que registra avances</li>
-                          <li><span className="font-medium text-gray-700">· Evidencia:</span> % de avances con archivos o links adjuntos</li>
-                          <li><span className="font-medium text-gray-700">· Proactividad:</span> avances subidos sin esperar respuesta del supervisor</li>
-                        </ul>
-                      </div>
-                    </div>
-                    <div className="flex gap-2">
-                      <span className="text-base leading-none mt-0.5">⚠️</span>
-                      <div>
-                        <p className="font-semibold text-gray-800">Posible sesgo</p>
-                        <p className="text-gray-500">Se marca cuando el índice autónomo supera al validado por más de 20 puntos — puede indicar una evaluación demasiado baja por parte del supervisor.</p>
-                      </div>
-                    </div>
-                  </div>
-                  <button onClick={() => setShowRankingInfo(false)}
-                    className="mt-3 text-gray-400 hover:text-gray-600 transition-colors">
-                    Cerrar ×
-                  </button>
-                </div>
-              )}
-            </div>
+            <InfoBtn id="ranking">
+              <p className="font-semibold text-gray-800 mb-1">Composición del ranking</p>
+              <p>Cada persona se ordena por su <span className="font-medium text-gray-800">Score Dual</span>, que combina dos fuentes independientes de medición.</p>
+              <div>
+                <p className="font-medium text-gray-800">Validado — 60%</p>
+                <p>Índice TRAZA clásico. Surge de los objetivos evaluados por supervisores: cumplimiento, calidad de validación y consistencia con el resto del equipo.</p>
+              </div>
+              <div>
+                <p className="font-medium text-gray-800">Autónomo — 40%</p>
+                <p>Mide el comportamiento del empleado con independencia de la evaluación del supervisor. Compuesto por consistencia (frecuencia de avances), densidad de evidencia (archivos y links adjuntos) y proactividad (avances sin respuesta pendiente).</p>
+              </div>
+              <div>
+                <p className="font-medium text-gray-800">Posible sesgo</p>
+                <p>Se marca cuando el índice autónomo supera al validado por más de 20 puntos, lo que puede indicar una evaluación por debajo del desempeño real.</p>
+              </div>
+            </InfoBtn>
           </div>
         </div>
         <div className="divide-y divide-gray-100">
@@ -428,7 +452,24 @@ export default function AnalyticsPage() {
       {/* Evolución trimestral */}
       {stats.evolucion?.length > 0 && (
         <div className="traza-card p-6">
-          <h2 className="font-semibold text-gray-900 mb-4">Evolución trimestral</h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-semibold text-gray-900">Evolución trimestral</h2>
+            <InfoBtn id="trimestral">
+              <p className="font-semibold text-gray-800 mb-1">Qué muestra cada columna</p>
+              <div>
+                <p className="font-medium text-gray-800">Objetivos</p>
+                <p>Total con fecha límite dentro del trimestre, independientemente de su estado actual.</p>
+              </div>
+              <div>
+                <p className="font-medium text-gray-800">Cumplimiento</p>
+                <p>Porcentaje de completados sobre el total del trimestre. Mide ejecución.</p>
+              </div>
+              <div>
+                <p className="font-medium text-gray-800">Calidad de validación</p>
+                <p>De los completados, qué porcentaje recibió validación positiva del supervisor. Mide no solo si se hizo, sino si se hizo bien.</p>
+              </div>
+            </InfoBtn>
+          </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
@@ -468,7 +509,28 @@ export default function AnalyticsPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Por categoría */}
         <div className="traza-card p-6">
-          <h2 className="font-semibold text-gray-900 mb-4">Objetivos por categoría</h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-semibold text-gray-900">Objetivos por categoría</h2>
+            <InfoBtn id="categoria">
+              <p className="font-semibold text-gray-800 mb-1">Tipos de objetivo</p>
+              <div>
+                <p className="font-medium text-gray-800">Resultado</p>
+                <p>Entregables concretos con impacto medible. Ej: lanzar un producto, cerrar ventas.</p>
+              </div>
+              <div>
+                <p className="font-medium text-gray-800">Eficiencia</p>
+                <p>Mejora de procesos existentes. Ej: reducir tiempos, bajar costos operativos.</p>
+              </div>
+              <div>
+                <p className="font-medium text-gray-800">Aprendizaje</p>
+                <p>Desarrollo de habilidades o conocimientos. Ej: certificaciones, capacitaciones.</p>
+              </div>
+              <div>
+                <p className="font-medium text-gray-800">Hábito</p>
+                <p>Comportamientos continuos. Ej: reportes semanales, reuniones de equipo regulares.</p>
+              </div>
+            </InfoBtn>
+          </div>
           <div className="space-y-3">
             {(stats.porCategoria ?? []).filter((c: any) => c.total > 0).map((c: any) => {
               const catColors: Record<string, { bg: string; color: string }> = {
