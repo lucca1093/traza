@@ -543,65 +543,31 @@ export default function ValidacionPage() {
               )}
               </div>
 
-              {/* Panel validación: resumen o formulario según tab y modo */}
-              {tab === 'validados' && objSeleccionado.validacion && !editando ? (
-                <div className="space-y-3">
-                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Validación del supervisor</p>
-                  <div className="bg-gray-50 rounded-xl p-4 space-y-2">
-                    <span className="text-sm font-semibold text-gray-900 inline-block px-3 py-1 rounded-full" style={getValidacionStyle(objSeleccionado.validacion)}>
-                      {objSeleccionado.validacion}
-                    </span>
-                    {objSeleccionado.comentario_supervisor && (
-                      <p className="text-sm text-gray-600 italic">"{objSeleccionado.comentario_supervisor}"</p>
-                    )}
-                  </div>
-                  <button onClick={() => setEditando(true)} className="text-xs text-traza-700 font-medium hover:underline">
-                    Editar validación
-                  </button>
-                </div>
-              ) : (
-                <form onSubmit={async (e) => { await handleValidar(e); setEditando(false) }} className="space-y-4">
-                  <div>
-                    <label className="traza-label">Validación supervisor</label>
-                    <div className="grid grid-cols-1 gap-2">
-                      {['De acuerdo', 'Parcialmente de acuerdo', 'En desacuerdo'].map(opt => (
-                        <label
-                          key={opt}
-                          className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-colors ${validacion === opt ? 'border-traza-700 bg-traza-50' : 'border-gray-200 hover:bg-gray-50'}`}
-                        >
-                          <input type="radio" value={opt} checked={validacion === opt} onChange={e => setValidacion(e.target.value)} className="text-traza-700" />
-                          <span className="text-sm font-medium">{opt}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                  <div>
-                    <label className="traza-label">Comentario / Feedback</label>
-                    <textarea
-                      className="traza-input min-h-[80px] resize-none"
-                      value={comentario}
-                      onChange={e => setComentario(e.target.value)}
-                      placeholder="Escribí tu feedback..."
-                    />
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Button type="submit" loading={saving}>Guardar validación</Button>
-                    {editando && (
-                      <button type="button" onClick={() => setEditando(false)} className="text-sm text-gray-400 hover:text-gray-600">Cancelar</button>
-                    )}
-                    {success && <p className="text-green-600 text-sm">Validación guardada</p>}
-                  </div>
-                </form>
-              )}
+              {/* Panel validación según rol */}
+              {profile && ['admin', 'super_admin'].includes(profile.rol) ? (
 
-              {/* Segunda validación — solo para admin/super_admin */}
-              {objSeleccionado && objSeleccionado.validacion && profile && ['admin', 'super_admin'].includes(profile.rol) && (
-                <div className="mt-5 pt-5 border-t border-gray-100">
+                /* ── ADMIN: solo su propia validación ── */
+                <div>
                   <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">
-                    Segunda validación (Admin)
+                    Validación del administrador
                   </p>
+                  {/* Validación supervisor (solo lectura para admin) */}
+                  {objSeleccionado.validacion && (
+                    <div className="mb-4 bg-gray-50 rounded-xl p-3 space-y-1">
+                      <p className="text-xs text-gray-400 mb-1">Validación del supervisor</p>
+                      <span className="text-xs px-2.5 py-1 rounded-full font-medium inline-block"
+                        style={getValidacionStyle(objSeleccionado.validacion)}>
+                        {objSeleccionado.validacion}
+                      </span>
+                      {objSeleccionado.comentario_supervisor && (
+                        <p className="text-sm text-gray-500 italic mt-1">"{objSeleccionado.comentario_supervisor}"</p>
+                      )}
+                    </div>
+                  )}
+                  {/* Validación admin existente */}
                   {objSeleccionado.validacion_admin && (
                     <div className="mb-3 bg-blue-50 border border-blue-100 rounded-xl p-3 space-y-1">
+                      <p className="text-xs text-blue-600 font-medium mb-1">Tu validación actual</p>
                       <span className="text-xs px-2.5 py-1 rounded-full font-medium inline-block"
                         style={getValidacionStyle(objSeleccionado.validacion_admin)}>
                         {objSeleccionado.validacion_admin}
@@ -630,12 +596,65 @@ export default function ValidacionPage() {
                     />
                     <div className="flex items-center gap-3">
                       <Button type="submit" size="sm" loading={savingAdmin}>
-                        {objSeleccionado.validacion_admin ? 'Actualizar' : 'Confirmar'} segunda validación
+                        {objSeleccionado.validacion_admin ? 'Actualizar validación' : 'Guardar validación'}
                       </Button>
                       {successAdmin && <p className="text-green-600 text-xs">Guardada ✓</p>}
                     </div>
                   </form>
                 </div>
+
+              ) : (
+
+                /* ── SUPERVISOR: su validación ── */
+                <>
+                  {tab === 'validados' && objSeleccionado.validacion && !editando ? (
+                    <div className="space-y-3">
+                      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Validación del supervisor</p>
+                      <div className="bg-gray-50 rounded-xl p-4 space-y-2">
+                        <span className="text-sm font-semibold text-gray-900 inline-block px-3 py-1 rounded-full" style={getValidacionStyle(objSeleccionado.validacion)}>
+                          {objSeleccionado.validacion}
+                        </span>
+                        {objSeleccionado.comentario_supervisor && (
+                          <p className="text-sm text-gray-600 italic">"{objSeleccionado.comentario_supervisor}"</p>
+                        )}
+                      </div>
+                      <button onClick={() => setEditando(true)} className="text-xs text-traza-700 font-medium hover:underline">
+                        Editar validación
+                      </button>
+                    </div>
+                  ) : (
+                    <form onSubmit={async (e) => { await handleValidar(e); setEditando(false) }} className="space-y-4">
+                      <div>
+                        <label className="traza-label">Validación del supervisor</label>
+                        <div className="grid grid-cols-1 gap-2">
+                          {['De acuerdo', 'Parcialmente de acuerdo', 'En desacuerdo'].map(opt => (
+                            <label key={opt}
+                              className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-colors ${validacion === opt ? 'border-traza-700 bg-traza-50' : 'border-gray-200 hover:bg-gray-50'}`}>
+                              <input type="radio" value={opt} checked={validacion === opt} onChange={e => setValidacion(e.target.value)} className="text-traza-700" />
+                              <span className="text-sm font-medium">{opt}</span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <label className="traza-label">Comentario / Feedback</label>
+                        <textarea
+                          className="traza-input min-h-[80px] resize-none"
+                          value={comentario}
+                          onChange={e => setComentario(e.target.value)}
+                          placeholder="Escribí tu feedback..."
+                        />
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <Button type="submit" loading={saving}>Guardar validación</Button>
+                        {editando && (
+                          <button type="button" onClick={() => setEditando(false)} className="text-sm text-gray-400 hover:text-gray-600">Cancelar</button>
+                        )}
+                        {success && <p className="text-green-600 text-sm">Validación guardada</p>}
+                      </div>
+                    </form>
+                  )}
+                </>
               )}
             </>
           )}
