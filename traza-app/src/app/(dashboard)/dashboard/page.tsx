@@ -315,7 +315,7 @@ export default async function DashboardPage() {
                       {obj.validacion}
                     </span>
                   </div>
-                  {obj.comentario_supervisor && (
+                  {obj.comentario_supervisor?.trim() && (
                     <p className="text-xs text-gray-500 mt-1 italic">"{obj.comentario_supervisor}"</p>
                   )}
                 </div>

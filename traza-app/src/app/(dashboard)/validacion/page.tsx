@@ -559,7 +559,7 @@ export default function ValidacionPage() {
                         style={getValidacionStyle(objSeleccionado.validacion)}>
                         {objSeleccionado.validacion}
                       </span>
-                      {objSeleccionado.comentario_supervisor && (
+                      {objSeleccionado.comentario_supervisor?.trim() && (
                         <p className="text-sm text-gray-500 italic mt-1">"{objSeleccionado.comentario_supervisor}"</p>
                       )}
                     </div>

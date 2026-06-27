@@ -595,7 +595,7 @@ function ObjetivoCard({
               <div className="bg-gray-50 rounded-xl p-3 space-y-2">
                 <p className="text-xs font-medium text-gray-500">Validación del supervisor</p>
                 <p className="text-sm font-semibold text-gray-900">{obj.validacion}</p>
-                {obj.comentario_supervisor && (
+                {obj.comentario_supervisor?.trim() && (
                   <p className="text-sm text-gray-600 italic">"{obj.comentario_supervisor}"</p>
                 )}
                 {/* Alerta de discrepancia */}

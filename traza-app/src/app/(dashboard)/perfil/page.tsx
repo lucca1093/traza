@@ -111,7 +111,7 @@ export default function PerfilPage() {
 
   const scoreColor = dual.dual >= 85 ? '#16a34a' : dual.dual >= 65 ? '#0F4C81' : dual.dual >= 40 ? '#d97706' : '#9ca3af'
   const scoreBg    = dual.dual >= 85 ? '#dcfce7' : dual.dual >= 65 ? '#dbeafe' : dual.dual >= 40 ? '#fef3c7' : '#f3f4f6'
-  const ultimasFeedbacks = objetivos.filter(o => o.comentario_supervisor).slice(0, 5)
+  const ultimasFeedbacks = objetivos.filter(o => o.comentario_supervisor?.trim()).slice(0, 5)
   const logros = objetivos.filter(o => o.estado === 'Completado').slice(0, 5)
 
   return (
@@ -303,7 +303,7 @@ export default function PerfilPage() {
                       <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={getValidacionStyle(o.validacion)}>
                         {o.validacion}
                       </span>
-                      {o.comentario_supervisor && (
+                      {o.comentario_supervisor?.trim() && (
                         <p className="text-sm text-gray-600 mt-1 italic">"{o.comentario_supervisor}"</p>
                       )}
                     </div>
@@ -422,7 +422,7 @@ function ObjetivoHistorialRow({ obj }: { obj: Objetivo }) {
                     {obj.validacion}
                   </span>
                 )}
-                {obj.comentario_supervisor && (
+                {obj.comentario_supervisor?.trim() && (
                   <p className="text-sm text-gray-600 italic">"{obj.comentario_supervisor}"</p>
                 )}
               </div>
