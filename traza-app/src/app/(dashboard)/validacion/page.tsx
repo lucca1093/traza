@@ -314,7 +314,7 @@ export default function ValidacionPage() {
         </div>
 
         {/* Panel derecho: detalle + formulario */}
-        <div className="traza-card p-6">
+        <div className="traza-card p-6 overflow-y-auto max-h-[680px]">
           {!objSeleccionado ? (
             <div className="h-full flex items-center justify-center">
               <p className="text-gray-400 text-sm">Seleccioná un objetivo de la lista.</p>
@@ -383,13 +383,15 @@ export default function ValidacionPage() {
               })()}
 
               {/* Avances del empleado */}
-              {avances.length > 0 && (
-                <div className="mb-5">
+              <div className="mb-5 pb-5 border-b border-gray-100">
                   <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">
                     Avances del colaborador
-                    <span className="ml-2 font-normal text-gray-300 normal-case">({avances.length})</span>
+                    {avances.length > 0 && <span className="ml-2 font-normal text-gray-300 normal-case">({avances.length})</span>}
                   </p>
-                  <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
+              {avances.length === 0 ? (
+                <p className="text-xs text-gray-400 italic">Sin avances registrados en este objetivo.</p>
+              ) : (
+                  <div className="space-y-2">
                     {avances.map(a => {
                       const rev = a.estado_revision ?? 'sin_revisar'
                       const aprobado = rev === 'aprobado'
@@ -517,8 +519,8 @@ export default function ValidacionPage() {
                       )
                     })}
                   </div>
-                </div>
               )}
+              </div>
 
               {/* Panel validación: resumen o formulario según tab y modo */}
               {tab === 'validados' && objSeleccionado.validacion && !editando ? (
