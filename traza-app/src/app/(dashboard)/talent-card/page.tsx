@@ -119,51 +119,23 @@ export default function TalentCardPage() {
                   <span className="text-sm font-semibold text-gray-700">{indice.badge}</span>
                   <span className="text-sm text-gray-400">{indice.score}/100 · score verificado</span>
                 </div>
-                <div>
-                  <div className="flex justify-between text-xs text-gray-500 mb-1">
-                    <span>Resultados</span>
-                    <span className="font-semibold text-gray-700">{indice.moduloA}</span>
+                {[
+                  { label: 'Resultados',   pct: '35%', val: indice.moduloA,    color: '#0F4C81' },
+                  { label: 'Cumplimiento', pct: '25%', val: indice.moduloB,    color: '#0F4C81' },
+                  { label: 'Proactividad', pct: '20%', val: indice.moduloC,    color: '#0F4C81' },
+                  { label: 'Alineación',   pct: '10%', val: indice.alineacion, color: '#0891b2' },
+                  { label: 'Evolución',    pct: '10%', val: indice.evolucion,  color: '#d97706' },
+                ].map(m => (
+                  <div key={m.label}>
+                    <div className="flex justify-between text-xs text-gray-500 mb-1">
+                      <span>{m.label} <span className="text-gray-400">{m.pct}</span></span>
+                      <span className="font-semibold text-gray-700">{m.val}</span>
+                    </div>
+                    <div className="h-1.5 rounded-full overflow-hidden bg-gray-100">
+                      <div className="h-full rounded-full" style={{ width: `${m.val}%`, backgroundColor: m.color }} />
+                    </div>
                   </div>
-                  <div className="h-1.5 rounded-full overflow-hidden bg-gray-100">
-                    <div className="h-full rounded-full" style={{ width: `${indice.moduloA}%`, backgroundColor: '#0F4C81' }} />
-                  </div>
-                </div>
-                <div>
-                  <div className="flex justify-between text-xs text-gray-500 mb-1">
-                    <span>Cumplimiento</span>
-                    <span className="font-semibold text-gray-700">{indice.moduloB}</span>
-                  </div>
-                  <div className="h-1.5 rounded-full overflow-hidden bg-gray-100">
-                    <div className="h-full rounded-full" style={{ width: `${indice.moduloB}%`, backgroundColor: '#0F4C81' }} />
-                  </div>
-                </div>
-                <div>
-                  <div className="flex justify-between text-xs text-gray-500 mb-1">
-                    <span>Proactividad</span>
-                    <span className="font-semibold text-gray-700">{indice.moduloC}</span>
-                  </div>
-                  <div className="h-1.5 rounded-full overflow-hidden bg-gray-100">
-                    <div className="h-full rounded-full" style={{ width: `${indice.moduloC}%`, backgroundColor: '#0F4C81' }} />
-                  </div>
-                </div>
-                <div>
-                  <div className="flex justify-between text-xs text-gray-500 mb-1">
-                    <span>Alineación</span>
-                    <span className="font-semibold text-gray-700">{indice.alineacion}</span>
-                  </div>
-                  <div className="h-1.5 rounded-full overflow-hidden bg-gray-100">
-                    <div className="h-full rounded-full" style={{ width: `${indice.alineacion}%`, backgroundColor: '#0891b2' }} />
-                  </div>
-                </div>
-                <div>
-                  <div className="flex justify-between text-xs text-gray-500 mb-1">
-                    <span>Evolución</span>
-                    <span className="font-semibold text-gray-700">{indice.evolucion}</span>
-                  </div>
-                  <div className="h-1.5 rounded-full overflow-hidden bg-gray-100">
-                    <div className="h-full rounded-full" style={{ width: `${indice.evolucion}%`, backgroundColor: '#d97706' }} />
-                  </div>
-                </div>
+                ))}
               </div>
 
               {/* Métricas */}

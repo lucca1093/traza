@@ -217,75 +217,26 @@ export default function PerfilPage() {
             </div>
 
             {/* Barras */}
-            <div className="space-y-3 mb-5">
-              <div>
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs text-gray-500">Resultados</span>
-                  <span className="text-xs font-semibold text-gray-700">{indice.moduloA}</span>
-                </div>
-                <div className="h-1.5 rounded-full overflow-hidden bg-gray-100">
-                  <div className="h-full rounded-full" style={{ width: `${indice.moduloA}%`, backgroundColor: '#0F4C81' }} />
-                </div>
-              </div>
-              <div>
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs text-gray-500">Cumplimiento</span>
-                  <span className="text-xs font-semibold text-gray-700">{indice.moduloB}</span>
-                </div>
-                <div className="h-1.5 rounded-full overflow-hidden bg-gray-100">
-                  <div className="h-full rounded-full" style={{ width: `${indice.moduloB}%`, backgroundColor: '#0F4C81' }} />
-                </div>
-              </div>
-              <div>
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs text-gray-500">Proactividad</span>
-                  <span className="text-xs font-semibold text-gray-700">{indice.moduloC}</span>
-                </div>
-                <div className="h-1.5 rounded-full overflow-hidden bg-gray-100">
-                  <div className="h-full rounded-full" style={{ width: `${indice.moduloC}%`, backgroundColor: '#0F4C81' }} />
-                </div>
-              </div>
-              <div>
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs text-gray-500">Alineación</span>
-                  <span className="text-xs font-semibold text-gray-700">{indice.alineacion}</span>
-                </div>
-                <div className="h-1.5 rounded-full overflow-hidden bg-gray-100">
-                  <div className="h-full rounded-full" style={{ width: `${indice.alineacion}%`, backgroundColor: '#0891b2' }} />
-                </div>
-              </div>
-              <div>
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs text-gray-500">Evolución</span>
-                  <span className="text-xs font-semibold text-gray-700">{indice.evolucion}</span>
-                </div>
-                <div className="h-1.5 rounded-full overflow-hidden bg-gray-100">
-                  <div className="h-full rounded-full" style={{ width: `${indice.evolucion}%`, backgroundColor: '#d97706' }} />
-                </div>
-              </div>
-            </div>
-
-            {/* Módulos — detalle */}
-            <div className="border-t border-gray-100 pt-4">
-              <p className="text-xs text-gray-400 mb-3">Detalle por módulo</p>
-              <div className="grid grid-cols-3 gap-3">
-                {[
-                  { label: 'Resultados',   sub: '35%', val: indice.moduloA },
-                  { label: 'Cumplimiento', sub: '25%', val: indice.moduloB },
-                  { label: 'Proactividad', sub: '20%', val: indice.moduloC },
-                  { label: 'Alineación',   sub: '10%', val: indice.alineacion },
-                  { label: 'Evolución',    sub: '10%', val: indice.evolucion },
-                ].map(m => (
-                  <div key={m.label} className="bg-gray-50 rounded-xl p-3 text-center">
-                    <p className="text-lg font-bold text-gray-900">{m.val}</p>
-                    <p className="text-xs text-gray-500 leading-tight mt-0.5">{m.label}</p>
-                    <p className="text-xs text-gray-400">{m.sub}</p>
-                    <div className="mt-1.5 h-1 rounded-full bg-gray-200 overflow-hidden">
-                      <div className="h-full rounded-full bg-traza-500" style={{ width: `${m.val}%` }} />
-                    </div>
+            <div className="space-y-3">
+              {[
+                { label: 'Resultados',   pct: '35%', val: indice.moduloA,   color: '#0F4C81' },
+                { label: 'Cumplimiento', pct: '25%', val: indice.moduloB,   color: '#0F4C81' },
+                { label: 'Proactividad', pct: '20%', val: indice.moduloC,   color: '#0F4C81' },
+                { label: 'Alineación',   pct: '10%', val: indice.alineacion, color: '#0891b2' },
+                { label: 'Evolución',    pct: '10%', val: indice.evolucion,  color: '#d97706' },
+              ].map(m => (
+                <div key={m.label}>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs text-gray-500">
+                      {m.label} <span className="text-gray-400">{m.pct}</span>
+                    </span>
+                    <span className="text-xs font-semibold text-gray-700">{m.val}</span>
                   </div>
-                ))}
-              </div>
+                  <div className="h-1.5 rounded-full overflow-hidden bg-gray-100">
+                    <div className="h-full rounded-full" style={{ width: `${m.val}%`, backgroundColor: m.color }} />
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
 
