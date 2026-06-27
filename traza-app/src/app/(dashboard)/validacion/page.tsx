@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import Button from '@/components/ui/Button'
 import { getEstadoClasses, getValidacionStyle, getCategoriaStyle, detectarDiscrepancia, formatFecha } from '@/lib/traza'
-import { MessageSquare, Link2, Paperclip, ChevronDown, ChevronRight, AlertTriangle, Check, CheckCheck, Reply } from 'lucide-react'
+import { MessageSquare, Link2, Paperclip, ChevronDown, ChevronRight, AlertTriangle, Check, CheckCheck, Reply, Pencil } from 'lucide-react'
 
 export default function ValidacionPage() {
   const [objetivos, setObjetivos]   = useState<any[]>([])
@@ -424,10 +424,25 @@ export default function ValidacionPage() {
                             {/* Acciones del supervisor */}
                             <div className="flex items-start gap-1.5 flex-shrink-0 mt-0.5">
                               {aprobado ? (
-                                <span className="flex items-center gap-1 text-xs text-green-600 font-medium">
-                                  <CheckCheck size={13} />
-                                  Aprobado
-                                </span>
+                                <div className="flex items-center gap-1">
+                                  <span className="flex items-center gap-1 text-xs text-green-600 font-medium">
+                                    <CheckCheck size={13} />
+                                    Aprobado
+                                  </span>
+                                  <button
+                                    onClick={() => {
+                                      setRespuestas(prev => ({ ...prev, [a.id]: a.respuesta_supervisor ?? '' }))
+                                      setReplyOpen(prev => ({ ...prev, [a.id]: true }))
+                                    }}
+                                    title="Editar respuesta"
+                                    className="w-6 h-6 rounded-md flex items-center justify-center transition-colors"
+                                    style={{ color: '#9ca3af' }}
+                                    onMouseEnter={e => (e.currentTarget.style.color = '#4b5563')}
+                                    onMouseLeave={e => (e.currentTarget.style.color = '#9ca3af')}
+                                  >
+                                    <Pencil size={11} strokeWidth={2} />
+                                  </button>
+                                </div>
                               ) : (
                                 <>
                                   {/* Botón aprobar */}
@@ -469,8 +484,8 @@ export default function ValidacionPage() {
                             </div>
                           )}
 
-                          {/* Input respuesta */}
-                          {isReplying && !aprobado && (
+                          {/* Input respuesta / edición */}
+                          {isReplying && (
                             <div className="px-3 pb-3 space-y-2">
                               <textarea
                                 rows={2}
@@ -487,7 +502,7 @@ export default function ValidacionPage() {
                                   className="text-xs font-medium text-white px-3 py-1.5 rounded-lg transition-colors disabled:opacity-40"
                                   style={{ backgroundColor: '#0F4C81' }}
                                 >
-                                  {savingRespuesta === a.id ? 'Guardando...' : 'Enviar respuesta'}
+                                  {savingRespuesta === a.id ? 'Guardando...' : aprobado ? 'Actualizar respuesta' : 'Enviar respuesta'}
                                 </button>
                                 <button
                                   onClick={() => setReplyOpen(prev => ({ ...prev, [a.id]: false }))}
