@@ -428,9 +428,21 @@ export default function ValidacionPage() {
                               <p className="text-xs text-gray-400 mt-1">{formatDT(a.creado_en)}</p>
                             </div>
 
-                            {/* Acciones del supervisor */}
+                            {/* Acciones del supervisor — admin ve en modo lectura */}
                             <div className="flex items-start gap-1.5 flex-shrink-0 mt-0.5">
-                              {aprobado ? (
+                              {profile && ['admin', 'super_admin'].includes(profile.rol) ? (
+                                aprobado ? (
+                                  <span className="flex items-center gap-1 text-xs text-green-600 font-medium">
+                                    <CheckCheck size={13} />
+                                    Aprobado
+                                  </span>
+                                ) : (
+                                  <span className="flex items-center gap-1 text-xs text-gray-400">
+                                    <Check size={13} />
+                                    Sin aprobar
+                                  </span>
+                                )
+                              ) : aprobado ? (
                                 <div className="flex items-center gap-1">
                                   <span className="flex items-center gap-1 text-xs text-green-600 font-medium">
                                     <CheckCheck size={13} />
