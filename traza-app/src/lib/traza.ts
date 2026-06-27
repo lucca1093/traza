@@ -12,31 +12,32 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 // ============================================================
-// ÍNDICE TRAZA v2 — Fórmula multi-fuente
+// ÍNDICE TRAZA v3 — Modelo de 5 dimensiones
 //
-// Compuesto por 3 módulos:
+// A. Resultados validados (35%)
+//    Promedio ponderado: supervisor (×1.0) + admin (×1.0) + autoevaluación (×0.5)
+//    Solo objetivos con al menos una validación.
 //
-// A. Calidad de validación (50%)
-//    Promedio ponderado de las 3 fuentes disponibles:
-//    - Supervisor (peso 1.0): De acuerdo=1.0 / Parcial=0.5 / Desacuerdo=0.0
-//    - Admin (peso 1.0, si existe): misma escala
-//    - Autoevaluación (peso 0.5): De acuerdo=1.0 / Parcial=0.5 / En desacuerdo=0.0
-//    Solo se consideran objetivos con AL MENOS una validación.
+// B. Cumplimiento (25%)
+//    % de objetivos vencidos (fecha_limite < hoy) que están Completados.
+//    Objetivos sin fecha o futuros no penalizan.
 //
-// B. Cumplimiento ajustado (30%)
-//    Completados / objetivos vencidos (fecha_limite < hoy).
-//    Los objetivos sin fecha o con fecha futura NO penalizan.
-//    Los Hábitos sin fecha tampoco penalizan.
+// C. Proactividad (20%)
+//    Regularidad de avances cargados: % de semanas activas sobre semanas totales
+//    desde el primer avance. Premia la constancia, no el volumen.
 //
-// C. Consistencia (20%)
-//    % de objetivos donde autoevaluación y validación supervisor coinciden
-//    (o difieren en 1 punto). Discrepancias altas reducen este módulo.
-//    Si no hay autoevaluaciones, este módulo es neutro (50).
+// D. Alineación (10%)
+//    % de objetivos donde autoevaluación ↔ supervisor difieren ≤ 1 punto.
+//    Alta alineación = autoconciencia profesional.
 //
-// Score final: A×0.50 + B×0.30 + C×0.20  → escala 0–100
+// E. Evolución (10%)
+//    Tendencia: mini-score período reciente (últimos 90 días) vs anterior (90–180 días).
+//    Quien mejora sube; quien baja baja; sin datos suficientes → neutro (50).
+//
+// Score final: A×0.35 + B×0.25 + C×0.20 + D×0.10 + E×0.10 → escala 0–100
 // ============================================================
 
-export function calcularIndiceTraza(objetivos: Objetivo[]): IndiceTraza {
+export function calcularIndiceTraza(objetivos: Objetivo[], avances: any[] = []): IndiceTraza {
   const total       = objetivos.length
   const completados = objetivos.filter(o => o.estado === 'Completado').length
   const positivos   = objetivos.filter(o => o.validacion === 'De acuerdo').length
@@ -45,57 +46,117 @@ export function calcularIndiceTraza(objetivos: Objetivo[]): IndiceTraza {
 
   const cumplimiento = total > 0 ? Math.round((completados / total) * 1000) / 10 : 0
 
-  // ── Módulo A: Calidad de validación (0–100) ───────────────
-  const supScore:  Record<string, number> = { 'De acuerdo': 1.0, 'Parcialmente de acuerdo': 0.5, 'En desacuerdo': 0.0 }
+  // ── Módulo A: Resultados validados (0–100) — peso 35% ─────
+  const supScore:   Record<string, number> = { 'De acuerdo': 1.0, 'Parcialmente de acuerdo': 0.5, 'En desacuerdo': 0.0 }
   const adminScore: Record<string, number> = { 'De acuerdo': 1.0, 'Parcialmente de acuerdo': 0.5, 'En desacuerdo': 0.0 }
-  const autoScore: Record<string, number> = { 'De acuerdo': 1.0, 'Parcialmente de acuerdo': 0.5, 'En desacuerdo': 0.0, 'Cumplido': 1.0, 'Parcialmente cumplido': 0.5, 'No cumplido': 0.0 }
+  const autoScore:  Record<string, number> = { 'De acuerdo': 1.0, 'Parcialmente de acuerdo': 0.5, 'En desacuerdo': 0.0, 'Cumplido': 1.0, 'Parcialmente cumplido': 0.5, 'No cumplido': 0.0 }
 
   const conValidacion = objetivos.filter(o => o.validacion)
-  let moduloA = 50 // neutro si no hay validaciones
+  let moduloA = 50
   if (conValidacion.length > 0) {
     const promedios = conValidacion.map(o => {
       let suma = 0, pesoTotal = 0
-      // Supervisor
-      if (o.validacion) { suma += supScore[o.validacion] * 1.0; pesoTotal += 1.0 }
-      // Admin
+      if (o.validacion)             { suma += supScore[o.validacion] * 1.0; pesoTotal += 1.0 }
       if ((o as any).validacion_admin) { suma += adminScore[(o as any).validacion_admin] * 1.0; pesoTotal += 1.0 }
-      // Autoevaluación
-      if ((o as any).autoevaluacion) { suma += autoScore[(o as any).autoevaluacion] * 0.5; pesoTotal += 0.5 }
+      if ((o as any).autoevaluacion)   { suma += autoScore[(o as any).autoevaluacion] * 0.5; pesoTotal += 0.5 }
       return pesoTotal > 0 ? suma / pesoTotal : 0.5
     })
     moduloA = Math.round((promedios.reduce((a, b) => a + b, 0) / promedios.length) * 100)
   }
 
-  // ── Módulo B: Cumplimiento ajustado (0–100) ───────────────
-  // Excluye objetivos continuos (es_continuo=true) — hábitos permanentes
-  // que no deben penalizar por no completarse en una fecha.
+  // ── Módulo B: Cumplimiento (0–100) — peso 25% ─────────────
   const hoy = new Date()
   const vencidos = objetivos.filter(o =>
-    !(o as any).es_continuo &&
-    o.fecha_limite &&
-    new Date(o.fecha_limite) < hoy
+    !(o as any).es_continuo && o.fecha_limite && new Date(o.fecha_limite) < hoy
   )
-  let moduloB = 75 // neutro si no hay objetivos vencidos
+  let moduloB = 75
   if (vencidos.length > 0) {
     const completadosVencidos = vencidos.filter(o => o.estado === 'Completado').length
     moduloB = Math.round((completadosVencidos / vencidos.length) * 100)
   }
 
-  // ── Módulo C: Consistencia autoevaluación (0–100) ─────────
+  // ── Módulo C: Proactividad — regularidad de avances (0–100) — peso 20% ──
+  // Mide constancia, no volumen: % de semanas con al menos 1 avance
+  // dentro del período activo del empleado en la plataforma.
+  let moduloC = 50
+  if (avances.length >= 2) {
+    const timestamps = avances
+      .map(a => new Date(a.creado_en ?? a.created_at).getTime())
+      .filter(t => !isNaN(t))
+      .sort((a, b) => a - b)
+    if (timestamps.length >= 2) {
+      const primerT = timestamps[0]
+      const ultimoT = timestamps[timestamps.length - 1]
+      const semanasTotales = Math.max(1, Math.ceil((ultimoT - primerT) / (7 * 24 * 60 * 60 * 1000)))
+      const semanasConActividad = new Set(
+        timestamps.map(t => Math.floor((t - primerT) / (7 * 24 * 60 * 60 * 1000)))
+      ).size
+      moduloC = Math.round((semanasConActividad / semanasTotales) * 100)
+    }
+  } else if (avances.length === 1) {
+    moduloC = 25
+  }
+
+  // ── Módulo D: Alineación autoevaluación ↔ supervisor (0–100) — peso 10% ──
+  const val2num: Record<string, number> = {
+    'De acuerdo': 2, 'Parcialmente de acuerdo': 1, 'En desacuerdo': 0,
+    'Cumplido': 2, 'Parcialmente cumplido': 1, 'No cumplido': 0,
+  }
   const conAmbas = objetivos.filter(o => o.validacion && (o as any).autoevaluacion)
-  let moduloC = 50 // neutro si no hay autoevaluaciones
+  let alineacion = 50
   if (conAmbas.length > 0) {
-    const sup2num:  Record<string, number> = { 'De acuerdo': 2, 'Parcialmente de acuerdo': 1, 'En desacuerdo': 0 }
-    const auto2num: Record<string, number> = { 'De acuerdo': 2, 'Parcialmente de acuerdo': 1, 'En desacuerdo': 0, 'Cumplido': 2, 'Parcialmente cumplido': 1, 'No cumplido': 0 }
-    const consistentes = conAmbas.filter(o => {
-      const diff = Math.abs((sup2num[o.validacion!] ?? 1) - (auto2num[(o as any).autoevaluacion] ?? 1))
-      return diff <= 1 // coinciden o difieren en 1 punto
+    const alineados = conAmbas.filter(o => {
+      const diff = Math.abs((val2num[o.validacion!] ?? 1) - (val2num[(o as any).autoevaluacion] ?? 1))
+      return diff <= 1
     }).length
-    moduloC = Math.round((consistentes / conAmbas.length) * 100)
+    alineacion = Math.round((alineados / conAmbas.length) * 100)
+  }
+
+  // ── Módulo E: Evolución / tendencia (0–100) — peso 10% ────
+  const hoyMs   = hoy.getTime()
+  const hace90  = hoyMs - 90  * 24 * 60 * 60 * 1000
+  const hace180 = hoyMs - 180 * 24 * 60 * 60 * 1000
+
+  const miniScore = (objs: Objetivo[]) => {
+    if (objs.length === 0) return null
+    const comp = objs.filter(o => o.estado === 'Completado').length / objs.length
+    const pos  = objs.filter(o => o.validacion === 'De acuerdo').length / objs.length
+    return Math.round((comp * 0.5 + pos * 0.5) * 100)
+  }
+
+  const recientes  = objetivos.filter(o => {
+    const ref = o.fecha_limite ?? (o as any).created_at
+    if (!ref) return false
+    const t = new Date(ref).getTime()
+    return t >= hace90 && t <= hoyMs
+  })
+  const anteriores = objetivos.filter(o => {
+    const ref = o.fecha_limite ?? (o as any).created_at
+    if (!ref) return false
+    const t = new Date(ref).getTime()
+    return t >= hace180 && t < hace90
+  })
+
+  let evolucion = 50
+  const sReciente  = miniScore(recientes)
+  const sAnterior  = miniScore(anteriores)
+  if (sReciente !== null && sAnterior !== null && recientes.length >= 2 && anteriores.length >= 2) {
+    const delta = sReciente - sAnterior
+    if (delta >= 15)      evolucion = 100
+    else if (delta >= 5)  evolucion = 80
+    else if (delta >= -5) evolucion = 60
+    else if (delta >= -15) evolucion = 35
+    else                  evolucion = 15
   }
 
   // ── Score final ───────────────────────────────────────────
-  let score = Math.round(moduloA * 0.50 + moduloB * 0.30 + moduloC * 0.20)
+  let score = Math.round(
+    moduloA * 0.35 +
+    moduloB * 0.25 +
+    moduloC * 0.20 +
+    alineacion * 0.10 +
+    evolucion  * 0.10
+  )
   score = Math.max(0, Math.min(100, score))
 
   const nivel = getNivel(score)
@@ -103,8 +164,8 @@ export function calcularIndiceTraza(objetivos: Objetivo[]): IndiceTraza {
   return {
     score, nivel, badge: getBadge(nivel), cumplimiento,
     total, completados, positivos, parciales, negativos,
-    // Módulos para mostrar en la credencial
     moduloA, moduloB, moduloC,
+    alineacion, evolucion,
   }
 }
 

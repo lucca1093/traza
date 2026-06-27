@@ -93,10 +93,12 @@ export interface IndiceTraza {
   positivos: number
   parciales: number
   negativos: number
-  // Módulos del Índice v2
-  moduloA: number         // Calidad de validación multi-fuente (0-100)
-  moduloB: number         // Cumplimiento ajustado por vencimiento (0-100)
-  moduloC: number         // Consistencia autoevaluación (0-100)
+  // Módulos del Índice v3
+  moduloA: number         // Resultados validados (supervisores + admin + autoevaluación)
+  moduloB: number         // Cumplimiento (% objetivos vencidos completados)
+  moduloC: number         // Proactividad (regularidad de avances en plataforma)
+  alineacion: number      // Alineación autoevaluación ↔ supervisor (0-100)
+  evolucion: number       // Tendencia vs período anterior (0-100)
 }
 
 export type NivelTraza = 'Elite' | 'Avanzado' | 'Profesional' | 'Inicial'

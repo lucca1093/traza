@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import TraceIndexBar from '@/components/ui/TraceIndexBar'
-import { calcularIndiceTraza, calcularIndiceAutonomo, calcularIndiceDual } from '@/lib/traza'
+import { calcularIndiceTraza } from '@/lib/traza'
 import { Award, CheckCircle2 } from 'lucide-react'
 import type { Objetivo, Persona, Profile } from '@/types'
 
@@ -63,9 +63,7 @@ export default function TalentCardPage() {
 
   if (loading) return <div className="text-gray-400 py-12 text-center">Cargando...</div>
 
-  const indice   = calcularIndiceTraza(objetivos)
-  const autonomo = calcularIndiceAutonomo(objetivos, avances)
-  const dual     = calcularIndiceDual(indice.score, autonomo)
+  const indice = calcularIndiceTraza(objetivos, avances)
   const logros   = objetivos.filter(o => o.estado === 'Completado').slice(0, 5)
 
   return (
@@ -123,7 +121,7 @@ export default function TalentCardPage() {
                 </div>
                 <div>
                   <div className="flex justify-between text-xs text-gray-500 mb-1">
-                    <span>Calidad de objetivos</span>
+                    <span>Resultados</span>
                     <span className="font-semibold text-gray-700">{indice.moduloA}</span>
                   </div>
                   <div className="h-1.5 rounded-full overflow-hidden bg-gray-100">
@@ -141,7 +139,7 @@ export default function TalentCardPage() {
                 </div>
                 <div>
                   <div className="flex justify-between text-xs text-gray-500 mb-1">
-                    <span>Consistencia</span>
+                    <span>Proactividad</span>
                     <span className="font-semibold text-gray-700">{indice.moduloC}</span>
                   </div>
                   <div className="h-1.5 rounded-full overflow-hidden bg-gray-100">

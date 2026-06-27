@@ -1,5 +1,5 @@
 import { createAdminClient } from '@/lib/supabase-server'
-import { calcularIndiceTraza, calcularIndiceAutonomo, calcularIndiceDual, generarPerfilNarrativo } from '@/lib/traza'
+import { calcularIndiceTraza, generarPerfilNarrativo } from '@/lib/traza'
 import { ShieldCheck, TrendingUp, Star, Calendar, CheckCircle2, Clock, Building2, Briefcase } from 'lucide-react'
 import type { Objetivo } from '@/types'
 
@@ -67,18 +67,17 @@ export default async function CredencialTrazaPage({ params }: { params: { trazaI
     .order('fecha_limite', { ascending: true })
 
   const objsActuales = (objetivosActuales ?? []) as Objetivo[]
-  const indiceActual = calcularIndiceTraza(objsActuales)
-  const { score, badge, cumplimiento, total, completados, positivos, parciales, negativos, moduloA, moduloB, moduloC } = indiceActual
 
-  // Avances para el índice autónomo
+  // Avances (necesarios para proactividad en el índice v3)
   const { data: avancesRaw } = await supabase
     .from('objetivo_avances')
     .select('*')
     .in('objetivo_id', objsActuales.length > 0 ? objsActuales.map(o => o.id) : ['00000000-0000-0000-0000-000000000000'])
 
-  const indiceAutonomo = calcularIndiceAutonomo(objsActuales, avancesRaw ?? [])
-  const indiceDual = calcularIndiceDual(score, indiceAutonomo)
-  const scoreDisplay = score  // score principal: TRAZA validado (no Dual)
+  const indiceActual = calcularIndiceTraza(objsActuales, avancesRaw ?? [])
+  const { score, badge, cumplimiento, total, completados, positivos, parciales, negativos, moduloA, moduloB, moduloC } = indiceActual
+
+  const scoreDisplay = score  // score principal: TRAZA v3
 
   // Traer objetivos de empresas anteriores (agregados)
   const historialEmpresas: Array<{
@@ -316,9 +315,9 @@ Las 3 oraciones deben cubrir: (1) quién es y dónde trabaja hoy, (2) su evoluci
           </div>
           <div className="space-y-3.5">
             {[
-              { label: 'Calidad de validación', sub: 'Evaluaciones de supervisores y administradores', valor: moduloA, peso: '50%', color: '#1d4ed8' },
-              { label: 'Cumplimiento de objetivos', sub: 'Objetivos completados sobre los comprometidos', valor: moduloB, peso: '30%', color: '#16a34a' },
-              { label: 'Consistencia', sub: 'Alineación entre autoevaluación y validación externa', valor: moduloC, peso: '20%', color: '#7c3aed' },
+              { label: 'Resultados validados', sub: 'Calificaciones de supervisores y administradores', valor: moduloA, peso: '35%', color: '#1d4ed8' },
+              { label: 'Cumplimiento', sub: 'Objetivos completados sobre los comprometidos', valor: moduloB, peso: '25%', color: '#16a34a' },
+              { label: 'Proactividad', sub: 'Regularidad y constancia en el seguimiento de objetivos', valor: moduloC, peso: '20%', color: '#7c3aed' },
             ].map(({ label, sub, valor, peso, color }) => (
               <div key={label}>
                 <div className="flex items-center justify-between mb-1">

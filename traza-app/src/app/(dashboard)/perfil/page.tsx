@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import TraceIndexBar from '@/components/ui/TraceIndexBar'
-import { calcularIndiceTraza, calcularIndiceAutonomo, calcularIndiceDual, getValidacionStyle, getEstadoClasses, formatFecha } from '@/lib/traza'
+import { calcularIndiceTraza, getValidacionStyle, getEstadoClasses, formatFecha } from '@/lib/traza'
 import { CheckCircle2, Trophy, Award, MessageSquare, ChevronDown, ChevronRight, Link2, Paperclip } from 'lucide-react'
 import type { Objetivo, Persona, Profile } from '@/types'
 
@@ -73,7 +73,7 @@ export default function PerfilPage() {
   async function generarNarrativaIA() {
     if (!data.persona) return
     setLoadingIA(true)
-    const indice = calcularIndiceTraza(data.objetivos)
+    const indice = calcularIndiceTraza(data.objetivos, data.avances)
     try {
       const res = await fetch('/api/narrativa', {
         method: 'POST',
@@ -87,7 +87,7 @@ export default function PerfilPage() {
           moduloA:     indice.moduloA,
           moduloB:     indice.moduloB,
           moduloC:     indice.moduloC,
-          autonomo:    autonomo.score,
+          autonomo:    indice.moduloC,
           cumplimiento: indice.cumplimiento,
           total:       indice.total,
           completados: indice.completados,
@@ -104,9 +104,7 @@ export default function PerfilPage() {
 
   if (loading) return <div className="text-gray-400 py-12 text-center">Cargando...</div>
 
-  const indice    = calcularIndiceTraza(data.objetivos)
-  const autonomo  = calcularIndiceAutonomo(data.objetivos, data.avances)
-  const dual      = calcularIndiceDual(indice.score, autonomo)
+  const indice = calcularIndiceTraza(data.objetivos, data.avances)
   const { persona, objetivos } = data
 
   const scoreColor = indice.score >= 85 ? '#16a34a' : indice.score >= 65 ? '#0F4C81' : indice.score >= 40 ? '#d97706' : '#9ca3af'
@@ -222,7 +220,7 @@ export default function PerfilPage() {
             <div className="space-y-3 mb-5">
               <div>
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs text-gray-500">Calidad de objetivos</span>
+                  <span className="text-xs text-gray-500">Resultados</span>
                   <span className="text-xs font-semibold text-gray-700">{indice.moduloA}</span>
                 </div>
                 <div className="h-1.5 rounded-full overflow-hidden bg-gray-100">
@@ -240,7 +238,7 @@ export default function PerfilPage() {
               </div>
               <div>
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs text-gray-500">Consistencia</span>
+                  <span className="text-xs text-gray-500">Proactividad</span>
                   <span className="text-xs font-semibold text-gray-700">{indice.moduloC}</span>
                 </div>
                 <div className="h-1.5 rounded-full overflow-hidden bg-gray-100">
@@ -254,16 +252,16 @@ export default function PerfilPage() {
               <p className="text-xs text-gray-400 mb-3">Detalle por módulo</p>
               <div className="grid grid-cols-3 gap-3">
                 {[
-                  { label: 'Módulo A', sub: 'Validación', val: indice.moduloA, max: 50 },
-                  { label: 'Módulo B', sub: 'Cumplimiento', val: indice.moduloB, max: 30 },
-                  { label: 'Módulo C', sub: 'Consistencia', val: indice.moduloC, max: 20 },
+                  { label: 'Resultados',   sub: '35% del índice', val: indice.moduloA },
+                  { label: 'Cumplimiento', sub: '25% del índice', val: indice.moduloB },
+                  { label: 'Proactividad', sub: '20% del índice', val: indice.moduloC },
                 ].map(m => (
                   <div key={m.label} className="bg-gray-50 rounded-xl p-3 text-center">
                     <p className="text-lg font-bold text-gray-900">{m.val}</p>
                     <p className="text-xs text-gray-500 leading-tight mt-0.5">{m.label}</p>
                     <p className="text-xs text-gray-400">{m.sub}</p>
                     <div className="mt-1.5 h-1 rounded-full bg-gray-200 overflow-hidden">
-                      <div className="h-full rounded-full bg-traza-500" style={{ width: `${(m.val / m.max) * 100}%` }} />
+                      <div className="h-full rounded-full bg-traza-500" style={{ width: `${m.val}%` }} />
                     </div>
                   </div>
                 ))}
