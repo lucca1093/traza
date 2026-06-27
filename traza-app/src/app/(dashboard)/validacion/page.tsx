@@ -33,15 +33,11 @@ export default function ValidacionPage() {
     const { data: prof } = await supabase.from('profiles').select('empresa_id').eq('id', user!.id).single()
     const empresaId = prof?.empresa_id
 
-    const query = supabase
+    const { data: obs } = await supabase
       .from('objetivos')
-      .select('*, persona:personas!inner(id, nombre, apellido, cargo, area, empleo_activo)')
-      .eq('persona.empleo_activo', true)
+      .select('*, persona:personas(id, nombre, apellido, cargo, area)')
+      .eq('empresa_id', empresaId)
       .order('fecha_limite', { ascending: true, nullsFirst: false })
-
-    if (empresaId) query.eq('empresa_id', empresaId)
-
-    const { data: obs } = await query
     setObjetivos(obs ?? [])
 
     // Personas únicas con objetivos

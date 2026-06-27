@@ -40,8 +40,8 @@ export default function ObjetivosPage() {
     setProfile(p)
 
     const [{ data: obs }, { data: pers }] = await Promise.all([
-      supabase.from('objetivos').select('*, persona:personas(id, nombre, apellido, area)').order('fecha_limite', { ascending: true, nullsFirst: false }),
-      supabase.from('personas').select('*').eq('empleo_activo', true).order('apellido'),
+      supabase.from('objetivos').select('*, persona:personas(id, nombre, apellido, area)').eq('empresa_id', p!.empresa_id).order('fecha_limite', { ascending: true, nullsFirst: false }),
+      supabase.from('personas').select('*').eq('empresa_id', p!.empresa_id).eq('empleo_activo', true).order('apellido'),
     ])
 
     setObjetivos(obs ?? [])
