@@ -78,7 +78,7 @@ export default async function CredencialTrazaPage({ params }: { params: { trazaI
 
   const indiceAutonomo = calcularIndiceAutonomo(objsActuales, avancesRaw ?? [])
   const indiceDual = calcularIndiceDual(score, indiceAutonomo)
-  const scoreDisplay = indiceDual.dual  // score principal que se muestra
+  const scoreDisplay = score  // score principal: TRAZA validado (no Dual)
 
   // Traer objetivos de empresas anteriores (agregados)
   const historialEmpresas: Array<{
@@ -246,15 +246,11 @@ Instrucciones:
               <span className="text-white font-black text-base tracking-tight">TRAZA</span>
               <span className="text-blue-300 text-xs font-medium">· Credencial verificada</span>
             </div>
-            <a href="/dashboard"
-              className="flex items-center gap-1.5 text-xs font-medium transition-colors"
-              style={{ color: 'rgba(255,255,255,0.6)' }}
-            >
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M19 12H5M12 5l-7 7 7 7"/>
-              </svg>
-              Volver
-            </a>
+            <div className="flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full"
+              style={{ backgroundColor: 'rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.7)' }}>
+              <ShieldCheck size={10} />
+              Verificado
+            </div>
           </div>
 
           {/* Perfil */}
@@ -317,42 +313,42 @@ Instrucciones:
       {/* ── CONTENIDO ── */}
       <div className="max-w-xl mx-auto px-4 space-y-4" style={{ marginTop: -20 }}>
 
-        {/* Score verificado — desglose visual */}
+        {/* Índice de desempeño verificado */}
         <div className="bg-white rounded-2xl px-5 py-4 shadow-sm">
-          <div className="flex items-center gap-2 mb-3">
+          <div className="flex items-center gap-2 mb-4">
             <ShieldCheck size={14} style={{ color: '#1d4ed8' }} />
-            <span className="text-xs font-semibold text-gray-900">Score verificado</span>
-            <span className="ml-auto text-xs font-bold px-2 py-0.5 rounded-full"
+            <span className="text-sm font-semibold text-gray-900">Índice de desempeño verificado</span>
+            <span className="ml-auto text-sm font-bold px-2.5 py-1 rounded-full"
               style={{ backgroundColor: scoreBg, color: scoreColor }}>
               {scoreDisplay}/100
             </span>
           </div>
-
-          {/* Barra supervisores */}
-          <div className="mb-2.5">
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-xs text-gray-500">👤 Evaluación de supervisores</span>
-              <span className="text-xs font-semibold text-gray-700">{indiceDual.validado}</span>
-            </div>
-            <div className="h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: '#e5e7eb' }}>
-              <div className="h-full rounded-full" style={{ width: `${indiceDual.validado}%`, backgroundColor: '#0F4C81' }} />
-            </div>
+          <div className="space-y-3.5">
+            {[
+              { label: 'Calidad de validación', sub: 'Evaluaciones de supervisores y administradores', valor: moduloA, peso: '50%', color: '#1d4ed8' },
+              { label: 'Cumplimiento de objetivos', sub: 'Objetivos completados sobre los comprometidos', valor: moduloB, peso: '30%', color: '#16a34a' },
+              { label: 'Consistencia', sub: 'Alineación entre autoevaluación y validación externa', valor: moduloC, peso: '20%', color: '#7c3aed' },
+            ].map(({ label, sub, valor, peso, color }) => (
+              <div key={label}>
+                <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs font-semibold text-gray-800">{label}</span>
+                    <span className="text-xs text-gray-400">({peso})</span>
+                  </div>
+                  <span className="text-xs font-bold" style={{ color }}>{valor}/100</span>
+                </div>
+                <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="h-full rounded-full" style={{ width: `${valor}%`, backgroundColor: color }} />
+                </div>
+                <p className="text-xs text-gray-400 mt-0.5">{sub}</p>
+              </div>
+            ))}
           </div>
-
-          {/* Barra autónoma */}
-          <div className="mb-3">
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-xs text-gray-500">⚡ Comportamiento autónomo</span>
-              <span className="text-xs font-semibold text-gray-700">{indiceDual.autonomo}</span>
-            </div>
-            <div className="h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: '#e5e7eb' }}>
-              <div className="h-full rounded-full" style={{ width: `${indiceDual.autonomo}%`, backgroundColor: '#7c3aed' }} />
-            </div>
+          <div className="mt-4 pt-3 border-t border-gray-100">
+            <p className="text-xs text-gray-400">
+              Índice calculado sobre {total} objetivo{total !== 1 ? 's' : ''} · {completados} completado{completados !== 1 ? 's' : ''} · {totalValidadosActuales} con validación supervisora
+            </p>
           </div>
-
-          <p className="text-xs text-gray-400 leading-relaxed">
-            Score combinado: supervisores (60%) + actividad registrada sin validar (40%). Más difícil de inflar que una evaluación tradicional.
-          </p>
         </div>
 
         {/* Narrativa IA */}
@@ -360,12 +356,10 @@ Instrucciones:
           <div className="flex items-center gap-2 mb-3">
             <Star size={14} style={{ color: '#0F4C81' }} strokeWidth={1.75} />
             <h2 className="font-semibold text-gray-900 text-sm">Trayectoria profesional</h2>
-            {narrativaIA && (
-              <span className="ml-auto text-xs px-2 py-0.5 rounded-full font-medium"
-                style={{ backgroundColor: '#ede9fe', color: '#7c3aed' }}>
-                ✦ Análisis IA
-              </span>
-            )}
+            <span className="ml-auto text-xs px-2 py-0.5 rounded-full font-medium"
+              style={{ backgroundColor: narrativaIA ? '#ede9fe' : '#f3f4f6', color: narrativaIA ? '#7c3aed' : '#9ca3af' }}>
+              {narrativaIA ? '✦ Generado con IA' : 'Resumen automático'}
+            </span>
           </div>
           <p className="text-gray-600 leading-relaxed text-sm">{narrativaFinal}</p>
         </div>
@@ -434,55 +428,34 @@ Instrucciones:
           </div>
         )}
 
-        {/* Índice TRAZA empresa actual */}
-        <div className="bg-white rounded-2xl p-5 shadow-sm">
-          <h2 className="font-semibold text-gray-900 text-sm mb-1">Índice TRAZA — {empresaNombreActual ?? 'Empresa actual'}</h2>
-          <p className="text-xs text-gray-400 mb-4">Desglose por módulo en el empleo actual</p>
-          <div className="space-y-4">
-            {[
-              { label: 'Calidad de validación', sub: 'Supervisor + admin + autoevaluación', valor: moduloA, peso: '50%', color: '#1d4ed8' },
-              { label: 'Cumplimiento', sub: 'Objetivos completados sobre los que ya vencieron', valor: moduloB, peso: '30%', color: '#16a34a' },
-              { label: 'Consistencia', sub: 'Alineación autoevaluación vs validación', valor: moduloC, peso: '20%', color: '#7c3aed' },
-            ].map(({ label, sub, valor, peso, color }) => (
-              <div key={label}>
-                <div className="flex items-center justify-between mb-1">
-                  <div>
-                    <span className="text-sm font-semibold text-gray-900">{label}</span>
-                    <span className="ml-2 text-xs text-gray-400">({peso})</span>
-                  </div>
-                  <span className="text-sm font-bold" style={{ color }}>{valor}/100</span>
-                </div>
-                <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                  <div className="h-full rounded-full" style={{ width: `${valor}%`, backgroundColor: color }} />
-                </div>
-                <p className="text-xs text-gray-400 mt-1">{sub}</p>
-              </div>
-            ))}
-          </div>
-          <div className="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between">
-            <span className="text-xs text-gray-400">{total} objetivos · {completados} completados</span>
-            <span className="text-xs text-gray-500">TRAZA: <span className="font-bold" style={{ color: scoreColor }}>{score}</span> · Dual: <span className="font-bold" style={{ color: scoreColor }}>{scoreDisplay}/100</span></span>
-          </div>
-        </div>
 
         {/* Distribución de validaciones (empresa actual) */}
         {totalValidadosActuales > 0 && (
           <div className="bg-white rounded-2xl p-5 shadow-sm">
             <div className="flex items-center gap-2 mb-4">
               <TrendingUp size={14} style={{ color: '#0F4C81' }} strokeWidth={1.75} />
-              <h2 className="font-semibold text-gray-900 text-sm">Calificaciones de supervisores</h2>
-              <span className="ml-auto text-xs text-gray-400">{totalValidadosActuales} total</span>
+              <h2 className="font-semibold text-gray-900 text-sm">Validaciones de supervisores</h2>
+              <span className="ml-auto text-xs text-gray-400">{totalValidadosActuales} evaluaciones</span>
             </div>
-            <div className="flex h-2.5 rounded-full overflow-hidden mb-3" style={{ gap: 2 }}>
+            {/* Porcentaje positivo destacado */}
+            {totalValidadosActuales > 0 && (
+              <div className="mb-3 flex items-center gap-3">
+                <span className="text-2xl font-bold" style={{ color: '#1d4ed8' }}>
+                  {Math.round((positivos / totalValidadosActuales) * 100)}%
+                </span>
+                <span className="text-xs text-gray-500 leading-tight">de objetivos evaluados<br/>con resultado positivo</span>
+              </div>
+            )}
+            <div className="flex h-2 rounded-full overflow-hidden mb-3" style={{ gap: 2 }}>
               {positivos > 0 && <div style={{ flex: positivos, backgroundColor: '#1d4ed8', borderRadius: 9999 }} />}
               {parciales > 0 && <div style={{ flex: parciales, backgroundColor: '#7c3aed' }} />}
               {negativos > 0 && <div style={{ flex: negativos, backgroundColor: '#dc2626', borderRadius: 9999 }} />}
             </div>
             <div className="flex flex-wrap gap-3 mt-3">
               {[
-                { n: positivos, label: 'De acuerdo', color: '#1d4ed8' },
-                { n: parciales, label: 'Parcialmente', color: '#7c3aed' },
-                { n: negativos, label: 'En desacuerdo', color: '#dc2626' },
+                { n: positivos, label: 'Positivo', color: '#1d4ed8' },
+                { n: parciales, label: 'Con observaciones', color: '#7c3aed' },
+                { n: negativos, label: 'A reforzar', color: '#dc2626' },
               ].filter(x => x.n > 0).map(({ n, label, color }) => (
                 <div key={label} className="flex items-center gap-1.5">
                   <span className="w-2 h-2 rounded-full inline-block" style={{ backgroundColor: color }} />
@@ -525,16 +498,19 @@ Instrucciones:
         )}
 
         {/* Footer */}
-        <div className="py-6 flex flex-col items-center gap-1.5">
+        <div className="py-6 flex flex-col items-center gap-2">
           <div className="flex items-center gap-1.5">
-            <ShieldCheck size={12} style={{ color: '#9ca3af' }} />
-            <p className="text-xs text-gray-400">
-              Credencial generada y verificada por <span className="font-bold text-gray-500">TRAZA</span>
+            <ShieldCheck size={12} style={{ color: '#6b7280' }} />
+            <p className="text-xs font-medium text-gray-500">
+              Verificado por <span className="font-bold text-gray-700">TRAZA</span> · Performance Intelligence Platform
             </p>
           </div>
-          <p className="text-xs" style={{ color: '#d1d5db' }}>Actualizada el {ahora}</p>
-          <p className="text-xs mt-1 text-center max-w-xs" style={{ color: '#e5e7eb' }}>
-            Esta credencial refleja datos reales validados por supervisores a lo largo de toda la trayectoria profesional en empresas que usan TRAZA.
+          <p className="text-xs text-gray-400">Actualizada el {ahora}</p>
+          <p className="text-xs text-gray-400 font-mono tracking-wide mt-0.5">
+            traza.app/p/{personaActual.traza_id}
+          </p>
+          <p className="text-xs mt-2 text-center max-w-xs text-gray-400 leading-relaxed">
+            Esta credencial refleja datos reales validados por supervisores a lo largo de toda la trayectoria profesional.
           </p>
         </div>
 
