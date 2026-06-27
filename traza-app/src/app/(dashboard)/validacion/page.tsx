@@ -29,10 +29,19 @@ export default function ValidacionPage() {
   const [replyOpen, setReplyOpen] = useState<Record<string, boolean>>({})
 
   async function fetchData() {
-    const { data: obs } = await supabase
+    const { data: { user } } = await supabase.auth.getUser()
+    const { data: prof } = await supabase.from('profiles').select('empresa_id').eq('id', user!.id).single()
+    const empresaId = prof?.empresa_id
+
+    const query = supabase
       .from('objetivos')
-      .select('*, persona:personas(id, nombre, apellido, cargo, area)')
+      .select('*, persona:personas!inner(id, nombre, apellido, cargo, area, empleo_activo)')
+      .eq('persona.empleo_activo', true)
       .order('fecha_limite', { ascending: true, nullsFirst: false })
+
+    if (empresaId) query.eq('empresa_id', empresaId)
+
+    const { data: obs } = await query
     setObjetivos(obs ?? [])
 
     // Personas únicas con objetivos
