@@ -406,7 +406,7 @@ Las 3 oraciones deben cubrir: (1) quién es y dónde trabaja hoy, (2) su evoluci
                           </div>
                           <div className="h-1 bg-gray-100 rounded-full overflow-hidden">
                             <div className="h-full rounded-full"
-                              style={{ width: `${pct}%`, backgroundColor: h.activo ? '#0F4C81' : '#9ca3af' }} />
+                              style={{ width: `${h.score}%`, backgroundColor: h.activo ? '#0F4C81' : '#9ca3af' }} />
                           </div>
                         </div>
                       )}
@@ -464,25 +464,30 @@ Las 3 oraciones deben cubrir: (1) quién es y dónde trabaja hoy, (2) su evoluci
               <h2 className="font-semibold text-gray-900 text-sm">Actividad trimestral</h2>
             </div>
             <div className="space-y-3">
-              {timelineEntries.map(([key, entry]) => {
-                const totalTri = entry.completados
-                const pctPos = totalTri > 0 ? Math.round((entry.validadosPos / totalTri) * 100) : 0
-                return (
-                  <div key={key} className="flex items-center gap-3">
-                    <span className="text-xs font-medium text-gray-400 w-20 flex-shrink-0">
-                      {formatTrimestreLabel(key)}
-                    </span>
-                    <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: '#f1f5f9' }}>
-                      <div className="h-full rounded-full"
-                        style={{ width: `${pctPos}%`, backgroundColor: pctPos >= 80 ? '#16a34a' : pctPos >= 50 ? '#0F4C81' : '#d97706' }} />
+              {(() => {
+                const maxCompletados = Math.max(...timelineEntries.map(([, e]) => e.completados), 1)
+                return timelineEntries.map(([key, entry]) => {
+                  const pctPos = entry.completados > 0 ? Math.round((entry.validadosPos / entry.completados) * 100) : 0
+                  // Ancho proporcional al máximo del período (mín 20% para que siempre sea visible)
+                  const barWidth = Math.max(20, Math.round((entry.completados / maxCompletados) * 100))
+                  const barColor = pctPos >= 80 ? '#16a34a' : pctPos >= 50 ? '#0F4C81' : entry.validadosPos === 0 ? '#9ca3af' : '#d97706'
+                  return (
+                    <div key={key} className="flex items-center gap-3">
+                      <span className="text-xs font-medium text-gray-400 w-20 flex-shrink-0">
+                        {formatTrimestreLabel(key)}
+                      </span>
+                      <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: '#f1f5f9' }}>
+                        <div className="h-full rounded-full transition-all"
+                          style={{ width: `${barWidth}%`, backgroundColor: barColor }} />
+                      </div>
+                      <span className="text-xs text-gray-500 flex-shrink-0 w-24 text-right">
+                        {entry.completados} completado{entry.completados !== 1 ? 's' : ''}
+                        {entry.validadosPos > 0 && ` · ${entry.validadosPos} ✓`}
+                      </span>
                     </div>
-                    <span className="text-xs text-gray-500 flex-shrink-0 w-24 text-right">
-                      {entry.completados} completado{entry.completados !== 1 ? 's' : ''}
-                      {entry.validadosPos > 0 && ` · ${entry.validadosPos} ✓`}
-                    </span>
-                  </div>
-                )
-              })}
+                  )
+                })
+              })()}
             </div>
           </div>
         )}
