@@ -48,7 +48,7 @@ export function calcularIndiceTraza(objetivos: Objetivo[]): IndiceTraza {
   // ── Módulo A: Calidad de validación (0–100) ───────────────
   const supScore:  Record<string, number> = { 'De acuerdo': 1.0, 'Parcialmente de acuerdo': 0.5, 'En desacuerdo': 0.0 }
   const adminScore: Record<string, number> = { 'De acuerdo': 1.0, 'Parcialmente de acuerdo': 0.5, 'En desacuerdo': 0.0 }
-  const autoScore: Record<string, number> = { 'De acuerdo': 1.0, 'Parcialmente de acuerdo': 0.5, 'En desacuerdo': 0.0 }
+  const autoScore: Record<string, number> = { 'De acuerdo': 1.0, 'Parcialmente de acuerdo': 0.5, 'En desacuerdo': 0.0, 'Cumplido': 1.0, 'Parcialmente cumplido': 0.5, 'No cumplido': 0.0 }
 
   const conValidacion = objetivos.filter(o => o.validacion)
   let moduloA = 50 // neutro si no hay validaciones
@@ -86,7 +86,7 @@ export function calcularIndiceTraza(objetivos: Objetivo[]): IndiceTraza {
   let moduloC = 50 // neutro si no hay autoevaluaciones
   if (conAmbas.length > 0) {
     const sup2num:  Record<string, number> = { 'De acuerdo': 2, 'Parcialmente de acuerdo': 1, 'En desacuerdo': 0 }
-    const auto2num: Record<string, number> = { 'De acuerdo': 2, 'Parcialmente de acuerdo': 1, 'En desacuerdo': 0 }
+    const auto2num: Record<string, number> = { 'De acuerdo': 2, 'Parcialmente de acuerdo': 1, 'En desacuerdo': 0, 'Cumplido': 2, 'Parcialmente cumplido': 1, 'No cumplido': 0 }
     const consistentes = conAmbas.filter(o => {
       const diff = Math.abs((sup2num[o.validacion!] ?? 1) - (auto2num[(o as any).autoevaluacion] ?? 1))
       return diff <= 1 // coinciden o difieren en 1 punto
@@ -179,10 +179,11 @@ export function detectarDiscrepancia(
   if (!autoevaluacion || !validacion) return null
 
   const autoScore: Record<string, number> = {
-    'De acuerdo': 2, 'Parcialmente de acuerdo': 1, 'En desacuerdo': 0
+    'De acuerdo': 2, 'Parcialmente de acuerdo': 1, 'En desacuerdo': 0,
+    'Cumplido': 2, 'Parcialmente cumplido': 1, 'No cumplido': 0,
   }
   const supScore: Record<string, number> = {
-    'De acuerdo': 2, 'Parcialmente de acuerdo': 1, 'En desacuerdo': 0
+    'De acuerdo': 2, 'Parcialmente de acuerdo': 1, 'En desacuerdo': 0,
   }
 
   const diff = Math.abs((autoScore[autoevaluacion] ?? 1) - (supScore[validacion] ?? 1))
@@ -196,6 +197,9 @@ export function getValidacionStyle(validacion: string | null): { backgroundColor
     'De acuerdo':              { backgroundColor: '#dbeafe', color: '#1d4ed8' },
     'Parcialmente de acuerdo': { backgroundColor: '#ede9fe', color: '#6d28d9' },
     'En desacuerdo':           { backgroundColor: '#ffedd5', color: '#c2410c' },
+    'Cumplido':                { backgroundColor: '#dbeafe', color: '#1d4ed8' },
+    'Parcialmente cumplido':   { backgroundColor: '#ede9fe', color: '#6d28d9' },
+    'No cumplido':             { backgroundColor: '#ffedd5', color: '#c2410c' },
   }
   return map[validacion ?? ''] ?? { backgroundColor: '#f3f4f6', color: '#6b7280' }
 }
@@ -274,7 +278,8 @@ export function calcularIndiceAutonomo(
   let precisionHistorica = 50 // neutro si no hay datos suficientes
   if (conAmbas.length > 0) {
     const score2num: Record<string, number> = {
-      'De acuerdo': 2, 'Parcialmente de acuerdo': 1, 'En desacuerdo': 0
+      'De acuerdo': 2, 'Parcialmente de acuerdo': 1, 'En desacuerdo': 0,
+      'Cumplido': 2, 'Parcialmente cumplido': 1, 'No cumplido': 0,
     }
     const precisos = conAmbas.filter(o => {
       const diff = Math.abs(
@@ -373,7 +378,7 @@ export function generarPerfilNarrativo(input: PerfilNarrativoInput): string {
 
   const validados = objetivos.filter(o => !!o.validacion)
   const conAutoeval = objetivos.filter(o => (o as any).autoevaluacion)
-  const autoSatisfecho = conAutoeval.filter(o => (o as any).autoevaluacion === 'De acuerdo').length
+  const autoSatisfecho = conAutoeval.filter(o => ['De acuerdo', 'Cumplido'].includes((o as any).autoevaluacion)).length
   const consistencia = conAutoeval.length > 0
     ? Math.round((autoSatisfecho / conAutoeval.length) * 100)
     : null
