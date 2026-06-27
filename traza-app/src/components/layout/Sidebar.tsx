@@ -63,7 +63,7 @@ export default function Sidebar({ profile, empresaNombre }: SidebarProps) {
             <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: '#10b981' }} />
             <div className="min-w-0">
               <p className="text-xs truncate font-medium" style={{ color: '#6ee7b7' }}>{empresaNombre}</p>
-              <p className="text-xs" style={{ color: '#374151', fontSize: '10px' }}>Empresa activa</p>
+              <p className="text-xs" style={{ color: '#6B7280', fontSize: '10px' }}>Empresa activa</p>
             </div>
           </div>
         </div>

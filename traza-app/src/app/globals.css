@@ -82,4 +82,46 @@ html, body {
   .traza-divider {
     border-color: #EDEAE4;
   }
+
+  /* ── Tabs ───────────────────────────────────────────── */
+  .traza-tabs {
+    @apply flex gap-1 p-1 rounded-xl;
+    background: #EDEAE4;
+  }
+  .traza-tab {
+    @apply flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-all text-center cursor-pointer;
+    color: #6B7280;
+  }
+  .traza-tab:hover {
+    color: #374151;
+    background: rgba(255,255,255,0.6);
+  }
+  .traza-tab.active {
+    @apply bg-white shadow-sm;
+    color: #111827;
+  }
+
+  /* ── Empty state ────────────────────────────────────── */
+  .traza-empty {
+    @apply flex flex-col items-center justify-center py-12 text-center;
+  }
+  .traza-empty-icon {
+    @apply w-12 h-12 rounded-2xl flex items-center justify-center mb-4;
+    background: #F0EFEB;
+  }
+  .traza-empty p {
+    color: #9CA3AF;
+    font-size: 0.875rem;
+  }
+
+  /* ── Page header ────────────────────────────────────── */
+  .traza-page-header {
+    @apply flex items-start justify-between gap-4 pb-6;
+    border-bottom: 1px solid #EDEAE4;
+  }
+
+  /* ── Scroll fade ────────────────────────────────────── */
+  .traza-scroll-fade {
+    mask-image: linear-gradient(to bottom, black 85%, transparent 100%);
+  }
 }

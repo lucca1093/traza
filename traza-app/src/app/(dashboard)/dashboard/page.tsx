@@ -18,29 +18,29 @@ export default async function DashboardPage() {
   if (!profile) return null
 
   const esAdmin = ['admin', 'super_admin', 'supervisor'].includes(profile.rol)
+  const empresaId = profile.empresa_id
 
   /* ── ADMIN / SUPERVISOR ── */
   if (esAdmin) {
     const { count: totalPersonas } = await supabase
-      .from('personas').select('*', { count: 'exact', head: true }).eq('empleo_activo', true)
+      .from('personas').select('*', { count: 'exact', head: true })
+      .eq('empresa_id', empresaId)
+      .eq('empleo_activo', true)
 
-    const { data: objetivos } = await supabase.from('objetivos').select('*')
+    const { data: objetivos } = await supabase
+      .from('objetivos').select('*')
+      .eq('empresa_id', empresaId)
     const objs        = (objetivos ?? []) as Objetivo[]
     const totalObjs   = objs.length
     const completados = objs.filter(o => o.estado === 'Completado').length
     const cumplimiento = totalObjs > 0 ? Math.round(completados / totalObjs * 100) : 0
     const pendValidar  = objs.filter(o => o.estado === 'Completado' && !o.validacion).length
 
-    const { data: recientes } = await supabase
-      .from('objetivos')
-      .select('*, persona:personas(nombre, apellido)')
-      .order('created_at', { ascending: false })
-      .limit(6)
-
-    // Avances recientes del equipo
+    // Avances recientes del equipo (filtrado por empresa via join en objetivos)
     const { data: avancesEquipo } = await supabase
       .from('objetivo_avances')
-      .select('*, objetivo:objetivos(id, titulo, estado, validacion), persona:personas(nombre, apellido)')
+      .select('*, objetivo:objetivos!inner(id, titulo, estado, validacion, empresa_id), persona:personas(nombre, apellido)')
+      .eq('objetivo.empresa_id', empresaId)
       .order('creado_en', { ascending: false })
       .limit(8)
 
@@ -54,33 +54,50 @@ export default async function DashboardPage() {
     })()
     const { data: cierres } = await supabase
       .from('cierres_semanales')
-      .select('*, persona:personas(nombre, apellido)')
+      .select('*, persona:personas!inner(nombre, apellido, empresa_id)')
+      .eq('persona.empresa_id', empresaId)
       .eq('semana', lunes)
       .order('creado_en', { ascending: false })
 
     return (
       <div className="space-y-8">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Buen día, {profile.nombre}</h1>
-          <p className="text-gray-500 mt-1">
-            {new Date().toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' })}
-          </p>
+        {/* Page header */}
+        <div className="traza-page-header">
+          <div>
+            <h1 className="traza-page-title">Buen día, {profile.nombre}</h1>
+            <p className="traza-page-sub capitalize">
+              {new Date().toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' })}
+            </p>
+          </div>
         </div>
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <MetricCard icon="Users"       label="Colaboradores"   value={totalPersonas ?? 0} />
+          <MetricCard icon="Users"       label="Colaboradores"     value={totalPersonas ?? 0} />
           <MetricCard icon="Target"      label="Objetivos activos" value={totalObjs - completados} />
-          <MetricCard icon="CheckSquare" label="Completados"     value={completados} />
-          <MetricCard icon="TrendingUp"  label="Cumplimiento"    value={`${cumplimiento}%`} highlight />
+          <MetricCard icon="CheckSquare" label="Completados"       value={completados} />
+          <MetricCard icon="TrendingUp"  label="Cumplimiento"      value={`${cumplimiento}%`} highlight />
         </div>
 
         {pendValidar > 0 && (
-          <div className="flex items-center gap-3 bg-amber-50 border border-amber-200 rounded-2xl px-5 py-4">
-            <AlertTriangle size={18} className="text-amber-500 flex-shrink-0" strokeWidth={1.75} />
-            <p className="text-sm text-amber-800">
-              <span className="font-semibold">{pendValidar} objetivo{pendValidar > 1 ? 's' : ''}</span> completado{pendValidar > 1 ? 's' : ''} esperan tu validación.
-              {' '}<Link href="/validacion" className="underline font-medium">Ir a Validación →</Link>
-            </p>
+          <div
+            className="flex items-center justify-between gap-4 rounded-2xl px-5 py-4"
+            style={{ backgroundColor: '#FFFBEB', border: '1px solid #FDE68A' }}
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#FEF3C7' }}>
+                <AlertTriangle size={15} strokeWidth={1.75} style={{ color: '#D97706' }} />
+              </div>
+              <p className="text-sm" style={{ color: '#92400E' }}>
+                <span className="font-semibold">{pendValidar} objetivo{pendValidar > 1 ? 's' : ''}</span> completado{pendValidar > 1 ? 's' : ''} esperan validación.
+              </p>
+            </div>
+            <Link
+              href="/validacion"
+              className="flex-shrink-0 text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors"
+              style={{ backgroundColor: '#FDE68A', color: '#92400E' }}
+            >
+              Validar →
+            </Link>
           </div>
         )}
 
@@ -226,11 +243,13 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Buen día, {profile.nombre}</h1>
-        <p className="text-gray-500 mt-1">
-          {new Date().toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' })}
-        </p>
+      <div className="traza-page-header">
+        <div>
+          <h1 className="traza-page-title">Buen día, {profile.nombre}</h1>
+          <p className="traza-page-sub capitalize">
+            {new Date().toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' })}
+          </p>
+        </div>
       </div>
 
       {/* Métricas */}
