@@ -107,7 +107,7 @@ export default function TalentCardPage() {
                 </div>
                 <div className="bg-white/10 rounded-2xl p-4 text-center min-w-[120px]">
                   <p className="text-traza-200 text-xs mb-1">Índice TRAZA</p>
-                  <p className="text-white text-4xl font-bold">{dual.dual}</p>
+                  <p className="text-white text-4xl font-bold">{indice.score}</p>
                   <p className="text-traza-300 text-sm">/100</p>
                 </div>
               </div>
@@ -119,24 +119,33 @@ export default function TalentCardPage() {
               <div className="space-y-2.5">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-semibold text-gray-700">{indice.badge}</span>
-                  <span className="text-sm text-gray-400">{dual.dual}/100 · score verificado</span>
+                  <span className="text-sm text-gray-400">{indice.score}/100 · score verificado</span>
                 </div>
                 <div>
                   <div className="flex justify-between text-xs text-gray-500 mb-1">
-                    <span>Evaluación de supervisores</span>
-                    <span className="font-semibold text-gray-700">{dual.validado}</span>
+                    <span>Calidad de objetivos</span>
+                    <span className="font-semibold text-gray-700">{indice.moduloA}</span>
                   </div>
                   <div className="h-1.5 rounded-full overflow-hidden bg-gray-100">
-                    <div className="h-full rounded-full" style={{ width: `${dual.validado}%`, backgroundColor: '#0F4C81' }} />
+                    <div className="h-full rounded-full" style={{ width: `${indice.moduloA}%`, backgroundColor: '#0F4C81' }} />
                   </div>
                 </div>
                 <div>
                   <div className="flex justify-between text-xs text-gray-500 mb-1">
-                    <span>Comportamiento autónomo</span>
-                    <span className="font-semibold text-gray-700">{dual.autonomo}</span>
+                    <span>Cumplimiento</span>
+                    <span className="font-semibold text-gray-700">{indice.moduloB}</span>
                   </div>
                   <div className="h-1.5 rounded-full overflow-hidden bg-gray-100">
-                    <div className="h-full rounded-full" style={{ width: `${dual.autonomo}%`, backgroundColor: '#7c3aed' }} />
+                    <div className="h-full rounded-full" style={{ width: `${indice.moduloB}%`, backgroundColor: '#0F4C81' }} />
+                  </div>
+                </div>
+                <div>
+                  <div className="flex justify-between text-xs text-gray-500 mb-1">
+                    <span>Consistencia</span>
+                    <span className="font-semibold text-gray-700">{indice.moduloC}</span>
+                  </div>
+                  <div className="h-1.5 rounded-full overflow-hidden bg-gray-100">
+                    <div className="h-full rounded-full" style={{ width: `${indice.moduloC}%`, backgroundColor: '#0F4C81' }} />
                   </div>
                 </div>
               </div>
@@ -185,7 +194,7 @@ export default function TalentCardPage() {
                   <strong>{persona.nombre} {persona.apellido}</strong> se desempeña
                   {persona.area ? ` en el área de ${persona.area}` : ''}
                   {persona.cargo ? ` como ${persona.cargo}` : ''}.
-                  {' '}Posee un Índice TRAZA de <strong>{dual.dual}/100</strong>,
+                  {' '}Posee un Índice TRAZA de <strong>{indice.score}/100</strong>,
                   nivel <strong>{indice.nivel}</strong>, con un cumplimiento
                   de objetivos del <strong>{indice.cumplimiento}%</strong>.
                 </p>

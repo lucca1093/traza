@@ -83,7 +83,7 @@ export default function PerfilPage() {
           apellido:    data.persona.apellido,
           cargo:       data.persona.cargo,
           area:        data.persona.area,
-          score:       dual.dual,
+          score:       indice.score,
           moduloA:     indice.moduloA,
           moduloB:     indice.moduloB,
           moduloC:     indice.moduloC,
@@ -109,8 +109,8 @@ export default function PerfilPage() {
   const dual      = calcularIndiceDual(indice.score, autonomo)
   const { persona, objetivos } = data
 
-  const scoreColor = dual.dual >= 85 ? '#16a34a' : dual.dual >= 65 ? '#0F4C81' : dual.dual >= 40 ? '#d97706' : '#9ca3af'
-  const scoreBg    = dual.dual >= 85 ? '#dcfce7' : dual.dual >= 65 ? '#dbeafe' : dual.dual >= 40 ? '#fef3c7' : '#f3f4f6'
+  const scoreColor = indice.score >= 85 ? '#16a34a' : indice.score >= 65 ? '#0F4C81' : indice.score >= 40 ? '#d97706' : '#9ca3af'
+  const scoreBg    = indice.score >= 85 ? '#dcfce7' : indice.score >= 65 ? '#dbeafe' : indice.score >= 40 ? '#fef3c7' : '#f3f4f6'
   const ultimasFeedbacks = objetivos.filter(o => o.comentario_supervisor?.trim()).slice(0, 5)
   const logros = objetivos.filter(o => o.estado === 'Completado').slice(0, 5)
 
@@ -211,7 +211,7 @@ export default function PerfilPage() {
 
             {/* Score principal */}
             <div className="flex items-end gap-3 mb-5">
-              <span className="text-5xl font-bold leading-none" style={{ color: scoreColor }}>{dual.dual}</span>
+              <span className="text-5xl font-bold leading-none" style={{ color: scoreColor }}>{indice.score}</span>
               <div className="pb-1">
                 <span className="text-sm text-gray-400">/100</span>
                 <p className="text-xs text-gray-400 mt-0.5">Score verificado</p>
@@ -222,20 +222,29 @@ export default function PerfilPage() {
             <div className="space-y-3 mb-5">
               <div>
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs text-gray-500">Evaluación de supervisores</span>
-                  <span className="text-xs font-semibold text-gray-700">{dual.validado}</span>
+                  <span className="text-xs text-gray-500">Calidad de objetivos</span>
+                  <span className="text-xs font-semibold text-gray-700">{indice.moduloA}</span>
                 </div>
                 <div className="h-1.5 rounded-full overflow-hidden bg-gray-100">
-                  <div className="h-full rounded-full" style={{ width: `${dual.validado}%`, backgroundColor: '#0F4C81' }} />
+                  <div className="h-full rounded-full" style={{ width: `${indice.moduloA}%`, backgroundColor: '#0F4C81' }} />
                 </div>
               </div>
               <div>
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs text-gray-500">Comportamiento autónomo</span>
-                  <span className="text-xs font-semibold text-gray-700">{dual.autonomo}</span>
+                  <span className="text-xs text-gray-500">Cumplimiento</span>
+                  <span className="text-xs font-semibold text-gray-700">{indice.moduloB}</span>
                 </div>
                 <div className="h-1.5 rounded-full overflow-hidden bg-gray-100">
-                  <div className="h-full rounded-full" style={{ width: `${dual.autonomo}%`, backgroundColor: '#7c3aed' }} />
+                  <div className="h-full rounded-full" style={{ width: `${indice.moduloB}%`, backgroundColor: '#0F4C81' }} />
+                </div>
+              </div>
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-xs text-gray-500">Consistencia</span>
+                  <span className="text-xs font-semibold text-gray-700">{indice.moduloC}</span>
+                </div>
+                <div className="h-1.5 rounded-full overflow-hidden bg-gray-100">
+                  <div className="h-full rounded-full" style={{ width: `${indice.moduloC}%`, backgroundColor: '#0F4C81' }} />
                 </div>
               </div>
             </div>
