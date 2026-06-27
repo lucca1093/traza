@@ -153,23 +153,13 @@ export default async function CredencialTrazaPage({ params }: { params: { trazaI
         `- ${h.empresa} (${formatPeriodo(h.inicio, h.fin)}): ${h.cargo ?? 'Sin cargo registrado'} · ${h.completadosObj} objetivos completados, ${h.positivosObj} validados positivamente`
       ).join('\n')
 
-      const promptIA = `Sos un sistema experto en análisis de trayectorias profesionales. Escribí UN párrafo en español (4-5 oraciones), en tono profesional y cercano, sobre la trayectoria completa de este profesional a través de múltiples empresas.
+      const promptIA = `Sos redactor de credenciales profesionales verificadas. Escribí exactamente 3 oraciones en español sobre este profesional. Tono: conciso, formal, orientado a resultados. Sin bullet points, solo prosa.
 
-Datos del profesional:
-- Nombre: ${personaActual.nombre} ${personaActual.apellido}
-- Empresa actual: ${empresaNombreActual ?? 'No registrada'} · Cargo: ${personaActual.cargo ?? 'N/D'}
-- Índice TRAZA actual: ${score}/100 (${badge}) · Índice Dual: ${scoreDisplay}/100 (validado ${indiceDual.validado} × 60% + autónomo ${indiceDual.autonomo} × 40%)
-- Total objetivos en toda su trayectoria: ${totalObjGlobal}, Completados: ${completadosGlobal}, Validados positivos: ${positivosGlobal}
-- Score global acumulado: ${scoreGlobal}/100
-- Empresas anteriores:
-${historialTexto || '(Sin historial previo registrado)'}
+Profesional: ${personaActual.nombre} ${personaActual.apellido} · ${personaActual.cargo ?? ''} en ${empresaNombreActual ?? ''}
+Trayectoria: ${todasLasPersonas.length} empresas desde ${miembroDesde ?? 'inicio de carrera'}, ${completadosGlobal} objetivos completados, ${positivosGlobal} validados positivamente por supervisores. Score TRAZA: ${scoreGlobal}/100.
+Empresas anteriores: ${historialTexto || 'No registradas'}
 
-Instrucciones:
-- Escribí en tercera persona (ej: "${personaActual.nombre} ha construido...")
-- Mencioná la evolución a lo largo de distintas industrias/empresas
-- Destacá la consistencia o el crecimiento en su desempeño
-- Terminá con una frase sobre su posición actual o potencial futuro
-- NO uses bullet points, solo prosa fluida`
+Las 3 oraciones deben cubrir: (1) quién es y dónde trabaja hoy, (2) su evolución de carrera y sectores, (3) su consistencia de desempeño validada. Sé directo, sin adornos.`
 
       const resp = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
@@ -180,7 +170,7 @@ Instrucciones:
         },
         body: JSON.stringify({
           model: 'claude-haiku-4-5-20251001',
-          max_tokens: 400,
+          max_tokens: 180,
           messages: [{ role: 'user', content: promptIA }],
         }),
       })
@@ -346,7 +336,7 @@ Instrucciones:
           </div>
           <div className="mt-4 pt-3 border-t border-gray-100">
             <p className="text-xs text-gray-400">
-              Índice calculado sobre {total} objetivo{total !== 1 ? 's' : ''} · {completados} completado{completados !== 1 ? 's' : ''} · {totalValidadosActuales} con validación supervisora
+              Basado en {totalValidadosActuales} objetivo{totalValidadosActuales !== 1 ? 's' : ''} con validación supervisora · empresa actual
             </p>
           </div>
         </div>
@@ -358,7 +348,7 @@ Instrucciones:
             <h2 className="font-semibold text-gray-900 text-sm">Trayectoria profesional</h2>
             <span className="ml-auto text-xs px-2 py-0.5 rounded-full font-medium"
               style={{ backgroundColor: narrativaIA ? '#ede9fe' : '#f3f4f6', color: narrativaIA ? '#7c3aed' : '#9ca3af' }}>
-              {narrativaIA ? '✦ Generado con IA' : 'Resumen automático'}
+              {narrativaIA ? 'Análisis IA' : 'Resumen automático'}
             </span>
           </div>
           <p className="text-gray-600 leading-relaxed text-sm">{narrativaFinal}</p>
@@ -471,7 +461,7 @@ Instrucciones:
           <div className="bg-white rounded-2xl p-5 shadow-sm">
             <div className="flex items-center gap-2 mb-4">
               <Calendar size={14} style={{ color: '#0F4C81' }} strokeWidth={1.75} />
-              <h2 className="font-semibold text-gray-900 text-sm">Actividad trimestral — empresa actual</h2>
+              <h2 className="font-semibold text-gray-900 text-sm">Actividad trimestral</h2>
             </div>
             <div className="space-y-3">
               {timelineEntries.map(([key, entry]) => {
