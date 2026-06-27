@@ -144,6 +144,15 @@ export default async function CredencialTrazaPage({ params }: { params: { trazaI
 
   const empresasAnteriores = historialEmpresas.filter(h => !h.activo)
 
+  // miembroDesde necesario antes del prompt IA
+  const miembroDesde = historialEmpresas.length > 0
+    ? (() => {
+        const fechas = historialEmpresas.map(h => h.inicio).filter(Boolean) as string[]
+        const earliest = fechas.sort()[0]
+        return earliest ? new Date(earliest).toLocaleDateString('es-AR', { month: 'long', year: 'numeric' }) : null
+      })()
+    : null
+
   // Narrativa IA con historial completo
   let narrativaIA: string | null = null
   try {
@@ -209,14 +218,6 @@ Las 3 oraciones deben cubrir: (1) quién es y dónde trabaja hoy, (2) su evoluci
   const ultimaValidacion = objsActuales
     .filter(o => !!o.validacion && o.fecha_limite)
     .sort((a, b) => new Date(b.fecha_limite!).getTime() - new Date(a.fecha_limite!).getTime())[0]
-
-  const miembroDesde = historialEmpresas.length > 0
-    ? (() => {
-        const fechas = historialEmpresas.map(h => h.inicio).filter(Boolean) as string[]
-        const earliest = fechas.sort()[0]
-        return earliest ? new Date(earliest).toLocaleDateString('es-AR', { month: 'long', year: 'numeric' }) : null
-      })()
-    : null
 
   const scoreColor = scoreDisplay >= 85 ? '#16a34a' : scoreDisplay >= 65 ? '#0F4C81' : scoreDisplay >= 40 ? '#d97706' : '#9ca3af'
   const scoreBg    = scoreDisplay >= 85 ? '#dcfce7' : scoreDisplay >= 65 ? '#dbeafe' : scoreDisplay >= 40 ? '#fef3c7' : '#f3f4f6'
