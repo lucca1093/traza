@@ -146,6 +146,24 @@ export default function TalentCardPage() {
                     <div className="h-full rounded-full" style={{ width: `${indice.moduloC}%`, backgroundColor: '#0F4C81' }} />
                   </div>
                 </div>
+                <div>
+                  <div className="flex justify-between text-xs text-gray-500 mb-1">
+                    <span>Alineación</span>
+                    <span className="font-semibold text-gray-700">{indice.alineacion}</span>
+                  </div>
+                  <div className="h-1.5 rounded-full overflow-hidden bg-gray-100">
+                    <div className="h-full rounded-full" style={{ width: `${indice.alineacion}%`, backgroundColor: '#0891b2' }} />
+                  </div>
+                </div>
+                <div>
+                  <div className="flex justify-between text-xs text-gray-500 mb-1">
+                    <span>Evolución</span>
+                    <span className="font-semibold text-gray-700">{indice.evolucion}</span>
+                  </div>
+                  <div className="h-1.5 rounded-full overflow-hidden bg-gray-100">
+                    <div className="h-full rounded-full" style={{ width: `${indice.evolucion}%`, backgroundColor: '#d97706' }} />
+                  </div>
+                </div>
               </div>
 
               {/* Métricas */}

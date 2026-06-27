@@ -245,6 +245,24 @@ export default function PerfilPage() {
                   <div className="h-full rounded-full" style={{ width: `${indice.moduloC}%`, backgroundColor: '#0F4C81' }} />
                 </div>
               </div>
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-xs text-gray-500">Alineación</span>
+                  <span className="text-xs font-semibold text-gray-700">{indice.alineacion}</span>
+                </div>
+                <div className="h-1.5 rounded-full overflow-hidden bg-gray-100">
+                  <div className="h-full rounded-full" style={{ width: `${indice.alineacion}%`, backgroundColor: '#0891b2' }} />
+                </div>
+              </div>
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-xs text-gray-500">Evolución</span>
+                  <span className="text-xs font-semibold text-gray-700">{indice.evolucion}</span>
+                </div>
+                <div className="h-1.5 rounded-full overflow-hidden bg-gray-100">
+                  <div className="h-full rounded-full" style={{ width: `${indice.evolucion}%`, backgroundColor: '#d97706' }} />
+                </div>
+              </div>
             </div>
 
             {/* Módulos — detalle */}
@@ -252,9 +270,11 @@ export default function PerfilPage() {
               <p className="text-xs text-gray-400 mb-3">Detalle por módulo</p>
               <div className="grid grid-cols-3 gap-3">
                 {[
-                  { label: 'Resultados',   sub: '35% del índice', val: indice.moduloA },
-                  { label: 'Cumplimiento', sub: '25% del índice', val: indice.moduloB },
-                  { label: 'Proactividad', sub: '20% del índice', val: indice.moduloC },
+                  { label: 'Resultados',   sub: '35%', val: indice.moduloA },
+                  { label: 'Cumplimiento', sub: '25%', val: indice.moduloB },
+                  { label: 'Proactividad', sub: '20%', val: indice.moduloC },
+                  { label: 'Alineación',   sub: '10%', val: indice.alineacion },
+                  { label: 'Evolución',    sub: '10%', val: indice.evolucion },
                 ].map(m => (
                   <div key={m.label} className="bg-gray-50 rounded-xl p-3 text-center">
                     <p className="text-lg font-bold text-gray-900">{m.val}</p>

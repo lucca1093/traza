@@ -318,6 +318,8 @@ Las 3 oraciones deben cubrir: (1) quién es y dónde trabaja hoy, (2) su evoluci
               { label: 'Resultados validados', sub: 'Calificaciones de supervisores y administradores', valor: moduloA, peso: '35%', color: '#1d4ed8' },
               { label: 'Cumplimiento', sub: 'Objetivos completados sobre los comprometidos', valor: moduloB, peso: '25%', color: '#16a34a' },
               { label: 'Proactividad', sub: 'Regularidad y constancia en el seguimiento de objetivos', valor: moduloC, peso: '20%', color: '#7c3aed' },
+              { label: 'Alineación', sub: 'Coherencia entre autoevaluación y validación del supervisor', valor: indiceActual.alineacion, peso: '10%', color: '#0891b2' },
+              { label: 'Evolución', sub: 'Tendencia de desempeño respecto al período anterior', valor: indiceActual.evolucion, peso: '10%', color: '#d97706' },
             ].map(({ label, sub, valor, peso, color }) => (
               <div key={label}>
                 <div className="flex items-center justify-between mb-1">
