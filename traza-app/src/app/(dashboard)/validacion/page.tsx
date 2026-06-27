@@ -436,19 +436,21 @@ export default function ValidacionPage() {
                                     <CheckCheck size={13} />
                                     Aprobado
                                   </span>
-                                  <button
-                                    onClick={() => {
-                                      setRespuestas(prev => ({ ...prev, [a.id]: a.respuesta_supervisor ?? '' }))
-                                      setReplyOpen(prev => ({ ...prev, [a.id]: true }))
-                                    }}
-                                    title="Editar respuesta"
-                                    className="w-6 h-6 rounded-md flex items-center justify-center transition-colors"
-                                    style={{ color: '#9ca3af' }}
-                                    onMouseEnter={e => (e.currentTarget.style.color = '#4b5563')}
-                                    onMouseLeave={e => (e.currentTarget.style.color = '#9ca3af')}
-                                  >
-                                    <Pencil size={11} strokeWidth={2} />
-                                  </button>
+                                  {profile && !['admin', 'super_admin'].includes(profile.rol) && (
+                                    <button
+                                      onClick={() => {
+                                        setRespuestas(prev => ({ ...prev, [a.id]: a.respuesta_supervisor ?? '' }))
+                                        setReplyOpen(prev => ({ ...prev, [a.id]: true }))
+                                      }}
+                                      title="Editar respuesta"
+                                      className="w-6 h-6 rounded-md flex items-center justify-center transition-colors"
+                                      style={{ color: '#9ca3af' }}
+                                      onMouseEnter={e => (e.currentTarget.style.color = '#4b5563')}
+                                      onMouseLeave={e => (e.currentTarget.style.color = '#9ca3af')}
+                                    >
+                                      <Pencil size={11} strokeWidth={2} />
+                                    </button>
+                                  )}
                                 </div>
                               ) : (
                                 <>
@@ -464,20 +466,22 @@ export default function ValidacionPage() {
                                   >
                                     <Check size={13} strokeWidth={2.5} />
                                   </button>
-                                  {/* Botón responder */}
-                                  <button
-                                    onClick={() => setReplyOpen(prev => ({ ...prev, [a.id]: !prev[a.id] }))}
-                                    title="Responder"
-                                    className="w-7 h-7 rounded-lg flex items-center justify-center transition-colors"
-                                    style={{
-                                      backgroundColor: isReplying ? '#dbeafe' : '#f3f4f6',
-                                      color: isReplying ? '#2563eb' : '#9ca3af',
-                                    }}
-                                    onMouseEnter={e => { if (!isReplying) (e.currentTarget as HTMLElement).style.backgroundColor = '#e5e7eb' }}
-                                    onMouseLeave={e => { if (!isReplying) (e.currentTarget as HTMLElement).style.backgroundColor = '#f3f4f6' }}
-                                  >
-                                    <Reply size={13} strokeWidth={2} />
-                                  </button>
+                                  {/* Botón responder — solo para supervisor */}
+                                  {profile && !['admin', 'super_admin'].includes(profile.rol) && (
+                                    <button
+                                      onClick={() => setReplyOpen(prev => ({ ...prev, [a.id]: !prev[a.id] }))}
+                                      title="Responder"
+                                      className="w-7 h-7 rounded-lg flex items-center justify-center transition-colors"
+                                      style={{
+                                        backgroundColor: isReplying ? '#dbeafe' : '#f3f4f6',
+                                        color: isReplying ? '#2563eb' : '#9ca3af',
+                                      }}
+                                      onMouseEnter={e => { if (!isReplying) (e.currentTarget as HTMLElement).style.backgroundColor = '#e5e7eb' }}
+                                      onMouseLeave={e => { if (!isReplying) (e.currentTarget as HTMLElement).style.backgroundColor = '#f3f4f6' }}
+                                    >
+                                      <Reply size={13} strokeWidth={2} />
+                                    </button>
+                                  )}
                                 </>
                               )}
                             </div>
@@ -491,8 +495,8 @@ export default function ValidacionPage() {
                             </div>
                           )}
 
-                          {/* Input respuesta / edición */}
-                          {isReplying && (
+                          {/* Input respuesta / edición — solo supervisor */}
+                          {isReplying && profile && !['admin', 'super_admin'].includes(profile.rol) && (
                             <div className="px-3 pb-3 space-y-2">
                               <textarea
                                 rows={2}
