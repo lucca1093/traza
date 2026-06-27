@@ -353,7 +353,7 @@ function ObjetivoHistorialRow({ obj }: { obj: Objetivo }) {
     })
   }
 
-  const tieneDetalle = avances.length > 0 || obj.validacion || obj.comentario_supervisor
+  const tieneDetalle = avances.length > 0 || obj.validacion || obj.comentario_supervisor || (obj as any).autoevaluacion || (obj as any).comentario_empleado
 
   return (
     <div>
@@ -373,6 +373,11 @@ function ObjetivoHistorialRow({ obj }: { obj: Objetivo }) {
           <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${getEstadoClasses(obj.estado)}`}>
             {obj.estado}
           </span>
+          {(obj as any).autoevaluacion && (
+            <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ backgroundColor: '#FEF3C7', color: '#92400E' }}>
+              Auto: {(obj as any).autoevaluacion}
+            </span>
+          )}
           {obj.validacion && (
             <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={getValidacionStyle(obj.validacion)}>
               Sup: {obj.validacion}
@@ -389,6 +394,23 @@ function ObjetivoHistorialRow({ obj }: { obj: Objetivo }) {
       {/* Panel expandido */}
       {open && (
         <div className="px-6 pb-4 ml-6 space-y-4 border-t border-gray-50">
+
+          {/* Autoevaluación del empleado */}
+          {((obj as any).autoevaluacion || (obj as any).comentario_empleado) && (
+            <div className="mt-3">
+              <p className="text-xs font-semibold text-amber-600 uppercase tracking-wide mb-2">Autoevaluación del colaborador</p>
+              <div className="bg-amber-50 border border-amber-100 rounded-xl px-4 py-3 space-y-1">
+                {(obj as any).autoevaluacion && (
+                  <span className="text-xs px-2 py-0.5 rounded-full font-medium inline-block" style={{ backgroundColor: '#FEF3C7', color: '#92400E' }}>
+                    {(obj as any).autoevaluacion}
+                  </span>
+                )}
+                {(obj as any).comentario_empleado && (
+                  <p className="text-sm text-gray-600 italic mt-1">"{(obj as any).comentario_empleado}"</p>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Feedback del supervisor */}
           {(obj.validacion || obj.comentario_supervisor) && (
