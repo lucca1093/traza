@@ -18,9 +18,10 @@ const ICON_MAP: Record<string, LucideIcon> = {
 
 interface SidebarProps {
   profile: Profile
+  empresaNombre?: string | null
 }
 
-export default function Sidebar({ profile }: SidebarProps) {
+export default function Sidebar({ profile, empresaNombre }: SidebarProps) {
   const pathname = usePathname()
   const router   = useRouter()
   const navItems = getNavForRole(profile.rol)
@@ -54,6 +55,19 @@ export default function Sidebar({ profile }: SidebarProps) {
           </div>
         </div>
       </div>
+
+      {/* Empresa activa */}
+      {empresaNombre && (
+        <div className="px-4 py-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+          <div className="flex items-center gap-2 px-3 py-2 rounded-xl" style={{ backgroundColor: 'rgba(16,185,129,0.08)' }}>
+            <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: '#10b981' }} />
+            <div className="min-w-0">
+              <p className="text-xs truncate font-medium" style={{ color: '#6ee7b7' }}>{empresaNombre}</p>
+              <p className="text-xs" style={{ color: '#374151', fontSize: '10px' }}>Empresa activa</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Navegación */}
       <nav className="flex-1 px-3 py-4 overflow-y-auto">

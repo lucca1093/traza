@@ -22,9 +22,13 @@ export default async function DashboardLayout({ children }: { children: React.Re
     redirect('/login')
   }
 
+  const { data: empresa } = profile?.empresa_id
+    ? await supabase.from('empresas').select('nombre').eq('id', profile.empresa_id).single()
+    : { data: null }
+
   return (
     <div className="flex h-screen overflow-hidden" style={{ backgroundColor: '#F5F4F0' }}>
-      <Sidebar profile={profile as Profile} />
+      <Sidebar profile={profile as Profile} empresaNombre={empresa?.nombre ?? null} />
       <main className="flex-1 ml-64 overflow-y-auto">
         <div className="max-w-7xl mx-auto px-8 py-8">
           {children}

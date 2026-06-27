@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import Button from '@/components/ui/Button'
 import { getEstadoClasses, getValidacionStyle, getCategoriaStyle, detectarDiscrepancia, formatFecha } from '@/lib/traza'
-import { MessageSquare, Link2, Paperclip, ChevronDown, ChevronRight, AlertTriangle } from 'lucide-react'
+import { MessageSquare, Link2, Paperclip, ChevronDown, ChevronRight, AlertTriangle, Check, CheckCheck, Reply } from 'lucide-react'
 
 export default function ValidacionPage() {
   const [objetivos, setObjetivos]   = useState<any[]>([])
@@ -23,6 +23,10 @@ export default function ValidacionPage() {
   const [comentarioAdmin, setComentarioAdmin] = useState('')
   const [savingAdmin, setSavingAdmin] = useState(false)
   const [successAdmin, setSuccessAdmin] = useState(false)
+  const [unreadByObj, setUnreadByObj] = useState<Record<string, number>>({})
+  const [respuestas, setRespuestas] = useState<Record<string, string>>({})
+  const [savingRespuesta, setSavingRespuesta] = useState<string | null>(null)
+  const [replyOpen, setReplyOpen] = useState<Record<string, boolean>>({})
 
   async function fetchData() {
     const { data: obs } = await supabase
@@ -37,6 +41,21 @@ export default function ValidacionPage() {
       if (o.persona) personasMap[o.persona.id] = o.persona
     })
     setPersonas(Object.values(personasMap))
+
+    // Cargar avances sin revisar por objetivo
+    const objIds = (obs ?? []).map((o: any) => o.id)
+    if (objIds.length > 0) {
+      const { data: sinRevisar } = await supabase
+        .from('objetivo_avances')
+        .select('objetivo_id')
+        .in('objetivo_id', objIds)
+        .eq('estado_revision', 'sin_revisar')
+      const counts: Record<string, number> = {}
+      ;(sinRevisar ?? []).forEach((a: any) => {
+        counts[a.objetivo_id] = (counts[a.objetivo_id] ?? 0) + 1
+      })
+      setUnreadByObj(counts)
+    }
   }
 
   useEffect(() => {
@@ -52,7 +71,34 @@ export default function ValidacionPage() {
       .select('*')
       .eq('objetivo_id', objetivoId)
       .order('creado_en', { ascending: true })
-    setAvances(data ?? [])
+    const lista = data ?? []
+    setAvances(lista)
+
+    // Pre-cargar respuestas existentes
+    const rMap: Record<string, string> = {}
+    lista.forEach((a: any) => {
+      if (a.respuesta_supervisor) rMap[a.id] = a.respuesta_supervisor
+    })
+    setRespuestas(prev => ({ ...prev, ...rMap }))
+
+    // Marcar como 'visto' los sin_revisar
+    const sinRevisarIds = lista.filter((a: any) => a.estado_revision === 'sin_revisar').map((a: any) => a.id)
+    if (sinRevisarIds.length > 0) {
+      await supabase
+        .from('objetivo_avances')
+        .update({ estado_revision: 'visto' })
+        .in('id', sinRevisarIds)
+      // Actualizar estado local
+      setAvances(lista.map((a: any) =>
+        sinRevisarIds.includes(a.id) ? { ...a, estado_revision: 'visto' } : a
+      ))
+      // Limpiar el dot de no leído
+      setUnreadByObj(prev => {
+        const next = { ...prev }
+        delete next[objetivoId]
+        return next
+      })
+    }
   }
 
   async function handleValidarAdmin(e: React.FormEvent) {
@@ -104,6 +150,33 @@ export default function ValidacionPage() {
     setTimeout(() => setSuccess(false), 3000)
     fetchData()
     setSaving(false)
+  }
+
+  async function handleAprobarAvance(avanceId: string) {
+    setSavingRespuesta(avanceId)
+    await supabase
+      .from('objetivo_avances')
+      .update({ estado_revision: 'aprobado' })
+      .eq('id', avanceId)
+    setAvances(prev => prev.map(a =>
+      a.id === avanceId ? { ...a, estado_revision: 'aprobado' } : a
+    ))
+    setSavingRespuesta(null)
+  }
+
+  async function handleResponderAvance(avanceId: string) {
+    const texto = respuestas[avanceId]?.trim()
+    if (!texto) return
+    setSavingRespuesta(avanceId)
+    await supabase
+      .from('objetivo_avances')
+      .update({ respuesta_supervisor: texto, estado_revision: 'aprobado' })
+      .eq('id', avanceId)
+    setAvances(prev => prev.map(a =>
+      a.id === avanceId ? { ...a, respuesta_supervisor: texto, estado_revision: 'aprobado' } : a
+    ))
+    setReplyOpen(prev => ({ ...prev, [avanceId]: false }))
+    setSavingRespuesta(null)
   }
 
   function formatDT(dt: string) {
@@ -206,7 +279,12 @@ export default function ValidacionPage() {
                             className={`flex items-center gap-3 px-5 py-3 cursor-pointer transition-colors ${selected === obj.id ? 'bg-traza-50 border-l-2 border-traza-700' : 'hover:bg-white'}`}
                           >
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium text-gray-900 truncate">{obj.titulo}</p>
+                              <div className="flex items-center gap-2">
+                                <p className="text-sm font-medium text-gray-900 truncate">{obj.titulo}</p>
+                                {(unreadByObj[obj.id] ?? 0) > 0 && (
+                                  <span className="flex-shrink-0 w-2 h-2 rounded-full bg-blue-500" title={`${unreadByObj[obj.id]} avance${unreadByObj[obj.id] > 1 ? 's' : ''} sin revisar`} />
+                                )}
+                              </div>
                               <p className="text-xs text-gray-400 mt-0.5">{formatFecha(obj.fecha_limite)}</p>
                             </div>
                             <div className="flex items-center gap-1.5 flex-shrink-0">
@@ -307,26 +385,122 @@ export default function ValidacionPage() {
               {/* Avances del empleado */}
               {avances.length > 0 && (
                 <div className="mb-5">
-                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Avances del colaborador</p>
-                  <div className="space-y-2 max-h-40 overflow-y-auto">
-                    {avances.map(a => (
-                      <div key={a.id} className="flex gap-2.5 bg-gray-50 rounded-xl px-3 py-2">
-                        <div className="flex-shrink-0 mt-0.5">
-                          {a.tipo === 'comentario' && <MessageSquare size={13} className="text-gray-400" />}
-                          {a.tipo === 'link'       && <Link2 size={13} className="text-traza-500" />}
-                          {a.tipo === 'archivo'    && <Paperclip size={13} className="text-orange-400" />}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          {(a.tipo === 'link' || a.tipo === 'archivo') ? (
-                            <a href={a.contenido} target="_blank" rel="noopener noreferrer"
-                              className="text-traza-700 hover:underline break-all text-xs">{a.contenido}</a>
-                          ) : (
-                            <p className="text-sm text-gray-700">{a.contenido}</p>
+                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">
+                    Avances del colaborador
+                    <span className="ml-2 font-normal text-gray-300 normal-case">({avances.length})</span>
+                  </p>
+                  <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
+                    {avances.map(a => {
+                      const rev = a.estado_revision ?? 'sin_revisar'
+                      const aprobado = rev === 'aprobado'
+                      const isReplying = replyOpen[a.id] ?? false
+
+                      return (
+                        <div
+                          key={a.id}
+                          className="rounded-xl border transition-all"
+                          style={{
+                            backgroundColor: aprobado ? '#f0fdf4' : '#f9fafb',
+                            borderColor: aprobado ? '#bbf7d0' : '#f3f4f6',
+                          }}
+                        >
+                          {/* Cabecera del avance */}
+                          <div className="flex gap-2.5 px-3 pt-3 pb-2">
+                            <div className="flex-shrink-0 mt-0.5">
+                              {a.tipo === 'comentario' && <MessageSquare size={13} className="text-gray-400" />}
+                              {a.tipo === 'link'       && <Link2 size={13} className="text-traza-500" />}
+                              {a.tipo === 'archivo'    && <Paperclip size={13} className="text-orange-400" />}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              {(a.tipo === 'link' || a.tipo === 'archivo') ? (
+                                <a href={a.contenido} target="_blank" rel="noopener noreferrer"
+                                  className="text-traza-700 hover:underline break-all text-xs">{a.contenido}</a>
+                              ) : (
+                                <p className="text-sm text-gray-700">{a.contenido}</p>
+                              )}
+                              <p className="text-xs text-gray-400 mt-1">{formatDT(a.creado_en)}</p>
+                            </div>
+
+                            {/* Acciones del supervisor */}
+                            <div className="flex items-start gap-1.5 flex-shrink-0 mt-0.5">
+                              {aprobado ? (
+                                <span className="flex items-center gap-1 text-xs text-green-600 font-medium">
+                                  <CheckCheck size={13} />
+                                  Aprobado
+                                </span>
+                              ) : (
+                                <>
+                                  {/* Botón aprobar */}
+                                  <button
+                                    onClick={() => handleAprobarAvance(a.id)}
+                                    disabled={savingRespuesta === a.id}
+                                    title="Aprobar avance"
+                                    className="w-7 h-7 rounded-lg flex items-center justify-center transition-colors disabled:opacity-40"
+                                    style={{ backgroundColor: '#dcfce7', color: '#16a34a' }}
+                                    onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#bbf7d0')}
+                                    onMouseLeave={e => (e.currentTarget.style.backgroundColor = '#dcfce7')}
+                                  >
+                                    <Check size={13} strokeWidth={2.5} />
+                                  </button>
+                                  {/* Botón responder */}
+                                  <button
+                                    onClick={() => setReplyOpen(prev => ({ ...prev, [a.id]: !prev[a.id] }))}
+                                    title="Responder"
+                                    className="w-7 h-7 rounded-lg flex items-center justify-center transition-colors"
+                                    style={{
+                                      backgroundColor: isReplying ? '#dbeafe' : '#f3f4f6',
+                                      color: isReplying ? '#2563eb' : '#9ca3af',
+                                    }}
+                                    onMouseEnter={e => { if (!isReplying) (e.currentTarget as HTMLElement).style.backgroundColor = '#e5e7eb' }}
+                                    onMouseLeave={e => { if (!isReplying) (e.currentTarget as HTMLElement).style.backgroundColor = '#f3f4f6' }}
+                                  >
+                                    <Reply size={13} strokeWidth={2} />
+                                  </button>
+                                </>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Respuesta existente del supervisor */}
+                          {a.respuesta_supervisor && (
+                            <div className="mx-3 mb-2 bg-blue-50 border border-blue-100 rounded-lg px-3 py-2">
+                              <p className="text-xs font-medium text-blue-600 mb-0.5">Respuesta del supervisor</p>
+                              <p className="text-xs text-blue-800">{a.respuesta_supervisor}</p>
+                            </div>
                           )}
-                          <p className="text-xs text-gray-400 mt-0.5">{formatDT(a.creado_en)}</p>
+
+                          {/* Input respuesta */}
+                          {isReplying && !aprobado && (
+                            <div className="px-3 pb-3 space-y-2">
+                              <textarea
+                                rows={2}
+                                autoFocus
+                                className="w-full text-xs rounded-lg border border-blue-200 px-2.5 py-2 resize-none focus:outline-none focus:border-blue-400 bg-white placeholder-gray-300"
+                                placeholder="Escribí tu respuesta..."
+                                value={respuestas[a.id] ?? ''}
+                                onChange={e => setRespuestas(prev => ({ ...prev, [a.id]: e.target.value }))}
+                              />
+                              <div className="flex gap-2">
+                                <button
+                                  onClick={() => handleResponderAvance(a.id)}
+                                  disabled={!respuestas[a.id]?.trim() || savingRespuesta === a.id}
+                                  className="text-xs font-medium text-white px-3 py-1.5 rounded-lg transition-colors disabled:opacity-40"
+                                  style={{ backgroundColor: '#0F4C81' }}
+                                >
+                                  {savingRespuesta === a.id ? 'Guardando...' : 'Enviar respuesta'}
+                                </button>
+                                <button
+                                  onClick={() => setReplyOpen(prev => ({ ...prev, [a.id]: false }))}
+                                  className="text-xs text-gray-400 hover:text-gray-600 px-2 py-1.5"
+                                >
+                                  Cancelar
+                                </button>
+                              </div>
+                            </div>
+                          )}
                         </div>
-                      </div>
-                    ))}
+                      )
+                    })}
                   </div>
                 </div>
               )}
