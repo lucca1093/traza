@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Button from '@/components/ui/Button'
 import { getEstadoClasses, getPrioridadClasses, getCategoriaStyle, detectarDiscrepancia, isVencido, formatFecha, cn } from '@/lib/traza'
-import { AlertTriangle, ArrowLeft, MessageSquare, Link2, Paperclip, Plus, CheckCircle2, Star } from 'lucide-react'
+import { AlertTriangle, ArrowLeft, MessageSquare, Link2, Paperclip, Plus, CheckCircle2, Star, Share2, Copy, Check } from 'lucide-react'
 import type { Objetivo, Persona, CategoriaObjetivo } from '@/types'
 
 export default function MiTrabajoPage() {
@@ -433,7 +433,31 @@ function ObjetivoCard({
   const [comentarioEmp, setComentarioEmp] = useState((obj as any).comentario_empleado ?? '')
   const [savingAuto, setSavingAuto]     = useState(false)
   const [autoSaved, setAutoSaved]       = useState(false)
+  const [tokenUrl,   setTokenUrl]       = useState<string | null>(null)
+  const [generando,  setGenerando]      = useState(false)
+  const [copiado,    setCopiado]        = useState(false)
   const vencido = isVencido(obj.fecha_limite, obj.estado)
+
+  async function generarToken() {
+    setGenerando(true)
+    try {
+      const res  = await fetch('/api/generar-token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ objetivoId: obj.id }),
+      })
+      const data = await res.json()
+      if (res.ok) setTokenUrl(data.url)
+    } catch { /* silencioso */ }
+    finally { setGenerando(false) }
+  }
+
+  async function copiarUrl() {
+    if (!tokenUrl) return
+    await navigator.clipboard.writeText(tokenUrl)
+    setCopiado(true)
+    setTimeout(() => setCopiado(false), 2500)
+  }
 
   useEffect(() => {
     if (autoExpand) {
@@ -721,6 +745,32 @@ function ObjetivoCard({
                   <Button size="sm" loading={savingAvance} onClick={addAvance}>Agregar</Button>
                   <Button size="sm" variant="ghost" onClick={() => { setAddingType(null); setAddingContent('') }}>Cancelar</Button>
                 </div>
+              </div>
+            )}
+          </div>
+
+          {/* Solicitar validación externa */}
+          <div className="px-5 pb-5 pt-1 border-t border-gray-100 mt-2">
+            {!tokenUrl ? (
+              <button onClick={generarToken} disabled={generando}
+                className="flex items-center gap-1.5 text-xs font-medium text-gray-400 hover:text-traza-700 transition-colors disabled:opacity-50">
+                <Share2 size={12} />
+                {generando ? 'Generando link...' : 'Solicitar validación externa'}
+              </button>
+            ) : (
+              <div className="rounded-xl border border-blue-100 bg-blue-50 p-3">
+                <p className="text-xs font-semibold text-blue-700 mb-1.5">
+                  Link listo — mandáselo al evaluador
+                </p>
+                <div className="flex items-center gap-2">
+                  <p className="text-xs text-blue-600 truncate flex-1 font-mono">{tokenUrl}</p>
+                  <button onClick={copiarUrl}
+                    className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1.5 rounded-lg transition-all flex-shrink-0"
+                    style={{ backgroundColor: copiado ? '#16a34a' : '#0F4C81', color: 'white' }}>
+                    {copiado ? <><Check size={11} /> Copiado</> : <><Copy size={11} /> Copiar</>}
+                  </button>
+                </div>
+                <p className="text-xs text-blue-400 mt-1.5">Vence en 7 días · Un solo uso</p>
               </div>
             )}
           </div>

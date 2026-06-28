@@ -31,6 +31,8 @@ export async function middleware(request: NextRequest) {
   const isPublicRoute = request.nextUrl.pathname === '/'
     || request.nextUrl.pathname.startsWith('/p/')
     || request.nextUrl.pathname.startsWith('/empleadores')
+    || request.nextUrl.pathname.startsWith('/validar')
+    || request.nextUrl.pathname.startsWith('/registro')
 
   // Si no hay sesión y trata de acceder al dashboard → redirigir a login
   if (!user && !isAuthRoute && !isPublicRoute) {

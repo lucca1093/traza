@@ -1,6 +1,6 @@
 import { createAdminClient } from '@/lib/supabase-server'
 import { calcularIndiceTraza, generarPerfilNarrativo } from '@/lib/traza'
-import { ShieldCheck, TrendingUp, Star, Calendar, CheckCircle2, Clock, Building2, Briefcase } from 'lucide-react'
+import { ShieldCheck, TrendingUp, Star, Calendar, CheckCircle2, Clock, Building2, Briefcase, Users } from 'lucide-react'
 import type { Objetivo } from '@/types'
 
 export const dynamic = 'force-dynamic'
@@ -217,6 +217,15 @@ Las 3 oraciones deben cubrir: (1) quién es y dónde trabaja hoy, (2) su evoluci
     empresa: empresaNombreActual,
     objetivos: objsActuales,
   })
+
+  // Validaciones externas (de todos los objetivos de la persona actual)
+  const { data: validacionesExternas } = await supabase
+    .from('validaciones_externas')
+    .select('*')
+    .in('objetivo_id', objsActuales.length > 0 ? objsActuales.map(o => o.id) : ['00000000-0000-0000-0000-000000000000'])
+    .order('created_at', { ascending: false })
+
+  const valExt = validacionesExternas ?? []
 
   // Timeline por trimestre (solo empresa actual)
   type TriEntry = { completados: number; validadosPos: number; validadosParcial: number; validadosNeg: number }
@@ -510,6 +519,55 @@ Las 3 oraciones deben cubrir: (1) quién es y dónde trabaja hoy, (2) su evoluci
                   )
                 })
               })()}
+            </div>
+          </div>
+        )}
+
+        {/* Validaciones externas */}
+        {valExt.length > 0 && (
+          <div className="bg-white rounded-2xl p-5 shadow-sm">
+            <div className="flex items-center gap-2 mb-4">
+              <Users size={14} style={{ color: '#0F4C81' }} strokeWidth={1.75} />
+              <h2 className="font-semibold text-gray-900 text-sm">Validaciones externas</h2>
+              <span className="ml-auto text-xs text-gray-400">{valExt.length} evaluación{valExt.length !== 1 ? 'es' : ''}</span>
+            </div>
+            <div className="space-y-3">
+              {valExt.map((v: any) => {
+                const colores: Record<string, { color: string; bg: string; label: string }> = {
+                  'De acuerdo':               { color: '#16a34a', bg: '#f0fdf4', label: 'De acuerdo'               },
+                  'Parcialmente de acuerdo':  { color: '#d97706', bg: '#fffbeb', label: 'Parcialmente de acuerdo'  },
+                  'En desacuerdo':            { color: '#dc2626', bg: '#fef2f2', label: 'En desacuerdo'            },
+                }
+                const c = colores[v.calificacion] ?? colores['De acuerdo']
+                const obj = objsActuales.find(o => o.id === v.objetivo_id)
+                return (
+                  <div key={v.id} className="rounded-xl border p-3.5" style={{ borderColor: c.color + '30', backgroundColor: c.bg }}>
+                    <div className="flex items-start justify-between gap-2 mb-1">
+                      <div>
+                        <p className="text-sm font-semibold text-gray-900">{v.nombre}</p>
+                        {(v.cargo || v.empresa) && (
+                          <p className="text-xs text-gray-500">
+                            {[v.cargo, v.empresa].filter(Boolean).join(' · ')}
+                          </p>
+                        )}
+                      </div>
+                      <span className="text-xs font-semibold px-2 py-0.5 rounded-full flex-shrink-0"
+                        style={{ color: c.color, backgroundColor: c.color + '15' }}>
+                        {c.label}
+                      </span>
+                    </div>
+                    {obj && (
+                      <p className="text-xs text-gray-400 mb-1">Sobre: {obj.titulo}</p>
+                    )}
+                    {v.comentario && (
+                      <p className="text-xs text-gray-600 mt-1.5 italic">"{v.comentario}"</p>
+                    )}
+                    <p className="text-xs text-gray-400 mt-1.5">
+                      {new Date(v.created_at).toLocaleDateString('es-AR', { day: '2-digit', month: 'long', year: 'numeric' })}
+                    </p>
+                  </div>
+                )
+              })}
             </div>
           </div>
         )}
