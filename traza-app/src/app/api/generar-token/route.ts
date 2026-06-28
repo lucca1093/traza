@@ -12,10 +12,11 @@ function generarTokenAleatorio(): string {
 
 export async function POST(request: NextRequest) {
   try {
+    // Solo verificamos que el usuario esté autenticado
     const userClient = createClient()
     const { data: { user } } = await userClient.auth.getUser()
     if (!user) {
-      return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+      return NextResponse.json({ error: 'Debés iniciar sesión para generar un link de validación.' }, { status: 401 })
     }
 
     const { objetivoId } = await request.json()
@@ -23,20 +24,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'objetivoId requerido' }, { status: 400 })
     }
 
-    // Usamos el cliente del usuario para verificar acceso via RLS
-    // Si puede leer el objetivo, está autorizado
-    const { data: objetivo } = await userClient
+    const admin = createAdminClient()
+
+    // Verificar que el objetivo existe (admin bypasa RLS)
+    const { data: objetivo } = await admin
       .from('objetivos')
       .select('id, titulo')
       .eq('id', objetivoId)
       .single()
 
     if (!objetivo) {
-      return NextResponse.json({ error: 'Objetivo no encontrado o sin acceso' }, { status: 403 })
+      return NextResponse.json({ error: 'Objetivo no encontrado.' }, { status: 404 })
     }
 
-    // Insertar con admin client (bypasa RLS para el insert)
-    const admin = createAdminClient()
+    // Generar e insertar token
     const token = generarTokenAleatorio()
 
     const { error: insertError } = await admin
