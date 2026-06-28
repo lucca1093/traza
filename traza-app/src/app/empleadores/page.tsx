@@ -153,8 +153,8 @@ export default async function EmpleadoresPage() {
           </div>
           <Link href="/login"
             className="text-sm font-semibold px-4 py-2 rounded-xl transition-all"
-            style={{ color: 'white', backgroundColor: '#0F4C81' }}>
-            Ingresar →
+            style={{ color: 'rgba(255,255,255,0.5)', border: '1px solid rgba(255,255,255,0.12)' }}>
+            ¿Tenés cuenta? Ingresar
           </Link>
         </div>
       </nav>
@@ -168,7 +168,7 @@ export default async function EmpleadoresPage() {
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-7"
                 style={{ backgroundColor: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)' }}>
                 <ShieldCheck size={11} className="text-blue-300" />
-                <span className="text-xs font-semibold text-blue-200 tracking-wide uppercase">Verificado por supervisores reales</span>
+                <span className="text-xs font-semibold text-blue-200 tracking-wide uppercase">Evaluado por referentes internos, no por el candidato</span>
               </div>
 
               <h1 className="text-5xl font-black text-white leading-tight mb-5" style={{ letterSpacing: '-0.025em' }}>
@@ -178,16 +178,16 @@ export default async function EmpleadoresPage() {
               </h1>
 
               <p className="text-base leading-relaxed mb-8" style={{ color: 'rgba(255,255,255,0.55)', maxWidth: 480 }}>
-                Los perfiles que ves aquí fueron construidos por supervisores, no por los candidatos.
-                Cada score, cada validación, cada dato — viene de quien trabajó con esa persona.
+                Los perfiles que ves aquí fueron construidos por el jefe directo y el equipo, no por el candidato.
+                Cada score, cada evaluación, cada dato — viene de quien trabajó con esa persona.
               </p>
 
               {/* Stats inline */}
               <div className="flex gap-8 flex-wrap">
                 {[
-                  { val: `${totalPerfiles ?? 0}`,    label: 'Perfiles verificados'         },
-                  { val: `${totalValidaciones ?? 0}`, label: 'Validaciones de supervisores' },
-                  { val: `${totalEmpresas ?? 0}`,     label: 'Empresas en la red'           },
+                  { val: `${(totalValidaciones ?? 0) > 0 ? totalValidaciones : '—'}`, label: 'Evaluaciones completadas'  },
+                  { val: `${(totalEmpresas ?? 0) > 0 ? totalEmpresas : '—'}`,          label: 'Empresas en la red'        },
+                  { val: candidatos.length > 0 ? `${candidatos.length}` : 'Próximamente', label: 'Perfiles disponibles'  },
                 ].map(s => (
                   <div key={s.label}>
                     <p className="text-3xl font-black text-white">{s.val}</p>
@@ -235,7 +235,7 @@ export default async function EmpleadoresPage() {
                   </div>
                 ))}
                 <p className="text-xs mt-3 text-center" style={{ color: 'rgba(255,255,255,0.2)' }}>
-                  Construido por supervisores · No por la candidata
+                  Construido por su equipo · No por la candidata
                 </p>
               </div>
             </div>
@@ -251,7 +251,7 @@ export default async function EmpleadoresPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {[
                 { n: '01', title: 'El empleado registra objetivos', desc: 'Dentro de la plataforma con su empresa: metas, plazos y categorías de trabajo real.' },
-                { n: '02', title: 'El supervisor valida cada resultado', desc: 'Al cerrar un objetivo, el supervisor califica: De acuerdo, Parcialmente o En desacuerdo.' },
+                { n: '02', title: 'El jefe directo evalúa cada resultado', desc: 'Al cerrar un objetivo, el responsable del equipo califica el resultado: De acuerdo, Parcialmente o En desacuerdo.' },
                 { n: '03', title: 'El sistema calcula el Índice TRAZA', desc: 'Un score 0–100 con 5 dimensiones verificadas: Resultados, Cumplimiento, Proactividad, Alineación y Evolución.' },
                 { n: '04', title: 'El empleado comparte su credencial', desc: 'El empleador ve datos reales validados por terceros. El candidato no puede inflar su historial porque no lo armó solo.' },
               ].map(s => (
@@ -319,7 +319,7 @@ export default async function EmpleadoresPage() {
               ¿Querés que tu equipo<br />también tenga desempeño verificado?
             </h3>
             <p className="mb-8 leading-relaxed" style={{ color: 'rgba(255,255,255,0.45)', maxWidth: 480 }}>
-              TRAZA mide el rendimiento real con objetivos verificados por supervisores, evidencia concreta y un score transparente. Los empleados construyen su historial mientras trabajan.
+              TRAZA mide el rendimiento real con objetivos evaluados por el equipo directo, evidencia concreta y un score transparente. Cada persona construye su historial mientras trabaja.
             </p>
             <div className="flex gap-3 flex-wrap">
               <Link href="/login"

@@ -203,7 +203,7 @@ function FeaturedCard({ c, rank }: { c: CandidatoPublico; rank: number }) {
           {c.supervisoresCount > 0 && (
             <div className="flex items-center gap-1.5 text-xs text-gray-400">
               <ShieldCheck size={11} className="text-blue-400" />
-              {c.supervisoresCount} validaciones
+              {c.supervisoresCount} evaluaciones verificadas
             </div>
           )}
         </div>
@@ -285,7 +285,7 @@ function CandidatoCard({ c }: { c: CandidatoPublico }) {
           {c.activoDesde && <div className="flex items-center gap-1"><Clock size={10} />{tiempoActivo(c.activoDesde)}</div>}
           {c.supervisoresCount > 0 && (
             <div className="flex items-center gap-1 ml-auto">
-              <ShieldCheck size={10} className="text-blue-400" />{c.supervisoresCount} val.
+              <ShieldCheck size={10} className="text-blue-400" />{c.supervisoresCount} eval.
             </div>
           )}
         </div>
@@ -401,7 +401,7 @@ export default function TalentSearch({ candidatos, areas }: { candidatos: Candid
         <select value={sortBy} onChange={e => setSortBy(e.target.value as any)}
           className="px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none bg-white">
           <option value="score">Mayor score</option>
-          <option value="validaciones">Más validaciones</option>
+          <option value="validaciones">Más evaluaciones</option>
           <option value="activo">Más trayectoria</option>
           <option value="nombre">Nombre A-Z</option>
         </select>
