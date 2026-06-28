@@ -57,6 +57,26 @@ export default async function CredencialTrazaPage({ params }: { params: { trazaI
 
   // Persona actual (empleo_activo = true, o la más reciente)
   const personaActual = todasLasPersonas.find(p => p.empleo_activo === true) ?? todasLasPersonas[0]
+
+  // Respetar la decisión de privacidad del empleado
+  if (personaActual.credencial_publica === false) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#f8fafc' }}>
+        <div className="text-center max-w-sm px-6">
+          <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-5"
+            style={{ backgroundColor: '#f1f5f9' }}>
+            <ShieldCheck size={24} style={{ color: '#cbd5e1' }} />
+          </div>
+          <p className="text-lg font-bold text-gray-700 mb-2">Credencial privada</p>
+          <p className="text-sm text-gray-400 leading-relaxed">
+            Esta persona eligió mantener su credencial TRAZA privada.
+            Si la conocés, podés pedirle que la comparta directamente.
+          </p>
+          <p className="text-xs text-gray-300 mt-6 font-mono">traza.app · Performance Intelligence</p>
+        </div>
+      </div>
+    )
+  }
   const empresaNombreActual = (personaActual as any).empresa?.nombre ?? null
 
   // Traer objetivos de la empresa actual

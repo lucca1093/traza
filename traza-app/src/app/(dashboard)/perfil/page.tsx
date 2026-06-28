@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import TraceIndexBar from '@/components/ui/TraceIndexBar'
 import { calcularIndiceTraza, getValidacionStyle, getEstadoClasses, formatFecha } from '@/lib/traza'
-import { CheckCircle2, Trophy, Award, MessageSquare, ChevronDown, ChevronRight, Link2, Paperclip, Eye, EyeOff } from 'lucide-react'
+import { CheckCircle2, Trophy, Award, MessageSquare, ChevronDown, ChevronRight, Link2, Paperclip, Eye, EyeOff, Globe, Lock } from 'lucide-react'
 import type { Objetivo, Persona, Profile } from '@/types'
 
 export default function PerfilPage() {
@@ -14,8 +14,10 @@ export default function PerfilPage() {
   const [profile, setProfile]       = useState<Profile | null>(null)
   const [narrativa, setNarrativa]   = useState<string>('')
   const [loadingIA, setLoadingIA]   = useState(false)
-  const [disponible, setDisponible] = useState(false)
-  const [savingDisp, setSavingDisp] = useState(false)
+  const [disponible,       setDisponible]       = useState(false)
+  const [savingDisp,       setSavingDisp]       = useState(false)
+  const [credencialPublica, setCredencialPublica] = useState(true)
+  const [savingCred,       setSavingCred]       = useState(false)
   const [data, setData]             = useState<{
     persona: Persona | null
     objetivos: Objetivo[]
@@ -34,6 +36,7 @@ export default function PerfilPage() {
         if (persona) {
           setSelected(persona.id)
           setDisponible((persona as any).disponible_para_busqueda ?? false)
+          setCredencialPublica((persona as any).credencial_publica ?? true)
           await fetchPersonaData(persona.id)
         }
       } else {
@@ -105,8 +108,22 @@ export default function PerfilPage() {
     setLoadingIA(false)
   }
 
+  async function toggleCredencialPublica() {
+    if (!data.persona || savingCred) return
+    setSavingCred(true)
+    const nuevoVal = !credencialPublica
+    await supabase.from('personas').update({ credencial_publica: nuevoVal }).eq('id', data.persona.id)
+    setCredencialPublica(nuevoVal)
+    // Si desactiva la credencial, también desactiva la visibilidad en empleadores
+    if (!nuevoVal && disponible) {
+      await supabase.from('personas').update({ disponible_para_busqueda: false }).eq('id', data.persona.id)
+      setDisponible(false)
+    }
+    setSavingCred(false)
+  }
+
   async function toggleDisponible() {
-    if (!data.persona || savingDisp) return
+    if (!data.persona || savingDisp || !credencialPublica) return
     setSavingDisp(true)
     const nuevoVal = !disponible
     await supabase.from('personas').update({ disponible_para_busqueda: nuevoVal }).eq('id', data.persona.id)
@@ -316,37 +333,76 @@ export default function PerfilPage() {
             </div>
           </div>
 
-          {/* Visibilidad para empleadores — solo para el propio empleado */}
+          {/* Privacidad y visibilidad — solo para el propio empleado */}
           {profile?.rol === 'empleado' && (
-            <div className="traza-card p-6">
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex items-start gap-3">
-                  <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${disponible ? 'bg-traza-100' : 'bg-gray-100'}`}>
-                    {disponible
-                      ? <Eye size={16} className="text-traza-700" />
-                      : <EyeOff size={16} className="text-gray-400" />}
+            <div className="traza-card divide-y divide-gray-100">
+
+              {/* Toggle 1: Credencial pública */}
+              <div className="p-6">
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">Privacidad de tu credencial</p>
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex items-start gap-3">
+                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${credencialPublica ? 'bg-traza-100' : 'bg-gray-100'}`}>
+                      {credencialPublica
+                        ? <Globe size={16} className="text-traza-700" />
+                        : <Lock size={16} className="text-gray-400" />}
+                    </div>
+                    <div>
+                      <p className="font-semibold text-gray-900 text-sm">Credencial pública activa</p>
+                      <p className="text-xs text-gray-500 mt-0.5 max-w-sm">
+                        {credencialPublica
+                          ? 'Tu credencial verificada es accesible por URL. Es tuya: funciona aunque cambies de empresa.'
+                          : 'Tu credencial está privada. Nadie puede verla aunque tenga el link.'}
+                      </p>
+                      {credencialPublica && (persona as any).traza_id && (
+                        <a href={`/p/${(persona as any).traza_id}`} target="_blank" rel="noopener noreferrer"
+                          className="text-xs text-traza-600 hover:underline mt-1.5 inline-flex items-center gap-1">
+                          traza.app/p/{(persona as any).traza_id} →
+                        </a>
+                      )}
+                    </div>
                   </div>
-                  <div>
-                    <p className="font-semibold text-gray-900 text-sm">Visible en TRAZA Empleadores</p>
-                    <p className="text-xs text-gray-500 mt-0.5 max-w-sm">
-                      {disponible
-                        ? 'Tu nombre, cargo, score y credencial pública son visibles para empresas que buscan talento en la plataforma.'
-                        : 'Activá esto para que empresas externas puedan encontrar tu perfil verificado. Tu historial habla por vos.'}
-                    </p>
-                    {disponible && (persona as any).traza_id && (
-                      <a href={`/empleadores`} target="_blank" rel="noopener noreferrer"
-                        className="text-xs text-traza-600 hover:underline mt-1.5 inline-block">
-                        Ver cómo te ven los empleadores →
-                      </a>
-                    )}
-                  </div>
+                  <button onClick={toggleCredencialPublica} disabled={savingCred}
+                    className={`relative w-12 h-6 rounded-full transition-all flex-shrink-0 ${credencialPublica ? 'bg-traza-700' : 'bg-gray-200'} disabled:opacity-60`}>
+                    <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-all ${credencialPublica ? 'left-6' : 'left-0.5'}`} />
+                  </button>
                 </div>
-                {/* Toggle */}
-                <button onClick={toggleDisponible} disabled={savingDisp}
-                  className={`relative w-12 h-6 rounded-full transition-all flex-shrink-0 ${disponible ? 'bg-traza-700' : 'bg-gray-200'} disabled:opacity-60`}>
-                  <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-all ${disponible ? 'left-6' : 'left-0.5'}`} />
-                </button>
               </div>
+
+              {/* Toggle 2: Visible en empleadores */}
+              <div className={`p-6 transition-opacity ${credencialPublica ? '' : 'opacity-40 pointer-events-none'}`}>
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex items-start gap-3">
+                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${disponible ? 'bg-traza-100' : 'bg-gray-100'}`}>
+                      {disponible
+                        ? <Eye size={16} className="text-traza-700" />
+                        : <EyeOff size={16} className="text-gray-400" />}
+                    </div>
+                    <div>
+                      <p className="font-semibold text-gray-900 text-sm">
+                        Aparecer en TRAZA Empleadores
+                        {!credencialPublica && <span className="ml-2 text-xs font-normal text-gray-400">(requiere credencial activa)</span>}
+                      </p>
+                      <p className="text-xs text-gray-500 mt-0.5 max-w-sm">
+                        {disponible
+                          ? 'Tu nombre, cargo y score son visibles para empresas que buscan talento verificado.'
+                          : 'Activá esto para que empleadores puedan encontrarte. Solo se muestra tu score, no tu historial completo.'}
+                      </p>
+                      {disponible && (persona as any).traza_id && (
+                        <a href="/empleadores" target="_blank" rel="noopener noreferrer"
+                          className="text-xs text-traza-600 hover:underline mt-1.5 inline-block">
+                          Ver el portal de empleadores →
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                  <button onClick={toggleDisponible} disabled={savingDisp || !credencialPublica}
+                    className={`relative w-12 h-6 rounded-full transition-all flex-shrink-0 ${disponible && credencialPublica ? 'bg-traza-700' : 'bg-gray-200'} disabled:opacity-60`}>
+                    <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-all ${disponible && credencialPublica ? 'left-6' : 'left-0.5'}`} />
+                  </button>
+                </div>
+              </div>
+
             </div>
           )}
         </>
