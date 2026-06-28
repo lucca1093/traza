@@ -27,10 +27,10 @@ export async function POST(request: NextRequest) {
 
     const admin = createAdminClient()
 
-    // Verificar que el objetivo existe y pertenece al usuario
+    // Verificar que el objetivo existe
     const { data: objetivo } = await admin
       .from('objetivos')
-      .select('id, titulo, persona_id, personas!inner(user_id)')
+      .select('id, titulo, empresa_id')
       .eq('id', objetivoId)
       .single()
 
@@ -38,29 +38,36 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Objetivo no encontrado' }, { status: 404 })
     }
 
-    const personas = (objetivo as any).personas
-    const personaUserId = Array.isArray(personas) ? personas[0]?.user_id : personas?.user_id
-    if (personaUserId !== user.id) {
+    // Verificar que el usuario pertenece a la misma empresa que el objetivo
+    // (empleados, supervisores y admins pueden generar tokens)
+    const { data: profile } = await admin
+      .from('profiles')
+      .select('empresa_id, rol')
+      .eq('id', user.id)
+      .single()
+
+    const tieneAcceso = profile?.rol === 'super_admin'
+      || profile?.empresa_id === (objetivo as any).empresa_id
+
+    if (!tieneAcceso) {
       return NextResponse.json({ error: 'No autorizado para este objetivo' }, { status: 403 })
     }
 
     // Generar token único
     const token = generarTokenAleatorio()
 
-    const { data: tokenData, error } = await admin
+    const { error: insertError } = await admin
       .from('tokens_validacion')
       .insert({
         objetivo_id: objetivoId,
         token,
-        creado_por: user.id,
-        expira_en: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+        creado_por:  user.id,
+        expira_en:   new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
       })
-      .select()
-      .single()
 
-    if (error) {
-      console.error('Error creando token:', error)
-      return NextResponse.json({ error: 'Error creando token' }, { status: 500 })
+    if (insertError) {
+      console.error('Error creando token:', insertError)
+      return NextResponse.json({ error: 'Error creando token: ' + insertError.message }, { status: 500 })
     }
 
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? request.nextUrl.origin
