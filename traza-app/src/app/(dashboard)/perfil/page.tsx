@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import TraceIndexBar from '@/components/ui/TraceIndexBar'
 import { calcularIndiceTraza, getValidacionStyle, getEstadoClasses, formatFecha } from '@/lib/traza'
-import { CheckCircle2, Trophy, Award, MessageSquare, ChevronDown, ChevronRight, Link2, Paperclip } from 'lucide-react'
+import { CheckCircle2, Trophy, Award, MessageSquare, ChevronDown, ChevronRight, Link2, Paperclip, Eye, EyeOff } from 'lucide-react'
 import type { Objetivo, Persona, Profile } from '@/types'
 
 export default function PerfilPage() {
@@ -14,6 +14,8 @@ export default function PerfilPage() {
   const [profile, setProfile]       = useState<Profile | null>(null)
   const [narrativa, setNarrativa]   = useState<string>('')
   const [loadingIA, setLoadingIA]   = useState(false)
+  const [disponible, setDisponible] = useState(false)
+  const [savingDisp, setSavingDisp] = useState(false)
   const [data, setData]             = useState<{
     persona: Persona | null
     objetivos: Objetivo[]
@@ -31,6 +33,7 @@ export default function PerfilPage() {
         const { data: persona } = await supabase.from('personas').select('*').eq('user_id', user!.id).eq('empleo_activo', true).single()
         if (persona) {
           setSelected(persona.id)
+          setDisponible((persona as any).disponible_para_busqueda ?? false)
           await fetchPersonaData(persona.id)
         }
       } else {
@@ -100,6 +103,15 @@ export default function PerfilPage() {
       setNarrativa('No se pudo generar la narrativa.')
     }
     setLoadingIA(false)
+  }
+
+  async function toggleDisponible() {
+    if (!data.persona || savingDisp) return
+    setSavingDisp(true)
+    const nuevoVal = !disponible
+    await supabase.from('personas').update({ disponible_para_busqueda: nuevoVal }).eq('id', data.persona.id)
+    setDisponible(nuevoVal)
+    setSavingDisp(false)
   }
 
   if (loading) return <div className="text-gray-400 py-12 text-center">Cargando...</div>
@@ -303,6 +315,40 @@ export default function PerfilPage() {
               ))}
             </div>
           </div>
+
+          {/* Visibilidad para empleadores — solo para el propio empleado */}
+          {profile?.rol === 'empleado' && (
+            <div className="traza-card p-6">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex items-start gap-3">
+                  <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${disponible ? 'bg-traza-100' : 'bg-gray-100'}`}>
+                    {disponible
+                      ? <Eye size={16} className="text-traza-700" />
+                      : <EyeOff size={16} className="text-gray-400" />}
+                  </div>
+                  <div>
+                    <p className="font-semibold text-gray-900 text-sm">Visible en TRAZA Empleadores</p>
+                    <p className="text-xs text-gray-500 mt-0.5 max-w-sm">
+                      {disponible
+                        ? 'Tu nombre, cargo, score y credencial pública son visibles para empresas que buscan talento en la plataforma.'
+                        : 'Activá esto para que empresas externas puedan encontrar tu perfil verificado. Tu historial habla por vos.'}
+                    </p>
+                    {disponible && (persona as any).traza_id && (
+                      <a href={`/empleadores`} target="_blank" rel="noopener noreferrer"
+                        className="text-xs text-traza-600 hover:underline mt-1.5 inline-block">
+                        Ver cómo te ven los empleadores →
+                      </a>
+                    )}
+                  </div>
+                </div>
+                {/* Toggle */}
+                <button onClick={toggleDisponible} disabled={savingDisp}
+                  className={`relative w-12 h-6 rounded-full transition-all flex-shrink-0 ${disponible ? 'bg-traza-700' : 'bg-gray-200'} disabled:opacity-60`}>
+                  <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-all ${disponible ? 'left-6' : 'left-0.5'}`} />
+                </button>
+              </div>
+            </div>
+          )}
         </>
       )}
     </div>
