@@ -433,13 +433,15 @@ function ObjetivoCard({
   const [comentarioEmp, setComentarioEmp] = useState((obj as any).comentario_empleado ?? '')
   const [savingAuto, setSavingAuto]     = useState(false)
   const [autoSaved, setAutoSaved]       = useState(false)
-  const [tokenUrl,   setTokenUrl]       = useState<string | null>(null)
-  const [generando,  setGenerando]      = useState(false)
-  const [copiado,    setCopiado]        = useState(false)
+  const [tokenUrl,    setTokenUrl]    = useState<string | null>(null)
+  const [tokenError,  setTokenError]  = useState<string | null>(null)
+  const [generando,   setGenerando]   = useState(false)
+  const [copiado,     setCopiado]     = useState(false)
   const vencido = isVencido(obj.fecha_limite, obj.estado)
 
   async function generarToken() {
     setGenerando(true)
+    setTokenError(null)
     try {
       const res  = await fetch('/api/generar-token', {
         method: 'POST',
@@ -447,9 +449,16 @@ function ObjetivoCard({
         body: JSON.stringify({ objetivoId: obj.id }),
       })
       const data = await res.json()
-      if (res.ok) setTokenUrl(data.url)
-    } catch { /* silencioso */ }
-    finally { setGenerando(false) }
+      if (res.ok) {
+        setTokenUrl(data.url)
+      } else {
+        setTokenError(data.error ?? `Error ${res.status}`)
+      }
+    } catch (e: any) {
+      setTokenError(e?.message ?? 'Error de conexión')
+    } finally {
+      setGenerando(false)
+    }
   }
 
   async function copiarUrl() {
@@ -752,11 +761,16 @@ function ObjetivoCard({
           {/* Solicitar validación externa */}
           <div className="px-5 pb-5 pt-1 border-t border-gray-100 mt-2">
             {!tokenUrl ? (
-              <button onClick={generarToken} disabled={generando}
-                className="flex items-center gap-1.5 text-xs font-medium text-gray-400 hover:text-traza-700 transition-colors disabled:opacity-50">
-                <Share2 size={12} />
-                {generando ? 'Generando link...' : 'Solicitar validación externa'}
-              </button>
+              <div className="space-y-1.5">
+                <button onClick={generarToken} disabled={generando}
+                  className="flex items-center gap-1.5 text-xs font-medium text-gray-400 hover:text-traza-700 transition-colors disabled:opacity-50">
+                  <Share2 size={12} />
+                  {generando ? 'Generando link...' : 'Solicitar validación externa'}
+                </button>
+                {tokenError && (
+                  <p className="text-xs text-red-500 bg-red-50 px-2 py-1 rounded-lg">{tokenError}</p>
+                )}
+              </div>
             ) : (
               <div className="rounded-xl border border-blue-100 bg-blue-50 p-3">
                 <p className="text-xs font-semibold text-blue-700 mb-1.5">
