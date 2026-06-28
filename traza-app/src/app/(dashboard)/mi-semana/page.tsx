@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { calcularRacha } from '@/lib/traza'
-import { Flame, Target, CheckCircle2, ChevronRight, Plus, TrendingUp } from 'lucide-react'
+import { Flame, Target, CheckCircle2, ChevronRight, Plus, TrendingUp, MessageSquare, Link2, Paperclip } from 'lucide-react'
 
 // ── Helpers ───────────────────────────────────────────────────
 function getLunes(d = new Date()): Date {
@@ -84,7 +84,7 @@ export default function MiSemanaPage() {
         const { data: av } = await supabase
           .from('objetivo_avances').select('*')
           .in('objetivo_id', allObs.map((o: any) => o.id))
-          .order('created_at', { ascending: false })
+          .order('creado_en', { ascending: false })
         todosAvances = av ?? []
       }
       setAvances(todosAvances)
@@ -123,7 +123,7 @@ export default function MiSemanaPage() {
     o.fecha_limite && o.fecha_limite < hoyISO && o.estado !== 'Completado' && !o.es_continuo
   )
   const avancesSemana = avances.filter(a => {
-    const f = (a.created_at ?? a.creado_en ?? '').split('T')[0]
+    const f = (a.creado_en ?? '').split('T')[0]
     return f >= lunesISO && f <= domingoISO
   })
 
@@ -135,7 +135,7 @@ export default function MiSemanaPage() {
     const lunesS = isoDate(l)
     const domS   = isoDate(d)
     const tieneActividad = avances.some(a => {
-      const f = (a.created_at ?? a.creado_en ?? '').split('T')[0]
+      const f = (a.creado_en ?? '').split('T')[0]
       return f >= lunesS && f <= domS
     })
     return { lunesISO: lunesS, esActual: lunesS === lunesISO, tieneActividad }
@@ -298,18 +298,44 @@ export default function MiSemanaPage() {
             </button>
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-2">
             {avancesSemana.slice(0, 5).map(a => {
               const obj = objetivos.find(o => o.id === a.objetivo_id)
+              const rev = a.estado_revision ?? 'sin_revisar'
+              const revDot: Record<string, string> = {
+                sin_revisar: '#d1d5db',
+                visto:       '#2563eb',
+                aprobado:    '#16a34a',
+              }
+              const revLabel: Record<string, string> = {
+                sin_revisar: 'Sin revisar',
+                visto:       'Visto',
+                aprobado:    'Aprobado',
+              }
               return (
-                <div key={a.id} className="flex items-start gap-3">
-                  <div className="w-1.5 h-1.5 rounded-full bg-traza-600 mt-2 flex-shrink-0" />
-                  <div className="min-w-0">
-                    {obj && <p className="text-xs text-gray-400 font-medium truncate">{obj.titulo}</p>}
-                    <p className="text-sm text-gray-700 leading-relaxed">{a.descripcion ?? a.contenido ?? '—'}</p>
+                <div key={a.id} className="rounded-xl border border-gray-100 bg-gray-50 px-3 py-2.5 flex items-start gap-2.5">
+                  {/* Icono tipo */}
+                  <span className="mt-0.5 flex-shrink-0">
+                    {a.tipo === 'comentario' && <MessageSquare size={13} className="text-gray-400" />}
+                    {a.tipo === 'link'       && <Link2 size={13} className="text-traza-500" />}
+                    {a.tipo === 'archivo'    && <Paperclip size={13} className="text-orange-400" />}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    {obj && <p className="text-xs text-gray-400 font-medium truncate mb-0.5">{obj.titulo}</p>}
+                    {(a.tipo === 'link' || a.tipo === 'archivo') ? (
+                      <a href={a.contenido} target="_blank" rel="noopener noreferrer"
+                        className="text-traza-700 hover:underline break-all text-xs">{a.contenido}</a>
+                    ) : (
+                      <p className="text-sm text-gray-700 leading-snug">{a.contenido}</p>
+                    )}
                     <p className="text-xs text-gray-400 mt-0.5">
-                      {new Date(a.created_at ?? a.creado_en).toLocaleDateString('es-AR', { weekday: 'short', day: 'numeric' })}
+                      {new Date(a.creado_en).toLocaleString('es-AR', { weekday: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                     </p>
+                  </div>
+                  {/* Estado revisión */}
+                  <div className="flex items-center gap-1 flex-shrink-0 mt-0.5">
+                    <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: revDot[rev] }} />
+                    <span className="text-xs" style={{ color: revDot[rev] }}>{revLabel[rev]}</span>
                   </div>
                 </div>
               )
