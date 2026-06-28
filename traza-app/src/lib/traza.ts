@@ -420,6 +420,49 @@ export function formatFecha(fecha: string | null): string {
 }
 
 // ============================================================
+// RACHA — Semanas consecutivas con al menos 1 avance
+// ============================================================
+
+export function calcularRacha(avances: any[]): number {
+  if (avances.length === 0) return 0
+
+  // Obtener el lunes de la semana que contiene una fecha
+  function getLunesDeDate(d: Date): Date {
+    const day = d.getDay()
+    const diff = day === 0 ? -6 : 1 - day
+    const lunes = new Date(d)
+    lunes.setDate(d.getDate() + diff)
+    lunes.setHours(0, 0, 0, 0)
+    return lunes
+  }
+
+  function isoDate(d: Date): string {
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  }
+
+  // Conjunto de lunes (ISO) con actividad
+  const semanasConActividad = new Set(
+    avances.map(a => isoDate(getLunesDeDate(new Date(a.creado_en ?? a.created_at))))
+  )
+
+  const hoy = new Date()
+  let semana = getLunesDeDate(hoy)
+  let racha = 0
+
+  while (true) {
+    if (semanasConActividad.has(isoDate(semana))) {
+      racha++
+      semana = new Date(semana)
+      semana.setDate(semana.getDate() - 7)
+    } else {
+      break
+    }
+  }
+
+  return racha
+}
+
+// ============================================================
 // GENERADOR DE NARRATIVA DE PERFIL (sin API externa)
 // ============================================================
 
@@ -531,17 +574,19 @@ export function generarPerfilNarrativo(input: PerfilNarrativoInput): string {
 import type { UserRole, NavItem } from '@/types'
 
 export const NAV_ITEMS: NavItem[] = [
-  { label: 'Inicio',               href: '/dashboard',     icon: 'LayoutDashboard', roles: ['super_admin', 'admin', 'supervisor', 'empleado'] },
-  { label: 'Empresas',             href: '/empresas',      icon: 'Building2',       roles: ['super_admin', 'admin'] },
-  { label: 'Personas',             href: '/personas',      icon: 'Users',           roles: ['super_admin', 'admin'] },
-  { label: 'Mi Trabajo',           href: '/mi-trabajo',    icon: 'Target',          roles: ['super_admin', 'admin', 'supervisor', 'empleado'] },
-  { label: 'Gestión de Objetivos', href: '/objetivos',     icon: 'ClipboardList',   roles: ['super_admin', 'admin', 'supervisor'] },
-  { label: 'Validación',           href: '/validacion',    icon: 'CheckSquare',     roles: ['super_admin', 'admin', 'supervisor'] },
-  { label: 'Calendario',           href: '/calendario',    icon: 'CalendarDays',    roles: ['super_admin', 'admin', 'supervisor', 'empleado'] },
-  { label: 'Analytics',            href: '/analytics',     icon: 'BarChart2',       roles: ['super_admin', 'admin', 'supervisor'] },
-  { label: 'Perfil Profesional',   href: '/perfil',        icon: 'User',            roles: ['super_admin', 'admin', 'supervisor', 'empleado'] },
-  { label: 'Talent Card',          href: '/talent-card',   icon: 'Award',           roles: ['super_admin', 'admin', 'supervisor', 'empleado'] },
-  { label: 'Reportes',             href: '/reportes',      icon: 'FileText',        roles: ['super_admin', 'admin', 'supervisor'] },
+  { label: 'Inicio',               href: '/dashboard',       icon: 'LayoutDashboard', roles: ['super_admin', 'admin', 'supervisor', 'empleado'] },
+  { label: 'Mi Semana',            href: '/mi-semana',       icon: 'Flame',           roles: ['super_admin', 'admin', 'supervisor', 'empleado'] },
+  { label: 'Empresas',             href: '/empresas',        icon: 'Building2',       roles: ['super_admin', 'admin'] },
+  { label: 'Personas',             href: '/personas',        icon: 'Users',           roles: ['super_admin', 'admin'] },
+  { label: 'Mi Trabajo',           href: '/mi-trabajo',      icon: 'Target',          roles: ['super_admin', 'admin', 'supervisor', 'empleado'] },
+  { label: 'Gestión de Objetivos', href: '/objetivos',       icon: 'ClipboardList',   roles: ['super_admin', 'admin', 'supervisor'] },
+  { label: 'Validación',           href: '/validacion',      icon: 'CheckSquare',     roles: ['super_admin', 'admin', 'supervisor'] },
+  { label: 'Calendario',           href: '/calendario',      icon: 'CalendarDays',    roles: ['super_admin', 'admin', 'supervisor', 'empleado'] },
+  { label: 'Analytics',            href: '/analytics',       icon: 'BarChart2',       roles: ['super_admin', 'admin', 'supervisor'] },
+  { label: 'Buscar Talento',       href: '/buscar-talento',  icon: 'Search',          roles: ['super_admin', 'admin', 'supervisor'] },
+  { label: 'Perfil Profesional',   href: '/perfil',          icon: 'User',            roles: ['super_admin', 'admin', 'supervisor', 'empleado'] },
+  { label: 'Talent Card',          href: '/talent-card',     icon: 'Award',           roles: ['super_admin', 'admin', 'supervisor', 'empleado'] },
+  { label: 'Reportes',             href: '/reportes',        icon: 'FileText',        roles: ['super_admin', 'admin', 'supervisor'] },
 ]
 
 export function getNavForRole(rol: UserRole): NavItem[] {
