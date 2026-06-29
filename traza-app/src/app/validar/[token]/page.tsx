@@ -64,12 +64,15 @@ export default async function ValidarTokenPage({ params }: { params: { token: st
   const empresa  = persona?.empresa?.nombre ?? null
   const rubro    = persona?.empresa?.rubro   ?? null
 
-  // Avances con toda la info
-  const { data: avances } = await admin
+  // Avances — usamos objetivo_id directo del token (más confiable que del join)
+  const objetivoId = (tokenData as any).objetivo_id ?? objetivo?.id
+  const { data: avances, error: avancesError } = await admin
     .from('objetivo_avances')
-    .select('id, tipo, contenido, creado_en, respuesta_supervisor, estado_revision')
-    .eq('objetivo_id', objetivo.id)
+    .select('*')
+    .eq('objetivo_id', objetivoId)
     .order('creado_en', { ascending: true })
+
+  console.log('[validar] objetivoId:', objetivoId, 'avances:', avances?.length, 'error:', avancesError?.message)
 
   const diasRestantes = Math.max(0, Math.round(
     (new Date(tokenData.expira_en).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
@@ -298,6 +301,9 @@ export default async function ValidarTokenPage({ params }: { params: { token: st
               <p className="text-xs text-amber-600 mt-0.5">
                 {persona?.nombre} no cargó avances todavía. Podés igualmente validar el objetivo basándote en lo que conocés de su trabajo.
               </p>
+              {avancesError && (
+                <p className="text-xs text-red-600 mt-1 font-mono">[debug] {avancesError.message} · id: {objetivoId}</p>
+              )}
             </div>
           </div>
         )}
