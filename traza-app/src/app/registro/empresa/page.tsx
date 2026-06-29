@@ -124,8 +124,8 @@ export default function RegistroEmpresaPage() {
         return
       }
 
-      if (!authData.user) {
-        setError('Error creando la cuenta. Intentá de nuevo.')
+      if (!authData.user?.id) {
+        setError('No se pudo crear la cuenta. El email puede estar en uso — intentá con otro email o esperá unos minutos.')
         return
       }
 

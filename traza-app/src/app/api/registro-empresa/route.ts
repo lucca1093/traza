@@ -14,7 +14,9 @@ export async function POST(request: NextRequest) {
     const { empresaNombre, rubro, tamano, nombre, apellido, cargo, userId } = await request.json()
 
     if (!empresaNombre || !userId) {
-      return NextResponse.json({ error: 'Faltan campos obligatorios.' }, { status: 400 })
+      return NextResponse.json({
+        error: `Faltan: ${!empresaNombre ? 'empresaNombre ' : ''}${!userId ? 'userId' : ''}`.trim()
+      }, { status: 400 })
     }
 
     const admin = createAdminClient()
