@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { createAdminClient } from '@/lib/supabase-server'
 import { calcularIndiceTraza, generarPerfilNarrativo } from '@/lib/traza'
-import { ShieldCheck, Users, CheckCircle2, Building2, ArrowRight } from 'lucide-react'
+import { ShieldCheck, Users, CheckCircle2, Building2, ArrowRight, Sparkles } from 'lucide-react'
 import TalentSearch, { type CandidatoPublico } from './TalentSearch'
 import type { Objetivo } from '@/types'
 
@@ -151,11 +151,18 @@ export default async function EmpleadoresPage() {
               para Empleadores
             </span>
           </div>
-          <Link href="/login"
-            className="text-sm font-semibold px-4 py-2 rounded-xl transition-all"
-            style={{ color: 'rgba(255,255,255,0.5)', border: '1px solid rgba(255,255,255,0.12)' }}>
-            ¿Tenés cuenta? Ingresar
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link href="/registro/empresa"
+              className="text-sm font-bold px-4 py-2 rounded-xl transition-all text-white"
+              style={{ backgroundColor: '#0F4C81', border: '1px solid rgba(255,255,255,0.15)' }}>
+              Registrar empresa
+            </Link>
+            <Link href="/login"
+              className="text-sm font-medium px-4 py-2 rounded-xl transition-all"
+              style={{ color: 'rgba(255,255,255,0.45)', border: '1px solid rgba(255,255,255,0.1)' }}>
+              Ingresar
+            </Link>
+          </div>
         </div>
       </nav>
 
@@ -183,7 +190,7 @@ export default async function EmpleadoresPage() {
               </p>
 
               {/* Stats inline */}
-              <div className="flex gap-8 flex-wrap">
+              <div className="flex gap-8 flex-wrap mb-8">
                 {[
                   { val: `${(totalValidaciones ?? 0) > 0 ? totalValidaciones : '—'}`, label: 'Evaluaciones completadas'  },
                   { val: `${(totalEmpresas ?? 0) > 0 ? totalEmpresas : '—'}`,          label: 'Empresas en la red'        },
@@ -194,6 +201,22 @@ export default async function EmpleadoresPage() {
                     <p className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.35)' }}>{s.label}</p>
                   </div>
                 ))}
+              </div>
+
+              {/* CTAs */}
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Link href="/registro/empresa"
+                  className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl font-bold text-white text-sm transition-all hover:opacity-90"
+                  style={{ background: 'linear-gradient(135deg, #0F4C81, #1e6fb5)', boxShadow: '0 4px 24px rgba(15,76,129,0.5)' }}>
+                  <Sparkles size={15} />
+                  Registrar mi empresa gratis
+                  <ArrowRight size={15} />
+                </Link>
+                <a href="#pool"
+                  className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl font-semibold text-sm transition-all"
+                  style={{ color: 'rgba(255,255,255,0.65)', border: '1px solid rgba(255,255,255,0.15)', backgroundColor: 'rgba(255,255,255,0.05)' }}>
+                  Ver el pool de talento ↓
+                </a>
               </div>
             </div>
 
@@ -269,6 +292,7 @@ export default async function EmpleadoresPage() {
       </div>
 
       {/* ── POOL STATS ───────────────────────────────────────── */}
+      <div id="pool" />
       {candidatos.length > 0 && (
         <div className="bg-white border-b border-gray-100">
           <div className="max-w-6xl mx-auto px-6 py-6 flex items-center gap-8 flex-wrap">
