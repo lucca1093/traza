@@ -144,7 +144,18 @@ export default function RegistroEmpresaPage() {
 
       setInviteUrl(data.inviteUrl)
       setEmpresaId(data.empresaId)
+
+      // Sign in explícito (por si email confirmation lo saltea)
+      await supabase.auth.signInWithPassword({ email: email.trim(), password })
+
       setStep(2)
+      // Guardar en sessionStorage para el onboarding
+      sessionStorage.setItem('traza_onboarding', JSON.stringify({
+        empresaNombre,
+        empresaId: data.empresaId,
+        adminNombre: nombre.trim(),
+        inviteUrl: data.inviteUrl,
+      }))
     } catch {
       setError('Error de conexión. Intentá de nuevo.')
     } finally {
