@@ -15,6 +15,8 @@ export default function AnalyticsPage() {
   const [stats, setStats]         = useState<any>(null)
   const [ranking, setRanking]     = useState<any[]>([])
   const [openInfo, setOpenInfo]   = useState<string | null>(null)
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false)
+  const [miEmpresaId, setMiEmpresaId]   = useState<string | null>(null)
 
   function InfoBtn({ id, children }: { id: string; children: React.ReactNode }) {
     const open = openInfo === id
@@ -47,9 +49,32 @@ export default function AnalyticsPage() {
 
   useEffect(() => {
     async function load() {
-      const { data: es } = await supabase.from('empresas').select('*').order('nombre')
-      setEmpresas(es ?? [])
-      await calcularStats('todas')
+      // Detectar rol del usuario
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('rol, empresa_id')
+        .eq('id', user.id)
+        .single()
+
+      const superAdmin = profile?.rol === 'super_admin'
+      setIsSuperAdmin(superAdmin)
+
+      if (superAdmin) {
+        const { data: es } = await supabase.from('empresas').select('*').order('nombre')
+        setEmpresas(es ?? [])
+        await calcularStats('todas')
+      } else {
+        // Admin normal: forzar su propia empresa
+        const empId = profile?.empresa_id ?? null
+        setMiEmpresaId(empId)
+        if (empId) {
+          setFiltro(empId)
+          await calcularStats(empId)
+        }
+      }
       setLoading(false)
     }
     load()
@@ -184,16 +209,18 @@ export default function AnalyticsPage() {
           <h1 className="text-2xl font-bold text-gray-900">Analytics</h1>
           <p className="text-gray-500 mt-1">Indicadores consolidados de desempeño organizacional.</p>
         </div>
-        <div>
-          <select
-            className="traza-input w-auto"
-            value={filtroEmpresa}
-            onChange={e => handleFiltro(e.target.value)}
-          >
-            <option value="todas">Todas las empresas</option>
-            {empresas.map(e => <option key={e.id} value={e.id}>{e.nombre}</option>)}
-          </select>
-        </div>
+        {isSuperAdmin && (
+          <div>
+            <select
+              className="traza-input w-auto"
+              value={filtroEmpresa}
+              onChange={e => handleFiltro(e.target.value)}
+            >
+              <option value="todas">Todas las empresas</option>
+              {empresas.map(e => <option key={e.id} value={e.id}>{e.nombre}</option>)}
+            </select>
+          </div>
+        )}
       </div>
 
       {/* KPIs */}
