@@ -110,20 +110,40 @@ export default function RegistroEmpresaPage() {
     setError('')
 
     try {
+      // 1. Crear el usuario en Supabase Auth desde el cliente
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: email.trim(),
+        password,
+        options: { data: { nombre: nombre.trim(), apellido: apellido.trim() } },
+      })
+
+      if (authError) {
+        setError(authError.message === 'User already registered'
+          ? 'Ya existe una cuenta con ese email.'
+          : authError.message)
+        return
+      }
+
+      if (!authData.user) {
+        setError('Error creando la cuenta. Intentá de nuevo.')
+        return
+      }
+
+      // 2. Crear empresa + profile + invite token en el servidor
       const res = await fetch('/api/registro-empresa', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ empresaNombre, rubro, tamano, nombre, apellido, cargo, email, password }),
+        body: JSON.stringify({
+          empresaNombre, rubro, tamano,
+          nombre, apellido, cargo,
+          userId: authData.user.id,
+        }),
       })
       const data = await res.json()
       if (!res.ok) { setError(data.error ?? 'Error al registrar.'); return }
 
       setInviteUrl(data.inviteUrl)
       setEmpresaId(data.empresaId)
-
-      // Hacer sign in automático (el admin fue creado con email_confirm: true)
-      await supabase.auth.signInWithPassword({ email: email.trim(), password })
-
       setStep(2)
     } catch {
       setError('Error de conexión. Intentá de nuevo.')
