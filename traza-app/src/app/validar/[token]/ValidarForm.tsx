@@ -30,7 +30,7 @@ const OPCIONES = [
   },
 ]
 
-export default function ValidarForm({ token, objetivoTitulo }: { token: string; objetivoTitulo: string }) {
+export default function ValidarForm({ token, objetivoTitulo, personaNombre }: { token: string; objetivoTitulo: string; personaNombre?: string }) {
   const [calificacion, setCalificacion] = useState<string>('')
   const [nombre,       setNombre]       = useState('')
   const [email,        setEmail]        = useState('')
@@ -78,7 +78,7 @@ export default function ValidarForm({ token, objetivoTitulo }: { token: string; 
         </div>
         <p className="font-bold text-gray-900 mb-2">Validación enviada</p>
         <p className="text-sm text-gray-500 leading-relaxed max-w-xs mx-auto">
-          Tu evaluación quedó registrada en la credencial TRAZA de <strong>{objetivoTitulo}</strong>.
+          Tu evaluación quedó registrada en la credencial TRAZA de <strong>{personaNombre ?? objetivoTitulo}</strong>.
           Gracias por tomarte el tiempo.
         </p>
         <div className="mt-6 px-4 py-3 rounded-xl text-sm font-medium"
