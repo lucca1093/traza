@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
 
     if (profileError) {
       console.error('Error creando profile:', profileError)
-      // No bloqueamos — el usuario puede completar su perfil después
+      return NextResponse.json({ error: 'Error creando el perfil: ' + profileError.message }, { status: 500 })
     }
 
     // 3. Generar token de invitación inicial
