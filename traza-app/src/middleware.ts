@@ -41,10 +41,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
-  // Si hay sesión y va a /login → redirigir al dashboard
-  if (user && isAuthRoute) {
-    return NextResponse.redirect(new URL('/dashboard', request.url))
-  }
+  // No redirigir automáticamente desde /login — dejar que el usuario cambie de cuenta
 
   return supabaseResponse
 }

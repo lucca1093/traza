@@ -17,6 +17,8 @@ export default function LoginPage() {
     e.preventDefault()
     setLoading(true)
     setError(null)
+    // Cerrar sesión existente antes de iniciar una nueva
+    await supabase.auth.signOut()
     const { error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) {
       setError('Credenciales incorrectas. Verificá tu email y contraseña.')
