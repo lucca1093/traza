@@ -1,6 +1,6 @@
 import { createAdminClient } from '@/lib/supabase-server'
 import ValidarForm from './ValidarForm'
-import { ShieldCheck, FileText, Link2, Paperclip, Clock, MessageSquare, Calendar, Tag, BarChart2, AlertCircle, ChevronRight } from 'lucide-react'
+import { ShieldCheck, FileText, Link2, Paperclip, Clock, MessageSquare, Calendar, Tag, BarChart2, AlertCircle } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
 
@@ -301,27 +301,6 @@ export default async function ValidarTokenPage({ params }: { params: { token: st
             </div>
           </div>
         )}
-
-        {/* ── Card 4: Qué significa cada opción ── */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm px-5 py-4">
-          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">¿Cómo evaluar?</p>
-          <div className="space-y-2">
-            {[
-              { color: '#16a34a', bg: '#f0fdf4', border: '#bbf7d0', label: 'De acuerdo', desc: 'El objetivo fue alcanzado de manera satisfactoria según tu criterio.' },
-              { color: '#d97706', bg: '#fffbeb', border: '#fde68a', label: 'Parcialmente de acuerdo', desc: 'Se avanzó de forma parcial, con aspectos que quedaron pendientes o incompletos.' },
-              { color: '#dc2626', bg: '#fef2f2', border: '#fecaca', label: 'En desacuerdo', desc: 'El objetivo no se alcanzó en el nivel que se esperaba.' },
-            ].map(op => (
-              <div key={op.label} className="flex items-start gap-3 px-3 py-2.5 rounded-xl border"
-                style={{ backgroundColor: op.bg, borderColor: op.border }}>
-                <div className="w-2.5 h-2.5 rounded-full flex-shrink-0 mt-1" style={{ backgroundColor: op.color }} />
-                <div>
-                  <p className="text-xs font-semibold" style={{ color: op.color }}>{op.label}</p>
-                  <p className="text-xs text-gray-500 mt-0.5">{op.desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
 
         {/* ── Formulario ── */}
         <ValidarForm token={params.token} objetivoTitulo={objetivo?.titulo ?? ''} personaNombre={`${persona?.nombre ?? ''} ${persona?.apellido ?? ''}`.trim()} />
