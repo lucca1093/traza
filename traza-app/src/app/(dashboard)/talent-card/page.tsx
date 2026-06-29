@@ -26,7 +26,11 @@ export default function TalentCardPage() {
         const { data: pers } = await supabase.from('personas').select('*').eq('user_id', user!.id).eq('empleo_activo', true).single()
         if (pers) await loadPersonaData(pers.id)
       } else {
-        const { data: ps } = await supabase.from('personas').select('*').eq('empleo_activo', true).order('apellido')
+        let psQuery = supabase.from('personas').select('*').eq('empleo_activo', true).order('apellido')
+        if (p?.rol !== 'super_admin' && p?.empresa_id) {
+          psQuery = psQuery.eq('empresa_id', p.empresa_id)
+        }
+        const { data: ps } = await psQuery
         setPersonas(ps ?? [])
         if (ps && ps.length > 0) {
           setSelected(ps[0].id)

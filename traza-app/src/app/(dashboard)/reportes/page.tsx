@@ -13,8 +13,9 @@ export default function ReportesPage() {
   const [empresas, setEmpresas]             = useState<any[]>([])
   const [filtroEmpresa, setFiltroEmpresa]   = useState('todas')
   const [expanded, setExpanded]             = useState<Set<string>>(new Set())
+  const [isSuperAdmin, setIsSuperAdmin]     = useState(false)
 
-  async function fetchData() {
+  async function fetchData(empresaId = filtroEmpresa) {
     setLoading(true)
     let query = supabase
       .from('objetivos')
@@ -22,7 +23,7 @@ export default function ReportesPage() {
       .order('created_at', { ascending: false })
 
     if (filtroEstado !== 'todos') query = query.eq('estado', filtroEstado)
-    if (filtroEmpresa !== 'todas') query = query.eq('empresa_id', filtroEmpresa)
+    if (empresaId !== 'todas') query = query.eq('empresa_id', empresaId)
 
     const { data } = await query
     setDatos(data ?? [])
@@ -31,9 +32,20 @@ export default function ReportesPage() {
 
   useEffect(() => {
     async function init() {
-      const { data: es } = await supabase.from('empresas').select('*').order('nombre')
-      setEmpresas(es ?? [])
-      await fetchData()
+      const { data: { user } } = await supabase.auth.getUser()
+      const { data: p } = await supabase.from('profiles').select('rol, empresa_id').eq('id', user!.id).single()
+
+      const superAdmin = p?.rol === 'super_admin'
+      setIsSuperAdmin(superAdmin)
+
+      if (superAdmin) {
+        const { data: es } = await supabase.from('empresas').select('*').order('nombre')
+        setEmpresas(es ?? [])
+        await fetchData('todas')
+      } else if (p?.empresa_id) {
+        setFiltroEmpresa(p.empresa_id)
+        await fetchData(p.empresa_id)
+      }
     }
     init()
   }, [])
@@ -91,13 +103,15 @@ export default function ReportesPage() {
 
       {/* Filtros */}
       <div className="traza-card p-5 flex items-end gap-4 flex-wrap">
-        <div>
-          <label className="traza-label">Empresa</label>
-          <select className="traza-input w-48" value={filtroEmpresa} onChange={e => setFiltroEmpresa(e.target.value)}>
-            <option value="todas">Todas</option>
-            {empresas.map(e => <option key={e.id} value={e.id}>{e.nombre}</option>)}
-          </select>
-        </div>
+        {isSuperAdmin && (
+          <div>
+            <label className="traza-label">Empresa</label>
+            <select className="traza-input w-48" value={filtroEmpresa} onChange={e => { setFiltroEmpresa(e.target.value); fetchData(e.target.value) }}>
+              <option value="todas">Todas</option>
+              {empresas.map(e => <option key={e.id} value={e.id}>{e.nombre}</option>)}
+            </select>
+          </div>
+        )}
         <div>
           <label className="traza-label">Estado</label>
           <select className="traza-input w-48" value={filtroEstado} onChange={e => setFiltroEstado(e.target.value)}>
