@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
   const { data: { user } } = await userClient.auth.getUser()
   if (!user) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
 
-  const { empresaId, supervisorId, empleadoId, fecha, agenda, notas, acuerdos, objetivoId } = await request.json()
+  const { empresaId, supervisorId, empleadoId, fecha, agenda, notas, acuerdos, objetivoId, proximaReunion } = await request.json()
 
   if (!empresaId || !supervisorId || !empleadoId || !fecha) {
     return NextResponse.json({ error: 'Faltan campos obligatorios' }, { status: 400 })
@@ -42,15 +42,16 @@ export async function POST(request: NextRequest) {
 
   const admin = createAdminClient()
   const { data, error } = await admin.from('reuniones_1on1').insert({
-    empresa_id:    empresaId,
-    supervisor_id: supervisorId,
-    empleado_id:   empleadoId,
+    empresa_id:       empresaId,
+    supervisor_id:    supervisorId,
+    empleado_id:      empleadoId,
     fecha,
-    agenda:     agenda?.trim()   || null,
-    notas:      notas?.trim()    || null,
-    acuerdos:   acuerdos?.trim() || null,
-    objetivo_id: objetivoId || null,
-    created_by:  user.id,
+    agenda:           agenda?.trim()   || null,
+    notas:            notas?.trim()    || null,
+    acuerdos:         acuerdos?.trim() || null,
+    objetivo_id:      objetivoId || null,
+    proxima_reunion:  proximaReunion || null,
+    created_by:       user.id,
   }).select().single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })

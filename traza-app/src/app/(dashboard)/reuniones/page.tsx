@@ -3,29 +3,45 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { formatFecha } from '@/lib/traza'
-import { Calendar, Plus, ChevronDown, ChevronRight, Target, Trash2, MessageSquare, CheckSquare, ClipboardList, X } from 'lucide-react'
+import { Calendar, Plus, ChevronDown, ChevronRight, Target, Trash2, MessageSquare, CheckSquare, ClipboardList, X, AlertCircle, Clock } from 'lucide-react'
+
+function diasDesde(fechaISO: string): number {
+  const hoy = new Date()
+  hoy.setHours(0, 0, 0, 0)
+  const fecha = new Date(fechaISO + 'T12:00:00')
+  return Math.floor((hoy.getTime() - fecha.getTime()) / (1000 * 60 * 60 * 24))
+}
+
+function labelDias(dias: number): { texto: string; color: string; alerta: boolean } {
+  if (dias === 0) return { texto: 'Hoy', color: '#15803d', alerta: false }
+  if (dias === 1) return { texto: 'Ayer', color: '#6b7280', alerta: false }
+  if (dias < 14)  return { texto: `Hace ${dias} días`, color: '#6b7280', alerta: false }
+  if (dias < 30)  return { texto: `Hace ${dias} días`, color: '#b45309', alerta: true }
+  return { texto: `Hace ${dias} días`, color: '#b91c1c', alerta: true }
+}
 
 export default function ReunionesPage() {
-  const [loading, setLoading]       = useState(true)
-  const [rol, setRol]               = useState('')
-  const [empresaId, setEmpresaId]   = useState('')
+  const [loading, setLoading]         = useState(true)
+  const [rol, setRol]                 = useState('')
+  const [empresaId, setEmpresaId]     = useState('')
   const [miPersonaId, setMiPersonaId] = useState('')
-  const [personas, setPersonas]     = useState<any[]>([])
-  const [objetivos, setObjetivos]   = useState<any[]>([])
-  const [reuniones, setReuniones]   = useState<any[]>([])
-  const [filtroEmpleado, setFiltro] = useState('todos')
-  const [expanded, setExpanded]     = useState<Set<string>>(new Set())
-  const [showForm, setShowForm]     = useState(false)
-  const [saving, setSaving]         = useState(false)
-  const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [personas, setPersonas]       = useState<any[]>([])
+  const [objetivos, setObjetivos]     = useState<any[]>([])
+  const [reuniones, setReuniones]     = useState<any[]>([])
+  const [filtroEmpleado, setFiltro]   = useState('todos')
+  const [expanded, setExpanded]       = useState<Set<string>>(new Set())
+  const [showForm, setShowForm]       = useState(false)
+  const [saving, setSaving]           = useState(false)
+  const [deletingId, setDeletingId]   = useState<string | null>(null)
 
   const [form, setForm] = useState({
-    empleadoId:  '',
-    fecha:       new Date().toISOString().split('T')[0],
-    agenda:      '',
-    notas:       '',
-    acuerdos:    '',
-    objetivoId:  '',
+    empleadoId:      '',
+    fecha:           new Date().toISOString().split('T')[0],
+    temasTratados:   '',
+    notas:           '',
+    acuerdos:        '',
+    objetivoId:      '',
+    proximaReunion:  '',
   })
 
   useEffect(() => {
@@ -39,12 +55,10 @@ export default function ReunionesPage() {
       setRol(profile?.rol ?? '')
       setEmpresaId(profile?.empresa_id ?? '')
 
-      // Buscar persona del usuario logueado
       const { data: miPersona } = await supabase
         .from('personas').select('id').eq('user_id', user.id).eq('empleo_activo', true).single()
       if (miPersona) setMiPersonaId(miPersona.id)
 
-      // Cargar personas de la empresa (para supervisor/admin)
       if (['admin', 'super_admin', 'supervisor'].includes(profile?.rol ?? '')) {
         const { data: ps } = await supabase
           .from('personas').select('id, nombre, apellido, cargo, area')
@@ -52,7 +66,6 @@ export default function ReunionesPage() {
           .eq('empleo_activo', true).order('apellido')
         setPersonas(ps ?? [])
 
-        // Cargar objetivos para vincular
         const { data: obs } = await supabase
           .from('objetivos').select('id, titulo, persona_id')
           .eq('empresa_id', profile?.empresa_id)
@@ -69,7 +82,6 @@ export default function ReunionesPage() {
   async function fetchReuniones(empId: string, rolActual: string, personaId: string) {
     const params = new URLSearchParams({ empresaId: empId })
     if (rolActual === 'empleado' && personaId) params.set('empleadoId', personaId)
-
     const res = await fetch(`/api/1on1?${params}`)
     const data = await res.json()
     setReuniones(data.reuniones ?? [])
@@ -80,25 +92,23 @@ export default function ReunionesPage() {
     if (!form.empleadoId || !form.fecha) return
     setSaving(true)
 
-    // Encontrar persona del supervisor actual
-    const supervisorPersona = miPersonaId
-
     await fetch('/api/1on1', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         empresaId,
-        supervisorId: supervisorPersona,
-        empleadoId:   form.empleadoId,
-        fecha:        form.fecha,
-        agenda:       form.agenda,
-        notas:        form.notas,
-        acuerdos:     form.acuerdos,
-        objetivoId:   form.objetivoId || null,
+        supervisorId:   miPersonaId,
+        empleadoId:     form.empleadoId,
+        fecha:          form.fecha,
+        agenda:         form.temasTratados,
+        notas:          form.notas,
+        acuerdos:       form.acuerdos,
+        objetivoId:     form.objetivoId || null,
+        proximaReunion: form.proximaReunion || null,
       }),
     })
 
-    setForm({ empleadoId: '', fecha: new Date().toISOString().split('T')[0], agenda: '', notas: '', acuerdos: '', objetivoId: '' })
+    setForm({ empleadoId: '', fecha: new Date().toISOString().split('T')[0], temasTratados: '', notas: '', acuerdos: '', objetivoId: '', proximaReunion: '' })
     setShowForm(false)
     setSaving(false)
     await fetchReuniones(empresaId, rol, miPersonaId)
@@ -119,7 +129,6 @@ export default function ReunionesPage() {
     })
   }
 
-  // Agrupar por empleado
   const reunionesFiltradas = filtroEmpleado === 'todos'
     ? reuniones
     : reuniones.filter(r => r.empleado_id === filtroEmpleado)
@@ -131,7 +140,6 @@ export default function ReunionesPage() {
     grupos[pid].reuniones.push(r)
   })
 
-  // Objetivos filtrados por empleado seleccionado en el form
   const objetivosEmpleado = form.empleadoId
     ? objetivos.filter(o => o.persona_id === form.empleadoId)
     : []
@@ -165,7 +173,7 @@ export default function ReunionesPage() {
         )}
       </div>
 
-      {/* Filtro por empleado (solo admin/supervisor) */}
+      {/* Filtro */}
       {esAdmin && personas.length > 0 && (
         <div className="flex items-center gap-3">
           <select
@@ -210,7 +218,7 @@ export default function ReunionesPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="traza-label">Fecha *</label>
+                  <label className="traza-label">Fecha de la reunión *</label>
                   <input
                     type="date"
                     className="traza-input"
@@ -239,20 +247,20 @@ export default function ReunionesPage() {
 
               <div>
                 <label className="traza-label flex items-center gap-1.5">
-                  <ClipboardList size={13} className="text-gray-400" /> Agenda / Temas a tratar
+                  <ClipboardList size={13} className="text-gray-400" /> Temas tratados
                 </label>
                 <textarea
                   className="traza-input resize-none"
                   rows={2}
-                  placeholder="¿De qué se habló o se va a hablar?"
-                  value={form.agenda}
-                  onChange={e => setForm(f => ({ ...f, agenda: e.target.value }))}
+                  placeholder="¿De qué se habló?"
+                  value={form.temasTratados}
+                  onChange={e => setForm(f => ({ ...f, temasTratados: e.target.value }))}
                 />
               </div>
 
               <div>
                 <label className="traza-label flex items-center gap-1.5">
-                  <MessageSquare size={13} className="text-gray-400" /> Notas de la reunión
+                  <MessageSquare size={13} className="text-gray-400" /> Notas
                 </label>
                 <textarea
                   className="traza-input resize-none"
@@ -265,14 +273,26 @@ export default function ReunionesPage() {
 
               <div>
                 <label className="traza-label flex items-center gap-1.5">
-                  <CheckSquare size={13} className="text-gray-400" /> Acuerdos / Compromisos
+                  <CheckSquare size={13} className="text-gray-400" /> Acuerdos
                 </label>
                 <textarea
                   className="traza-input resize-none"
                   rows={2}
-                  placeholder="¿Qué quedó acordado? ¿Qué va a hacer cada uno?"
+                  placeholder="¿Qué quedó acordado?"
                   value={form.acuerdos}
                   onChange={e => setForm(f => ({ ...f, acuerdos: e.target.value }))}
+                />
+              </div>
+
+              <div>
+                <label className="traza-label flex items-center gap-1.5">
+                  <Clock size={13} className="text-gray-400" /> Próxima reunión (opcional)
+                </label>
+                <input
+                  type="date"
+                  className="traza-input"
+                  value={form.proximaReunion}
+                  onChange={e => setForm(f => ({ ...f, proximaReunion: e.target.value }))}
                 />
               </div>
 
@@ -308,101 +328,132 @@ export default function ReunionesPage() {
         </div>
       ) : (
         <div className="space-y-4">
-          {Object.values(grupos).map(({ empleado, reuniones: rs }) => (
-            <div key={empleado?.id} className="traza-card overflow-hidden">
-              {/* Header del grupo */}
-              <div
-                className="px-6 py-4 flex items-center justify-between cursor-pointer hover:bg-gray-50 transition-colors"
-                onClick={() => toggleExpanded(empleado?.id)}
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-white flex-shrink-0"
-                    style={{ backgroundColor: '#0F4C81' }}>
-                    {empleado?.nombre?.[0]}{empleado?.apellido?.[0]}
-                  </div>
-                  <div>
-                    <p className="font-semibold text-gray-900">{empleado?.nombre} {empleado?.apellido}</p>
-                    <p className="text-xs text-gray-400">{empleado?.cargo}{empleado?.area ? ` · ${empleado.area}` : ''}</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-xs text-gray-400 font-medium">{rs.length} reunión{rs.length !== 1 ? 'es' : ''}</span>
-                  {expanded.has(empleado?.id)
-                    ? <ChevronDown size={16} className="text-gray-400" />
-                    : <ChevronRight size={16} className="text-gray-400" />}
-                </div>
-              </div>
+          {Object.values(grupos).map(({ empleado, reuniones: rs }) => {
+            const ultimaFecha = rs[0]?.fecha // ya vienen ordenadas por fecha desc
+            const dias = ultimaFecha ? diasDesde(ultimaFecha) : 999
+            const label = ultimaFecha ? labelDias(dias) : null
+            const proximaReunion = rs[0]?.proxima_reunion ?? null
 
-              {/* Reuniones del empleado */}
-              {expanded.has(empleado?.id) && (
-                <div className="divide-y divide-gray-50 border-t border-gray-100">
-                  {rs.map((r: any) => (
-                    <div key={r.id} className="px-6 py-4">
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex-1 space-y-3">
-                          {/* Fecha + objetivo vinculado */}
-                          <div className="flex items-center gap-3 flex-wrap">
-                            <div className="flex items-center gap-1.5 text-sm font-semibold text-gray-900">
-                              <Calendar size={13} className="text-gray-400" />
-                              {formatFecha(r.fecha)}
+            return (
+              <div key={empleado?.id} className="traza-card overflow-hidden">
+                {/* Header del grupo */}
+                <div
+                  className="px-6 py-4 flex items-center justify-between cursor-pointer hover:bg-gray-50 transition-colors"
+                  onClick={() => toggleExpanded(empleado?.id)}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-white flex-shrink-0"
+                      style={{ backgroundColor: '#0F4C81' }}>
+                      {empleado?.nombre?.[0]}{empleado?.apellido?.[0]}
+                    </div>
+                    <div>
+                      <p className="font-semibold text-gray-900">{empleado?.nombre} {empleado?.apellido}</p>
+                      <p className="text-xs text-gray-400">{empleado?.cargo}{empleado?.area ? ` · ${empleado.area}` : ''}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3 flex-wrap justify-end">
+                    {/* Alerta días sin reunión */}
+                    {esAdmin && label && (
+                      <div className="flex items-center gap-1.5">
+                        {label.alerta && <AlertCircle size={13} style={{ color: label.color }} />}
+                        <span className="text-xs font-medium" style={{ color: label.color }}>
+                          Última reunión: {label.texto}
+                        </span>
+                      </div>
+                    )}
+                    {/* Próxima reunión */}
+                    {proximaReunion && (
+                      <span className="text-xs px-2 py-0.5 rounded-full font-medium"
+                        style={{ backgroundColor: '#eff6ff', color: '#1d4ed8' }}>
+                        <Clock size={10} className="inline mr-1" />
+                        Próxima: {formatFecha(proximaReunion)}
+                      </span>
+                    )}
+                    <span className="text-xs text-gray-400 font-medium">{rs.length} reunión{rs.length !== 1 ? 'es' : ''}</span>
+                    {expanded.has(empleado?.id)
+                      ? <ChevronDown size={16} className="text-gray-400" />
+                      : <ChevronRight size={16} className="text-gray-400" />}
+                  </div>
+                </div>
+
+                {/* Reuniones del empleado */}
+                {expanded.has(empleado?.id) && (
+                  <div className="divide-y divide-gray-50 border-t border-gray-100">
+                    {rs.map((r: any) => (
+                      <div key={r.id} className="px-6 py-4">
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex-1 space-y-3">
+                            {/* Fecha + objetivo */}
+                            <div className="flex items-center gap-3 flex-wrap">
+                              <div className="flex items-center gap-1.5 text-sm font-semibold text-gray-900">
+                                <Calendar size={13} className="text-gray-400" />
+                                {formatFecha(r.fecha)}
+                              </div>
+                              {r.objetivo && (
+                                <span className="flex items-center gap-1 text-xs px-2 py-0.5 rounded-full font-medium"
+                                  style={{ backgroundColor: '#eff6ff', color: '#1d4ed8' }}>
+                                  <Target size={10} />
+                                  {r.objetivo.titulo}
+                                </span>
+                              )}
+                              {r.proxima_reunion && (
+                                <span className="flex items-center gap-1 text-xs px-2 py-0.5 rounded-full font-medium"
+                                  style={{ backgroundColor: '#f0fdf4', color: '#15803d' }}>
+                                  <Clock size={10} />
+                                  Próxima: {formatFecha(r.proxima_reunion)}
+                                </span>
+                              )}
                             </div>
-                            {r.objetivo && (
-                              <span className="flex items-center gap-1 text-xs px-2 py-0.5 rounded-full font-medium"
-                                style={{ backgroundColor: '#eff6ff', color: '#1d4ed8' }}>
-                                <Target size={10} />
-                                {r.objetivo.titulo}
-                              </span>
+
+                            {/* Temas tratados */}
+                            {r.agenda && (
+                              <div>
+                                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1 flex items-center gap-1">
+                                  <ClipboardList size={11} /> Temas tratados
+                                </p>
+                                <p className="text-sm text-gray-700 leading-relaxed">{r.agenda}</p>
+                              </div>
+                            )}
+
+                            {/* Notas */}
+                            {r.notas && (
+                              <div>
+                                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1 flex items-center gap-1">
+                                  <MessageSquare size={11} /> Notas
+                                </p>
+                                <p className="text-sm text-gray-700 leading-relaxed">{r.notas}</p>
+                              </div>
+                            )}
+
+                            {/* Acuerdos */}
+                            {r.acuerdos && (
+                              <div className="rounded-xl p-3" style={{ backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0' }}>
+                                <p className="text-xs font-semibold mb-1 flex items-center gap-1" style={{ color: '#15803d' }}>
+                                  <CheckSquare size={11} /> Acuerdos
+                                </p>
+                                <p className="text-sm leading-relaxed" style={{ color: '#166534' }}>{r.acuerdos}</p>
+                              </div>
                             )}
                           </div>
 
-                          {/* Agenda */}
-                          {r.agenda && (
-                            <div>
-                              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1 flex items-center gap-1">
-                                <ClipboardList size={11} /> Agenda
-                              </p>
-                              <p className="text-sm text-gray-700 leading-relaxed">{r.agenda}</p>
-                            </div>
-                          )}
-
-                          {/* Notas */}
-                          {r.notas && (
-                            <div>
-                              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1 flex items-center gap-1">
-                                <MessageSquare size={11} /> Notas
-                              </p>
-                              <p className="text-sm text-gray-700 leading-relaxed">{r.notas}</p>
-                            </div>
-                          )}
-
-                          {/* Acuerdos */}
-                          {r.acuerdos && (
-                            <div className="rounded-xl p-3" style={{ backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0' }}>
-                              <p className="text-xs font-semibold mb-1 flex items-center gap-1" style={{ color: '#15803d' }}>
-                                <CheckSquare size={11} /> Acuerdos
-                              </p>
-                              <p className="text-sm leading-relaxed" style={{ color: '#166534' }}>{r.acuerdos}</p>
-                            </div>
+                          {esAdmin && (
+                            <button
+                              onClick={() => handleDelete(r.id)}
+                              disabled={deletingId === r.id}
+                              className="p-1.5 rounded-lg hover:bg-red-50 transition-colors flex-shrink-0 mt-0.5"
+                            >
+                              <Trash2 size={14} className={deletingId === r.id ? 'text-gray-300' : 'text-gray-300 hover:text-red-400'} />
+                            </button>
                           )}
                         </div>
-
-                        {/* Botón eliminar (solo admin/supervisor) */}
-                        {esAdmin && (
-                          <button
-                            onClick={() => handleDelete(r.id)}
-                            disabled={deletingId === r.id}
-                            className="p-1.5 rounded-lg hover:bg-red-50 transition-colors flex-shrink-0 mt-0.5"
-                          >
-                            <Trash2 size={14} className={deletingId === r.id ? 'text-gray-300' : 'text-gray-300 hover:text-red-400'} />
-                          </button>
-                        )}
                       </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          ))}
+                    ))}
+                  </div>
+                )}
+              </div>
+            )
+          })}
         </div>
       )}
     </div>
