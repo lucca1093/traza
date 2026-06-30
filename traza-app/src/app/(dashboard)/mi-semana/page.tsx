@@ -7,8 +7,9 @@ import { calcularRacha } from '@/lib/traza'
 import {
   ChevronLeft, ChevronRight,
   AlertTriangle, Clock, CalendarDays, Activity,
-  CheckCircle2, Star, ThumbsUp, Send,
+  CheckCircle2, Star, ThumbsUp, Send, MessageSquare, ClipboardList, CheckSquare,
 } from 'lucide-react'
+import { formatFecha } from '@/lib/traza'
 
 // ── Helpers ───────────────────────────────────────────────────
 const DIAS_CORTO  = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom']
@@ -83,6 +84,7 @@ export default function MiSemanaPage() {
   // Evaluación mensual del supervisor
   const [personaId, setPersonaId]       = useState<string | null>(null)
   const [empresaId, setEmpresaId]       = useState<string | null>(null)
+  const [mis1on1, setMis1on1]           = useState<any[]>([])
   const [evalYaEnviada, setEvalYaEnviada] = useState(false)
   const [showEvalForm, setShowEvalForm] = useState(false)
   const [savingEval, setSavingEval]     = useState(false)
@@ -132,6 +134,11 @@ export default function MiSemanaPage() {
           const res = await fetch(`/api/evaluar-supervisor?empleadoId=${persona.id}&periodo=${periodoActual}`)
           const resData = await res.json()
           if (resData.evaluacion) setEvalYaEnviada(true)
+
+          // Cargar mis 1:1s
+          const res1on1 = await fetch(`/api/1on1?empleadoId=${persona.id}`)
+          const data1on1 = await res1on1.json()
+          setMis1on1(data1on1.reuniones ?? [])
         }
       } else {
         const { data: obs } = await supabase
@@ -417,6 +424,61 @@ export default function MiSemanaPage() {
               </button>
             </form>
           )}
+        </div>
+      )}
+
+      {/* ── Mis reuniones 1:1 (solo empleado) ───────────────── */}
+      {rol === 'empleado' && mis1on1.length > 0 && (
+        <div className="traza-card p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <MessageSquare size={16} className="text-traza-700" />
+            <h2 className="font-semibold text-gray-900">Mis reuniones 1:1</h2>
+            <span className="text-xs text-gray-400 font-medium ml-1">{mis1on1.length} registrada{mis1on1.length !== 1 ? 's' : ''}</span>
+          </div>
+          <div className="space-y-3">
+            {mis1on1.slice(0, 4).map((r: any) => (
+              <div key={r.id} className="rounded-xl border border-gray-100 p-4 hover:bg-gray-50 transition-colors">
+                <div className="flex items-center gap-2 mb-2 flex-wrap">
+                  <span className="text-sm font-semibold text-gray-900">{formatFecha(r.fecha)}</span>
+                  {r.supervisor && (
+                    <span className="text-xs text-gray-400">con {r.supervisor.nombre} {r.supervisor.apellido}</span>
+                  )}
+                  {r.objetivo && (
+                    <span className="text-xs px-2 py-0.5 rounded-full font-medium"
+                      style={{ backgroundColor: '#eff6ff', color: '#1d4ed8' }}>
+                      {r.objetivo.titulo}
+                    </span>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  {r.agenda && (
+                    <div>
+                      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-0.5 flex items-center gap-1">
+                        <ClipboardList size={10} /> Agenda
+                      </p>
+                      <p className="text-sm text-gray-700 leading-relaxed">{r.agenda}</p>
+                    </div>
+                  )}
+                  {r.notas && (
+                    <p className="text-sm text-gray-600 leading-relaxed">{r.notas}</p>
+                  )}
+                  {r.acuerdos && (
+                    <div className="rounded-lg px-3 py-2" style={{ backgroundColor: '#f0fdf4' }}>
+                      <p className="text-xs font-semibold mb-0.5 flex items-center gap-1" style={{ color: '#15803d' }}>
+                        <CheckSquare size={10} /> Acuerdos
+                      </p>
+                      <p className="text-sm leading-relaxed" style={{ color: '#166534' }}>{r.acuerdos}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+            {mis1on1.length > 4 && (
+              <p className="text-xs text-gray-400 text-center pt-1">
+                +{mis1on1.length - 4} más · <a href="/reuniones" className="text-traza-700 hover:underline font-medium">Ver todo</a>
+              </p>
+            )}
+          </div>
         </div>
       )}
 

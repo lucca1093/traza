@@ -5,7 +5,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import {
   LayoutDashboard, Building2, Users, Target, ClipboardList,
   CheckSquare, BarChart2, User, Award, FileText, LogOut, CalendarDays,
-  Flame, Search,
+  Flame, Search, MessageSquare,
   type LucideIcon
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
@@ -15,7 +15,7 @@ import type { Profile } from '@/types'
 const ICON_MAP: Record<string, LucideIcon> = {
   LayoutDashboard, Building2, Users, Target, ClipboardList,
   CheckSquare, BarChart2, User, Award, FileText, CalendarDays,
-  Flame, Search,
+  Flame, Search, MessageSquare,
 }
 
 interface SidebarProps {
