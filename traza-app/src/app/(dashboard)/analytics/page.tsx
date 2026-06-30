@@ -483,8 +483,8 @@ export default function AnalyticsPage() {
           enRiesgoPersonas.length > 0 && {
             id: 'riesgo', color: '#7c3aed', bg: '#f5f3ff', border: '#ddd6fe',
             titulo: 'Necesitan atención',
-            desc: `${enRisgoPersonas.length} persona${enRisgoPersonas.length > 1 ? 's tienen' : ' tiene'} un score por debajo de 40. Requieren acompañamiento activo.`,
-            personas: enRisgoPersonas.slice(0, 3).map(r => `${r.persona.nombre} ${r.persona.apellido}`),
+            desc: `${enRiesgoPersonas.length} persona${enRiesgoPersonas.length > 1 ? 's tienen' : ' tiene'} un score por debajo de 40. Requieren acompañamiento activo.`,
+            personas: enRiesgoPersonas.slice(0, 3).map(r => `${r.persona.nombre} ${r.persona.apellido}`),
           },
         ].filter(Boolean) as any[]
 
