@@ -7,7 +7,7 @@ import { calcularRacha } from '@/lib/traza'
 import {
   ChevronLeft, ChevronRight,
   AlertTriangle, Clock, CalendarDays, Activity,
-  CheckCircle2, Star, ThumbsUp, Send, MessageSquare, ClipboardList, CheckSquare,
+  CheckCircle2, Star, Send, MessageSquare,
 } from 'lucide-react'
 import { formatFecha } from '@/lib/traza'
 
@@ -200,6 +200,10 @@ export default function MiSemanaPage() {
   function obsEnFecha(fechaISO: string) {
     return obsFiltrados.filter(o => o.fecha_limite?.startsWith(fechaISO))
   }
+
+  function reunion1on1EnFecha(fechaISO: string) {
+    return mis1on1.filter(r => r.fecha === fechaISO)
+  }
   const obsSeleccionados = selectedDay ? obsEnFecha(selectedDay) : []
 
   function abrirObj(o: any) {
@@ -313,8 +317,8 @@ export default function MiSemanaPage() {
         </div>
       </div>
 
-      {/* ── Evaluación mensual del supervisor (solo empleados) ── */}
-      {rol === 'empleado' && tienePersona && (
+      {/* placeholder — evaluación movida abajo */}
+      {false && (
         <div className={`rounded-2xl border p-5 transition-all ${evalYaEnviada ? 'bg-green-50 border-green-100' : 'bg-white border-gray-100 shadow-sm'}`}>
           {evalYaEnviada ? (
             <div className="flex items-center gap-3">
@@ -427,61 +431,6 @@ export default function MiSemanaPage() {
         </div>
       )}
 
-      {/* ── Mis reuniones 1:1 (solo empleado) ───────────────── */}
-      {rol === 'empleado' && mis1on1.length > 0 && (
-        <div className="traza-card p-5">
-          <div className="flex items-center gap-2 mb-4">
-            <MessageSquare size={16} className="text-traza-700" />
-            <h2 className="font-semibold text-gray-900">Mis reuniones 1:1</h2>
-            <span className="text-xs text-gray-400 font-medium ml-1">{mis1on1.length} registrada{mis1on1.length !== 1 ? 's' : ''}</span>
-          </div>
-          <div className="space-y-3">
-            {mis1on1.slice(0, 4).map((r: any) => (
-              <div key={r.id} className="rounded-xl border border-gray-100 p-4 hover:bg-gray-50 transition-colors">
-                <div className="flex items-center gap-2 mb-2 flex-wrap">
-                  <span className="text-sm font-semibold text-gray-900">{formatFecha(r.fecha)}</span>
-                  {r.supervisor && (
-                    <span className="text-xs text-gray-400">con {r.supervisor.nombre} {r.supervisor.apellido}</span>
-                  )}
-                  {r.objetivo && (
-                    <span className="text-xs px-2 py-0.5 rounded-full font-medium"
-                      style={{ backgroundColor: '#eff6ff', color: '#1d4ed8' }}>
-                      {r.objetivo.titulo}
-                    </span>
-                  )}
-                </div>
-                <div className="space-y-2">
-                  {r.agenda && (
-                    <div>
-                      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-0.5 flex items-center gap-1">
-                        <ClipboardList size={10} /> Agenda
-                      </p>
-                      <p className="text-sm text-gray-700 leading-relaxed">{r.agenda}</p>
-                    </div>
-                  )}
-                  {r.notas && (
-                    <p className="text-sm text-gray-600 leading-relaxed">{r.notas}</p>
-                  )}
-                  {r.acuerdos && (
-                    <div className="rounded-lg px-3 py-2" style={{ backgroundColor: '#f0fdf4' }}>
-                      <p className="text-xs font-semibold mb-0.5 flex items-center gap-1" style={{ color: '#15803d' }}>
-                        <CheckSquare size={10} /> Acuerdos
-                      </p>
-                      <p className="text-sm leading-relaxed" style={{ color: '#166534' }}>{r.acuerdos}</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))}
-            {mis1on1.length > 4 && (
-              <p className="text-xs text-gray-400 text-center pt-1">
-                +{mis1on1.length - 4} más · <a href="/reuniones" className="text-traza-700 hover:underline font-medium">Ver todo</a>
-              </p>
-            )}
-          </div>
-        </div>
-      )}
-
       {/* ── Calendario + panel ────────────────────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_272px] gap-5 items-start">
 
@@ -510,12 +459,13 @@ export default function MiSemanaPage() {
           {vista === 'semana' && (
             <div className="grid grid-cols-7 divide-x divide-gray-100">
               {diasSemana.map((dia, i) => {
-                const fISO    = isoDate(dia)
-                const obs     = obsEnFecha(fISO)
-                const esHoy   = fISO === hoyISO
-                const sel     = selectedDay === fISO
-                const finde   = i >= 5
-                const hayVenc = obs.some(esVencido)
+                const fISO      = isoDate(dia)
+                const obs       = obsEnFecha(fISO)
+                const reuniones = reunion1on1EnFecha(fISO)
+                const esHoy     = fISO === hoyISO
+                const sel       = selectedDay === fISO
+                const finde     = i >= 5
+                const hayVenc   = obs.some(esVencido)
                 return (
                   <div key={fISO}
                     className={`min-h-[160px] cursor-pointer transition-colors ${sel ? 'bg-traza-50' : finde ? 'bg-gray-50/40 hover:bg-gray-50' : 'hover:bg-gray-50/60'}`}
@@ -543,6 +493,16 @@ export default function MiSemanaPage() {
                         )
                       })}
                       {obs.length > 3 && <p className="text-xs text-gray-400 px-1">+{obs.length-3} más</p>}
+                      {reuniones.length > 0 && (
+                        <a href="/reuniones"
+                          onClick={e => e.stopPropagation()}
+                          className="flex items-center gap-1 text-xs px-2 py-0.5 rounded-lg truncate font-medium hover:opacity-75 transition-opacity"
+                          style={{ backgroundColor: '#f0f4ff', color: '#4f46e5' }}
+                          title="Reunión 1:1">
+                          <MessageSquare size={9} />
+                          Reunión 1:1
+                        </a>
+                      )}
                     </div>
                   </div>
                 )
@@ -697,6 +657,103 @@ export default function MiSemanaPage() {
           </div>
         </div>
       </div>
+      {/* ── Evaluación mensual del supervisor (solo empleados) ── */}
+      {rol === 'empleado' && tienePersona && (
+        <div className={`rounded-2xl border p-5 transition-all ${evalYaEnviada ? 'bg-green-50 border-green-100' : 'bg-white border-gray-100 shadow-sm'}`}>
+          {evalYaEnviada ? (
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-green-100 flex items-center justify-center flex-shrink-0">
+                <CheckCircle2 size={18} className="text-green-600" />
+              </div>
+              <div>
+                <p className="font-semibold text-sm text-gray-800">Ya evaluaste a tu supervisor este mes</p>
+                <p className="text-xs text-gray-400 mt-0.5">Gracias por tu feedback. Podés actualizar tu respuesta el próximo mes.</p>
+              </div>
+            </div>
+          ) : !showEvalForm ? (
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#EFF6FF' }}>
+                  <Star size={17} style={{ color: '#2563EB' }} />
+                </div>
+                <div>
+                  <p className="font-semibold text-sm text-gray-900">¿Cómo te está yendo con tu supervisor?</p>
+                  <p className="text-xs text-gray-400 mt-0.5">Evaluación mensual · Tu respuesta es anónima para el equipo</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowEvalForm(true)}
+                className="flex-shrink-0 text-xs font-semibold px-4 py-2 rounded-xl text-white transition-colors"
+                style={{ backgroundColor: '#0F4C81' }}
+              >
+                Evaluar ahora
+              </button>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmitEval} className="space-y-5">
+              <div className="flex items-center justify-between">
+                <p className="font-semibold text-gray-900">Evaluación mensual del supervisor</p>
+                <button type="button" onClick={() => setShowEvalForm(false)} className="text-xs text-gray-400 hover:text-gray-600">Cancelar</button>
+              </div>
+              <div>
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">¿Cómo calificarías a tu supervisor este mes?</p>
+                <div className="grid grid-cols-4 gap-2">
+                  {([
+                    { val: 'Excelente', color: '#16a34a', bg: '#f0fdf4', border: '#bbf7d0' },
+                    { val: 'Bueno',     color: '#2563eb', bg: '#eff6ff', border: '#bfdbfe' },
+                    { val: 'Regular',   color: '#d97706', bg: '#fffbeb', border: '#fde68a' },
+                    { val: 'Mejorable', color: '#dc2626', bg: '#fef2f2', border: '#fecaca' },
+                  ] as const).map(({ val, color, bg, border }) => (
+                    <button
+                      key={val} type="button"
+                      onClick={() => setEvalForm(f => ({ ...f, calificacion: val }))}
+                      className="py-2.5 rounded-xl text-xs font-semibold border-2 transition-all"
+                      style={{
+                        backgroundColor: evalForm.calificacion === val ? bg : '#f9fafb',
+                        borderColor:     evalForm.calificacion === val ? border : '#e5e7eb',
+                        color:           evalForm.calificacion === val ? color : '#6b7280',
+                      }}
+                    >{val}</button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">¿Qué aspectos destacás? (opcional)</p>
+                <div className="flex flex-wrap gap-2">
+                  {ASPECTOS_OPCIONES.map(a => {
+                    const sel = evalForm.aspectos.includes(a)
+                    return (
+                      <button key={a} type="button" onClick={() => toggleAspecto(a)}
+                        className="text-xs px-3 py-1.5 rounded-full border font-medium transition-all"
+                        style={{
+                          backgroundColor: sel ? '#eff6ff' : '#f9fafb',
+                          borderColor:     sel ? '#bfdbfe' : '#e5e7eb',
+                          color:           sel ? '#1d4ed8' : '#6b7280',
+                        }}>{sel ? '✓ ' : ''}{a}</button>
+                    )
+                  })}
+                </div>
+              </div>
+              <div>
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Comentario (opcional)</p>
+                <textarea
+                  value={evalForm.comentario}
+                  onChange={e => setEvalForm(f => ({ ...f, comentario: e.target.value }))}
+                  placeholder="¿Algo más que quieras compartir?"
+                  rows={3} className="traza-input resize-none"
+                />
+              </div>
+              <button type="submit" disabled={!evalForm.calificacion || savingEval}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-50"
+                style={{ backgroundColor: '#0F4C81' }}>
+                <Send size={14} />
+                {savingEval ? 'Enviando...' : 'Enviar evaluación'}
+              </button>
+            </form>
+          )}
+        </div>
+      )}
+
     </div>
   )
 }

@@ -202,18 +202,18 @@ export function getNivelClasses(nivel: NivelTraza): string {
 
 export function getEstadoClasses(estado: string): string {
   const map: Record<string, string> = {
-    'Completado':  'bg-green-100 text-green-700',
-    'En progreso': 'bg-yellow-100 text-yellow-700',
-    'Pendiente':   'bg-red-100 text-red-700',
+    'Completado':  'bg-gray-100 text-gray-600',
+    'En progreso': 'bg-gray-100 text-gray-700',
+    'Pendiente':   'bg-gray-50 text-gray-500',
   }
   return map[estado] ?? 'bg-gray-100 text-gray-600'
 }
 
 export function getPrioridadClasses(prioridad: string): string {
   const map: Record<string, string> = {
-    'Alta':  'bg-red-100 text-red-700',
-    'Media': 'bg-yellow-100 text-yellow-700',
-    'Baja':  'bg-green-100 text-green-700',
+    'Alta':  'bg-gray-900 text-white',
+    'Media': 'bg-gray-200 text-gray-700',
+    'Baja':  'bg-gray-100 text-gray-500',
   }
   return map[prioridad] ?? 'bg-gray-100 text-gray-600'
 }
@@ -223,13 +223,15 @@ export function getValidacionClasses(validacion: string | null): string {
 }
 
 export function getCategoriaStyle(categoria: string): { backgroundColor: string; color: string; label: string } {
+  // Todos en el mismo tono neutro del sistema de diseño
+  const neutro = { backgroundColor: '#f3f4f6', color: '#374151' }
   const map: Record<string, { backgroundColor: string; color: string; label: string }> = {
-    'Resultado':    { backgroundColor: '#dbeafe', color: '#1d4ed8', label: 'Resultado'   },
-    'Eficiencia':   { backgroundColor: '#d1fae5', color: '#065f46', label: 'Eficiencia'  },
-    'Aprendizaje':  { backgroundColor: '#ede9fe', color: '#5b21b6', label: 'Aprendizaje' },
-    'Hábito':       { backgroundColor: '#fef3c7', color: '#92400e', label: 'Hábito'      },
+    'Resultado':    { ...neutro, label: 'Resultado'   },
+    'Eficiencia':   { ...neutro, label: 'Eficiencia'  },
+    'Aprendizaje':  { ...neutro, label: 'Aprendizaje' },
+    'Hábito':       { ...neutro, label: 'Hábito'      },
   }
-  return map[categoria] ?? { backgroundColor: '#f3f4f6', color: '#6b7280', label: categoria }
+  return map[categoria] ?? { ...neutro, label: categoria }
 }
 
 // Detecta discrepancia entre autoevaluación del empleado y validación del supervisor
