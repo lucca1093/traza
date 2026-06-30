@@ -554,61 +554,7 @@ export default function AnalyticsPage() {
         )
       })()}
 
-      {/* Evolución trimestral */}
-      {stats.evolucion?.length > 0 && (
-        <div className="traza-card p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="font-semibold text-gray-900">Evolución trimestral</h2>
-            <InfoBtn id="trimestral">
-              <p className="font-semibold text-gray-800 mb-1">Qué muestra cada columna</p>
-              <div>
-                <p className="font-medium text-gray-800">Objetivos</p>
-                <p>Total con fecha límite dentro del trimestre, independientemente de su estado actual.</p>
-              </div>
-              <div>
-                <p className="font-medium text-gray-800">Cumplimiento</p>
-                <p>Porcentaje de completados sobre el total del trimestre. Mide ejecución.</p>
-              </div>
-              <div>
-                <p className="font-medium text-gray-800">Calidad de validación</p>
-                <p>De los completados, qué porcentaje recibió validación positiva del supervisor. Mide no solo si se hizo, sino si se hizo bien.</p>
-              </div>
-            </InfoBtn>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-xs text-gray-400 uppercase tracking-wide">
-                  <th className="text-left pb-3">Trimestre</th>
-                  <th className="text-right pb-3">Objetivos</th>
-                  <th className="text-right pb-3">Cumplimiento</th>
-                  <th className="text-right pb-3">Calidad validación</th>
-                  <th className="pb-3 w-40"></th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {stats.evolucion.map((t: any) => (
-                  <tr key={t.trimestre}>
-                    <td className="py-3 font-medium text-gray-900">{t.trimestre}</td>
-                    <td className="py-3 text-right text-gray-500">{t.total}</td>
-                    <td className="py-3 text-right font-semibold" style={{ color: t.cumplimiento >= 70 ? '#16a34a' : t.cumplimiento >= 40 ? '#d97706' : '#dc2626' }}>
-                      {t.cumplimiento}%
-                    </td>
-                    <td className="py-3 text-right font-semibold" style={{ color: t.calidad >= 70 ? '#1d4ed8' : '#9ca3af' }}>
-                      {t.calidad}%
-                    </td>
-                    <td className="py-3 pl-4">
-                      <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                        <div className="h-full rounded-full bg-traza-500" style={{ width: `${t.cumplimiento}%` }} />
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
+      {/* Evolución trimestral — anulada temporalmente */}
 
       {/* Distribución por categoría + Gap de discrepancia */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
