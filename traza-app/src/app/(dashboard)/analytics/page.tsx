@@ -15,8 +15,10 @@ export default function AnalyticsPage() {
   const [stats, setStats]         = useState<any>(null)
   const [ranking, setRanking]     = useState<any[]>([])
   const [openInfo, setOpenInfo]   = useState<string | null>(null)
-  const [isSuperAdmin, setIsSuperAdmin] = useState(false)
-  const [miEmpresaId, setMiEmpresaId]   = useState<string | null>(null)
+  const [isSuperAdmin, setIsSuperAdmin]   = useState(false)
+  const [miEmpresaId, setMiEmpresaId]     = useState<string | null>(null)
+  const [evalSupervisor, setEvalSupervisor] = useState<any[]>([])
+  const [empresaActivaId, setEmpresaActivaId] = useState<string | null>(null)
 
   function InfoBtn({ id, children }: { id: string; children: React.ReactNode }) {
     const open = openInfo === id
@@ -70,9 +72,14 @@ export default function AnalyticsPage() {
         // Admin normal: forzar su propia empresa
         const empId = profile?.empresa_id ?? null
         setMiEmpresaId(empId)
+        setEmpresaActivaId(empId)
         if (empId) {
           setFiltro(empId)
           await calcularStats(empId)
+          // Cargar evaluaciones de supervisor de esta empresa
+          const res = await fetch(`/api/evaluar-supervisor?empresaId=${empId}`)
+          const evData = await res.json()
+          setEvalSupervisor(evData.evaluaciones ?? [])
         }
       }
       setLoading(false)
@@ -193,9 +200,17 @@ export default function AnalyticsPage() {
     setLoading(false)
   }
 
-  function handleFiltro(val: string) {
+  async function handleFiltro(val: string) {
     setFiltro(val)
     calcularStats(val)
+    setEmpresaActivaId(val === 'todas' ? null : val)
+    if (val !== 'todas') {
+      const res = await fetch(`/api/evaluar-supervisor?empresaId=${val}`)
+      const evData = await res.json()
+      setEvalSupervisor(evData.evaluaciones ?? [])
+    } else {
+      setEvalSupervisor([])
+    }
   }
 
   if (!stats) return <div className="text-gray-400 py-12 text-center">Cargando...</div>
@@ -432,6 +447,112 @@ export default function AnalyticsPage() {
         </div>
       </div>
 
+
+      {/* ── Señales del equipo ───────────────────────────────── */}
+      {ranking.length >= 2 && (() => {
+        const esfuerzoSinDireccion = ranking.filter(r => r.indice.moduloC >= 65 && r.indice.moduloA < 45)
+        const altaAutoconciencia   = ranking.filter(r => r.indice.alineacion >= 80)
+        const tendenciaBaja        = ranking.filter(r => r.indice.evolucion <= 35)
+        const enRiesgoPersonas     = ranking.filter(r => r.indice.score < 40)
+
+        // Resumen evaluaciones de supervisor
+        const totalEvals = evalSupervisor.length
+        const pctExcBueno = totalEvals > 0
+          ? Math.round(evalSupervisor.filter(e => e.calificacion === 'Excelente' || e.calificacion === 'Bueno').length / totalEvals * 100)
+          : null
+
+        const senales = [
+          esfuerzoSinDireccion.length > 0 && {
+            id: 'esfuerzo', color: '#d97706', bg: '#fffbeb', border: '#fde68a',
+            titulo: 'Esfuerzo sin dirección',
+            desc: `${esfuerzoSinDireccion.length} persona${esfuerzoSinDireccion.length > 1 ? 's tienen' : ' tiene'} alta proactividad pero resultados bajos. Puede indicar falta de foco o contexto estratégico.`,
+            personas: esfuerzoSinDireccion.slice(0, 3).map(r => `${r.persona.nombre} ${r.persona.apellido}`),
+          },
+          altaAutoconciencia.length > 0 && {
+            id: 'autoconciencia', color: '#059669', bg: '#f0fdf4', border: '#bbf7d0',
+            titulo: 'Alta autoconciencia',
+            desc: `${altaAutoconciencia.length} persona${altaAutoconciencia.length > 1 ? 's' : ''} muestra${altaAutoconciencia.length > 1 ? 'n' : ''} alta alineación entre su autoevaluación y la del supervisor. Señal de madurez profesional.`,
+            personas: altaAutoconciencia.slice(0, 3).map(r => `${r.persona.nombre} ${r.persona.apellido}`),
+          },
+          tendenciaBaja.length > 0 && {
+            id: 'tendencia', color: '#dc2626', bg: '#fef2f2', border: '#fecaca',
+            titulo: 'Tendencia a la baja',
+            desc: `${tendenciaBaja.length} persona${tendenciaBaja.length > 1 ? 's tienen' : ' tiene'} una evolución negativa en los últimos 90 días. Vale la pena hacer un seguimiento.`,
+            personas: tendenciaBaja.slice(0, 3).map(r => `${r.persona.nombre} ${r.persona.apellido}`),
+          },
+          enRiesgoPersonas.length > 0 && {
+            id: 'riesgo', color: '#7c3aed', bg: '#f5f3ff', border: '#ddd6fe',
+            titulo: 'Necesitan atención',
+            desc: `${enRisgoPersonas.length} persona${enRisgoPersonas.length > 1 ? 's tienen' : ' tiene'} un score por debajo de 40. Requieren acompañamiento activo.`,
+            personas: enRisgoPersonas.slice(0, 3).map(r => `${r.persona.nombre} ${r.persona.apellido}`),
+          },
+        ].filter(Boolean) as any[]
+
+        if (senales.length === 0 && pctExcBueno === null) return null
+
+        return (
+          <div className="traza-card p-6">
+            <div className="flex items-center justify-between mb-5">
+              <div>
+                <h2 className="font-semibold text-gray-900">Señales del equipo</h2>
+                <p className="text-xs text-gray-400 mt-0.5">Patrones detectados automáticamente a partir de las 5 dimensiones del Score v3</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {senales.map(s => (
+                <div key={s.id} className="rounded-xl p-4 border" style={{ backgroundColor: s.bg, borderColor: s.border }}>
+                  <p className="font-semibold text-sm mb-1" style={{ color: s.color }}>{s.titulo}</p>
+                  <p className="text-sm text-gray-600 leading-relaxed mb-2">{s.desc}</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {s.personas.map((n: string) => (
+                      <span key={n} className="text-xs px-2 py-0.5 rounded-full bg-white font-medium text-gray-700 border border-gray-200">{n}</span>
+                    ))}
+                  </div>
+                </div>
+              ))}
+
+              {/* Card evaluaciones de supervisor */}
+              {pctExcBueno !== null && (
+                <div className="rounded-xl p-4 border" style={{ backgroundColor: '#f0f9ff', borderColor: '#bae6fd' }}>
+                  <p className="font-semibold text-sm mb-1" style={{ color: '#0369a1' }}>Evaluación del supervisor</p>
+                  <p className="text-sm text-gray-600 leading-relaxed mb-3">
+                    El equipo evaluó a la conducción este mes. <strong>{pctExcBueno}%</strong> de las respuestas fueron positivas ({totalEvals} evaluación{totalEvals !== 1 ? 'es' : ''} recibida{totalEvals !== 1 ? 's' : ''}).
+                  </p>
+                  <div className="flex gap-2 flex-wrap">
+                    {(['Excelente','Bueno','Regular','Mejorable'] as const).map(cal => {
+                      const count = evalSupervisor.filter(e => e.calificacion === cal).length
+                      if (count === 0) return null
+                      const colMap: Record<string, string> = { Excelente: '#16a34a', Bueno: '#2563eb', Regular: '#d97706', Mejorable: '#dc2626' }
+                      return (
+                        <span key={cal} className="text-xs px-2.5 py-1 rounded-full bg-white border font-medium" style={{ color: colMap[cal], borderColor: '#e2e8f0' }}>
+                          {cal}: {count}
+                        </span>
+                      )
+                    })}
+                  </div>
+                  {evalSupervisor.length > 0 && (() => {
+                    const aspectosCounts: Record<string, number> = {}
+                    evalSupervisor.forEach(e => (e.aspectos ?? []).forEach((a: string) => { aspectosCounts[a] = (aspectosCounts[a] ?? 0) + 1 }))
+                    const top3 = Object.entries(aspectosCounts).sort((a,b) => b[1]-a[1]).slice(0,3)
+                    if (top3.length === 0) return null
+                    return (
+                      <div className="mt-3">
+                        <p className="text-xs text-gray-400 mb-1.5">Aspectos más destacados</p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {top3.map(([a, c]) => (
+                            <span key={a} className="text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-100">{a} ({c})</span>
+                          ))}
+                        </div>
+                      </div>
+                    )
+                  })()}
+                </div>
+              )}
+            </div>
+          </div>
+        )
+      })()}
 
       {/* Evolución trimestral */}
       {stats.evolucion?.length > 0 && (

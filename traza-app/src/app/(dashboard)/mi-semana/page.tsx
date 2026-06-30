@@ -7,7 +7,7 @@ import { calcularRacha } from '@/lib/traza'
 import {
   ChevronLeft, ChevronRight,
   AlertTriangle, Clock, CalendarDays, Activity,
-  CheckCircle2,
+  CheckCircle2, Star, ThumbsUp, Send,
 } from 'lucide-react'
 
 // ── Helpers ───────────────────────────────────────────────────
@@ -80,6 +80,18 @@ export default function MiSemanaPage() {
   const [racha, setRacha]         = useState(0)
   const [tienePersona, setTienePersona] = useState(false)
 
+  // Evaluación mensual del supervisor
+  const [personaId, setPersonaId]       = useState<string | null>(null)
+  const [empresaId, setEmpresaId]       = useState<string | null>(null)
+  const [evalYaEnviada, setEvalYaEnviada] = useState(false)
+  const [showEvalForm, setShowEvalForm] = useState(false)
+  const [savingEval, setSavingEval]     = useState(false)
+  const [evalForm, setEvalForm]         = useState({
+    calificacion: '' as '' | 'Excelente' | 'Bueno' | 'Regular' | 'Mejorable',
+    aspectos:     [] as string[],
+    comentario:   '',
+  })
+
   // Calendario
   const [vista, setVista]           = useState<'semana' | 'mes'>('semana')
   const [lunesActual, setLunes]     = useState(getLunes(hoy))
@@ -103,6 +115,8 @@ export default function MiSemanaPage() {
           .from('personas').select('id').eq('user_id', user.id).eq('empleo_activo', true).single()
         if (persona) {
           setTienePersona(true)
+          setPersonaId(persona.id)
+          setEmpresaId(profile.empresa_id)
           const { data: obs } = await supabase
             .from('objetivos').select('*').eq('persona_id', persona.id).not('fecha_limite', 'is', null)
           setObjetivos(obs ?? [])
@@ -113,6 +127,11 @@ export default function MiSemanaPage() {
             setAvances(av ?? [])
             setRacha(calcularRacha(av ?? []))
           }
+          // Verificar si ya evaluó al supervisor este mes
+          const periodoActual = `${hoy.getFullYear()}-${String(hoy.getMonth()+1).padStart(2,'0')}`
+          const res = await fetch(`/api/evaluar-supervisor?empleadoId=${persona.id}&periodo=${periodoActual}`)
+          const resData = await res.json()
+          if (resData.evaluacion) setEvalYaEnviada(true)
         }
       } else {
         const { data: obs } = await supabase
@@ -178,6 +197,39 @@ export default function MiSemanaPage() {
 
   function abrirObj(o: any) {
     router.push(rol === 'empleado' ? `/mi-trabajo?objetivo=${o.id}` : `/objetivos?objetivo=${o.id}`)
+  }
+
+  const ASPECTOS_OPCIONES = [
+    'Claro en su feedback', 'Disponible cuando lo necesito',
+    'Justo en sus evaluaciones', 'Me ayuda a crecer',
+    'Reconoce mis logros', 'Da contexto y dirección',
+  ]
+
+  async function handleSubmitEval(e: React.FormEvent) {
+    e.preventDefault()
+    if (!evalForm.calificacion || !personaId || !empresaId) return
+    setSavingEval(true)
+    const periodo = `${hoy.getFullYear()}-${String(hoy.getMonth()+1).padStart(2,'0')}`
+    await fetch('/api/evaluar-supervisor', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        empleadoId: personaId, empresaId, periodo,
+        calificacion: evalForm.calificacion,
+        aspectos: evalForm.aspectos,
+        comentario: evalForm.comentario.trim() || null,
+      }),
+    })
+    setSavingEval(false)
+    setEvalYaEnviada(true)
+    setShowEvalForm(false)
+  }
+
+  function toggleAspecto(a: string) {
+    setEvalForm(f => ({
+      ...f,
+      aspectos: f.aspectos.includes(a) ? f.aspectos.filter(x => x !== a) : [...f.aspectos, a],
+    }))
   }
 
   if (loading) return <div className="text-gray-400 py-12 text-center">Cargando...</div>
@@ -253,6 +305,120 @@ export default function MiSemanaPage() {
           </div>
         </div>
       </div>
+
+      {/* ── Evaluación mensual del supervisor (solo empleados) ── */}
+      {rol === 'empleado' && tienePersona && (
+        <div className={`rounded-2xl border p-5 transition-all ${evalYaEnviada ? 'bg-green-50 border-green-100' : 'bg-white border-gray-100 shadow-sm'}`}>
+          {evalYaEnviada ? (
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-green-100 flex items-center justify-center flex-shrink-0">
+                <CheckCircle2 size={18} className="text-green-600" />
+              </div>
+              <div>
+                <p className="font-semibold text-sm text-gray-800">Ya evaluaste a tu supervisor este mes</p>
+                <p className="text-xs text-gray-400 mt-0.5">Gracias por tu feedback. Podés actualizar tu respuesta el próximo mes.</p>
+              </div>
+            </div>
+          ) : !showEvalForm ? (
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#EFF6FF' }}>
+                  <Star size={17} style={{ color: '#2563EB' }} />
+                </div>
+                <div>
+                  <p className="font-semibold text-sm text-gray-900">¿Cómo te está yendo con tu supervisor?</p>
+                  <p className="text-xs text-gray-400 mt-0.5">Evaluación mensual · Tu respuesta es anónima para el equipo</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowEvalForm(true)}
+                className="flex-shrink-0 text-xs font-semibold px-4 py-2 rounded-xl text-white transition-colors"
+                style={{ backgroundColor: '#0F4C81' }}
+              >
+                Evaluar ahora
+              </button>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmitEval} className="space-y-5">
+              <div className="flex items-center justify-between">
+                <p className="font-semibold text-gray-900">Evaluación mensual del supervisor</p>
+                <button type="button" onClick={() => setShowEvalForm(false)} className="text-xs text-gray-400 hover:text-gray-600">Cancelar</button>
+              </div>
+
+              {/* Calificación */}
+              <div>
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">¿Cómo calificarías a tu supervisor este mes?</p>
+                <div className="grid grid-cols-4 gap-2">
+                  {([
+                    { val: 'Excelente', color: '#16a34a', bg: '#f0fdf4', border: '#bbf7d0' },
+                    { val: 'Bueno',     color: '#2563eb', bg: '#eff6ff', border: '#bfdbfe' },
+                    { val: 'Regular',   color: '#d97706', bg: '#fffbeb', border: '#fde68a' },
+                    { val: 'Mejorable', color: '#dc2626', bg: '#fef2f2', border: '#fecaca' },
+                  ] as const).map(({ val, color, bg, border }) => (
+                    <button
+                      key={val} type="button"
+                      onClick={() => setEvalForm(f => ({ ...f, calificacion: val }))}
+                      className="py-3 rounded-xl text-sm font-semibold border-2 transition-all"
+                      style={{
+                        backgroundColor: evalForm.calificacion === val ? bg : '#f9fafb',
+                        borderColor:     evalForm.calificacion === val ? border : '#e5e7eb',
+                        color:           evalForm.calificacion === val ? color : '#9ca3af',
+                      }}
+                    >
+                      {val}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Aspectos */}
+              <div>
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">¿Qué aspectos destacás? (opcional)</p>
+                <div className="flex flex-wrap gap-2">
+                  {ASPECTOS_OPCIONES.map(a => {
+                    const sel = evalForm.aspectos.includes(a)
+                    return (
+                      <button
+                        key={a} type="button" onClick={() => toggleAspecto(a)}
+                        className="text-xs px-3 py-1.5 rounded-full border font-medium transition-all"
+                        style={{
+                          backgroundColor: sel ? '#eff6ff' : '#f9fafb',
+                          borderColor:     sel ? '#bfdbfe' : '#e5e7eb',
+                          color:           sel ? '#1d4ed8' : '#6b7280',
+                        }}
+                      >
+                        {sel ? '✓ ' : ''}{a}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {/* Comentario */}
+              <div>
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Comentario (opcional)</p>
+                <textarea
+                  value={evalForm.comentario}
+                  onChange={e => setEvalForm(f => ({ ...f, comentario: e.target.value }))}
+                  placeholder="¿Algo más que quieras compartir?"
+                  rows={3}
+                  className="traza-input resize-none"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={!evalForm.calificacion || savingEval}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-50 transition-all"
+                style={{ backgroundColor: '#0F4C81' }}
+              >
+                <Send size={14} />
+                {savingEval ? 'Enviando...' : 'Enviar evaluación'}
+              </button>
+            </form>
+          )}
+        </div>
+      )}
 
       {/* ── Calendario + panel ────────────────────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_272px] gap-5 items-start">
