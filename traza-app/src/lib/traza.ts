@@ -586,7 +586,6 @@ export const NAV_ITEMS: NavItem[] = [
   { label: 'Analytics',            href: '/analytics',       icon: 'BarChart2',       roles: ['super_admin', 'admin', 'supervisor'] },
   { label: 'Buscar Talento',       href: '/buscar-talento',  icon: 'Search',          roles: ['super_admin', 'admin', 'supervisor'] },
   { label: 'Perfil Profesional',   href: '/perfil',          icon: 'User',            roles: ['super_admin', 'admin', 'supervisor', 'empleado'] },
-  { label: 'Talent Card',          href: '/talent-card',     icon: 'Award',           roles: ['super_admin', 'admin', 'supervisor', 'empleado'] },
   { label: 'Reuniones 1:1',        href: '/reuniones',       icon: 'MessageSquare',   roles: ['super_admin', 'admin', 'supervisor', 'empleado'] },
   { label: 'Reportes',             href: '/reportes',        icon: 'FileText',        roles: ['super_admin', 'admin', 'supervisor'] },
 ]

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import TraceIndexBar from '@/components/ui/TraceIndexBar'
 import { calcularIndiceTraza, getValidacionStyle, getEstadoClasses, formatFecha } from '@/lib/traza'
-import { CheckCircle2, Trophy, Award, MessageSquare, ChevronDown, ChevronRight, Link2, Paperclip, Eye, EyeOff, Globe, Lock, Info, X } from 'lucide-react'
+import { CheckCircle2, Trophy, Award, MessageSquare, ChevronDown, ChevronRight, Link2, Paperclip, Eye, EyeOff, Globe, Lock, Info, X, ExternalLink } from 'lucide-react'
 import type { Objetivo, Persona, Profile } from '@/types'
 
 export default function PerfilPage() {
@@ -187,14 +187,23 @@ export default function PerfilPage() {
                     <span className="text-xs text-traza-500 font-medium">ID TRAZA</span>
                     <span className="text-sm font-bold text-traza-700 tracking-widest">{(persona as any).traza_id}</span>
                   </div>
-                  <a
-                    href={`/p/${(persona as any).traza_id}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs text-gray-400 hover:text-traza-700 transition-colors"
-                  >
-                    Ver Credencial TRAZA →
-                  </a>
+                  <div className="flex items-center gap-3">
+                    <a
+                      href={`/p/${(persona as any).traza_id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-gray-400 hover:text-traza-700 transition-colors"
+                    >
+                      Ver Credencial TRAZA →
+                    </a>
+                    <a
+                      href="/talent-card"
+                      className="flex items-center gap-1 text-xs text-gray-400 hover:text-traza-700 transition-colors"
+                    >
+                      <ExternalLink size={11} />
+                      Talent Card
+                    </a>
+                  </div>
                 </div>
               )}
             </div>
