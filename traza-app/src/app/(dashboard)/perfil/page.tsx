@@ -471,54 +471,33 @@ function ObjetivoHistorialRow({ obj }: { obj: Objetivo }) {
       {open && (
         <div className="px-6 pb-4 ml-6 space-y-4 border-t border-gray-50">
 
-          {/* Autoevaluación del empleado */}
-          {((obj as any).autoevaluacion || (obj as any).comentario_empleado) && (
-            <div className="mt-3">
-              <p className="text-xs font-semibold text-amber-600 uppercase tracking-wide mb-2">Autoevaluación del colaborador</p>
-              <div className="bg-amber-50 border border-amber-100 rounded-xl px-4 py-3 space-y-1">
-                {(obj as any).autoevaluacion && (
-                  <span className="text-xs px-2 py-0.5 rounded-full font-medium inline-block" style={{ backgroundColor: '#FEF3C7', color: '#92400E' }}>
-                    {(obj as any).autoevaluacion}
-                  </span>
-                )}
-                {(obj as any).comentario_empleado && (
-                  <p className="text-sm text-gray-600 italic mt-1">"{(obj as any).comentario_empleado}"</p>
-                )}
-              </div>
+          {/* Validaciones — discretas, en una línea */}
+          {((obj as any).autoevaluacion || obj.validacion || (obj as any).validacion_admin) && (
+            <div className="flex flex-wrap gap-x-4 gap-y-1 mt-3">
+              {(obj as any).autoevaluacion && (
+                <span className="text-xs text-gray-400">Vos: <span className="text-gray-600 font-medium">{(obj as any).autoevaluacion}</span></span>
+              )}
+              {obj.validacion && (
+                <span className="text-xs text-gray-400">Supervisor: <span className="text-gray-600 font-medium">{obj.validacion}</span></span>
+              )}
+              {(obj as any).validacion_admin && (
+                <span className="text-xs text-gray-400">Admin: <span className="text-gray-600 font-medium">{(obj as any).validacion_admin}</span></span>
+              )}
             </div>
           )}
 
-          {/* Feedback del supervisor */}
-          {(obj.validacion || obj.comentario_supervisor) && (
-            <div className="mt-3">
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Validación del supervisor</p>
-              <div className="bg-gray-50 rounded-xl px-4 py-3 space-y-1">
-                {obj.validacion && (
-                  <span className="text-xs px-2 py-0.5 rounded-full font-medium inline-block" style={getValidacionStyle(obj.validacion)}>
-                    {obj.validacion}
-                  </span>
-                )}
-                {obj.comentario_supervisor?.trim() && (
-                  <p className="text-sm text-gray-600 italic">"{obj.comentario_supervisor}"</p>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Feedback del admin */}
-          {((obj as any).validacion_admin || (obj as any).comentario_admin) && (
-            <div>
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Validación del administrador</p>
-              <div className="bg-blue-50 rounded-xl px-4 py-3 space-y-1">
-                {(obj as any).validacion_admin && (
-                  <span className="text-xs px-2 py-0.5 rounded-full font-medium inline-block" style={getValidacionStyle((obj as any).validacion_admin)}>
-                    {(obj as any).validacion_admin}
-                  </span>
-                )}
-                {(obj as any).comentario_admin && (
-                  <p className="text-sm text-gray-600 italic">"{(obj as any).comentario_admin}"</p>
-                )}
-              </div>
+          {/* Comentarios */}
+          {(obj.comentario_supervisor?.trim() || (obj as any).comentario_empleado || (obj as any).comentario_admin) && (
+            <div className="space-y-2 mt-2">
+              {(obj as any).comentario_empleado && (
+                <p className="text-xs text-gray-400 italic">Vos: "{(obj as any).comentario_empleado}"</p>
+              )}
+              {obj.comentario_supervisor?.trim() && (
+                <p className="text-xs text-gray-400 italic">Supervisor: "{obj.comentario_supervisor}"</p>
+              )}
+              {(obj as any).comentario_admin && (
+                <p className="text-xs text-gray-400 italic">Admin: "{(obj as any).comentario_admin}"</p>
+              )}
             </div>
           )}
 

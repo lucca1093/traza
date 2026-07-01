@@ -353,6 +353,20 @@ function HistorialCard({ obj }: { obj: Objetivo }) {
       {expanded && (
         <div className="border-t border-gray-100 px-5 py-4 space-y-3">
           {obj.descripcion && <p className="text-sm text-gray-600">{obj.descripcion}</p>}
+
+          {/* Validaciones — chiquitas y discretas */}
+          <div className="flex flex-wrap gap-x-4 gap-y-1">
+            {(obj as any).autoevaluacion && (
+              <span className="text-xs text-gray-400">Vos: <span className="text-gray-600 font-medium">{(obj as any).autoevaluacion}</span></span>
+            )}
+            {(obj as any).validacion && (
+              <span className="text-xs text-gray-400">Supervisor: <span className="text-gray-600 font-medium">{(obj as any).validacion}</span></span>
+            )}
+            {(obj as any).validacion_admin && (
+              <span className="text-xs text-gray-400">Admin: <span className="text-gray-600 font-medium">{(obj as any).validacion_admin}</span></span>
+            )}
+          </div>
+
           {(obj as any).comentario_supervisor && (
             <div className="rounded-xl bg-gray-50 px-4 py-3">
               <p className="text-xs font-semibold text-gray-400 mb-1">Comentario del supervisor</p>
