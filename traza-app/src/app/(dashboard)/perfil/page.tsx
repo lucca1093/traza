@@ -594,10 +594,10 @@ function ObjetivoHistorialRow({ obj }: { obj: Objetivo }) {
                           <p className="text-xs text-gray-400">{formatDT(a.creado_en)}</p>
                           {/* Badge estado revisión */}
                           {a.estado_revision === 'aprobado' && (
-                            <span className="text-xs px-1.5 py-0.5 rounded-full font-medium bg-green-100 text-green-700">✓ Aprobado</span>
+                            <span className="text-xs px-1.5 py-0.5 rounded-full font-medium bg-gray-100 text-gray-600">✓ Aprobado</span>
                           )}
                           {a.estado_revision === 'visto' && (
-                            <span className="text-xs px-1.5 py-0.5 rounded-full font-medium bg-blue-100 text-blue-700">Visto</span>
+                            <span className="text-xs px-1.5 py-0.5 rounded-full font-medium bg-gray-100 text-gray-600">Visto</span>
                           )}
                           {a.estado_revision === 'sin_revisar' && (
                             <span className="text-xs px-1.5 py-0.5 rounded-full font-medium bg-gray-100 text-gray-500">Sin revisar</span>

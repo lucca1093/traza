@@ -256,15 +256,7 @@ export function detectarDiscrepancia(
 }
 
 export function getValidacionStyle(validacion: string | null): { backgroundColor: string; color: string } {
-  const map: Record<string, { backgroundColor: string; color: string }> = {
-    'De acuerdo':              { backgroundColor: '#dbeafe', color: '#1d4ed8' },
-    'Parcialmente de acuerdo': { backgroundColor: '#ede9fe', color: '#6d28d9' },
-    'En desacuerdo':           { backgroundColor: '#ffedd5', color: '#c2410c' },
-    'Cumplido':                { backgroundColor: '#dbeafe', color: '#1d4ed8' },
-    'Parcialmente cumplido':   { backgroundColor: '#ede9fe', color: '#6d28d9' },
-    'No cumplido':             { backgroundColor: '#ffedd5', color: '#c2410c' },
-  }
-  return map[validacion ?? ''] ?? { backgroundColor: '#f3f4f6', color: '#6b7280' }
+  return { backgroundColor: '#f3f4f6', color: '#6b7280' }
 }
 
 

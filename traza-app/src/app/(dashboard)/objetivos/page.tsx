@@ -472,20 +472,9 @@ function ObjetivoRow({ obj, autoExpand, onEdit, onDelete }: {
         className="flex items-center gap-3 pl-16 pr-4 py-3 cursor-pointer hover:bg-white transition-colors"
       >
         <p className="flex-1 font-medium text-gray-900 text-sm truncate">{obj.titulo}</p>
-        {obj.es_continuo && (
-          <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ backgroundColor: '#f3e8ff', color: '#7c3aed' }}>Continuo</span>
-        )}
-        {obj.categoria && (() => {
-          const cat = getCategoriaStyle(obj.categoria)
-          return (
-            <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ backgroundColor: cat.backgroundColor, color: cat.color }}>
-              {cat.label}
-            </span>
-          )
-        })()}
-        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${getPrioridadClasses(obj.prioridad)}`}>{obj.prioridad}</span>
-        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${getEstadoClasses(obj.estado)}`}>{obj.estado}</span>
-        <span className="text-xs text-gray-400 w-20 text-right">{obj.es_continuo ? '—' : formatFecha(obj.fecha_limite)}</span>
+        <span className="text-xs text-gray-400">{obj.es_continuo ? '—' : formatFecha(obj.fecha_limite)}</span>
+        <span className="text-xs text-gray-400">{obj.estado}</span>
+        {obj.categoria && <span className="text-xs text-gray-400">{getCategoriaStyle(obj.categoria).label}</span>}
         <div className="flex gap-2 ml-2" onClick={e => e.stopPropagation()}>
           <button onClick={() => onEdit(obj)} className="text-xs text-traza-700 hover:underline">Editar</button>
           <button onClick={() => onDelete(obj.id)} className="text-xs text-red-500 hover:underline">Eliminar</button>
