@@ -329,13 +329,13 @@ export default function ObjetivosPage() {
                     <div className="flex items-center gap-3 flex-shrink-0">
                       <div className="flex gap-2">
                         {completados > 0 && (
-                          <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700 font-medium">{completados} completado{completados > 1 ? 's' : ''}</span>
+                          <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 font-medium">{completados} completado{completados > 1 ? 's' : ''}</span>
                         )}
                         {enProgreso > 0 && (
-                          <span className="text-xs px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700 font-medium">{enProgreso} en progreso</span>
+                          <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 font-medium">{enProgreso} en progreso</span>
                         )}
                         {pendientes > 0 && (
-                          <span className="text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-700 font-medium">{pendientes} pendiente{pendientes > 1 ? 's' : ''}</span>
+                          <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 font-medium">{pendientes} pendiente{pendientes > 1 ? 's' : ''}</span>
                         )}
                       </div>
                       <span className="text-gray-400">
