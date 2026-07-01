@@ -5,7 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Button from '@/components/ui/Button'
 import { detectarDiscrepancia, isVencido, formatFecha, cn } from '@/lib/traza'
-import { AlertTriangle, ArrowLeft, MessageSquare, Link2, Paperclip, Plus, CheckCircle2, Star, Share2, Copy, Check, ChevronDown, ChevronUp, SlidersHorizontal } from 'lucide-react'
+import { AlertTriangle, ArrowLeft, MessageSquare, Link2, Paperclip, Plus, CheckCircle2, Star, Share2, Copy, Check, ChevronDown, ChevronUp } from 'lucide-react'
 import type { Objetivo, Persona, CategoriaObjetivo } from '@/types'
 
 // Indicador de prioridad como borde lateral
@@ -31,6 +31,7 @@ export default function MiTrabajoPage() {
   const [filtroPrioridad, setFiltroPrioridad] = useState('Todas')
   const [filtroCategoria, setFiltroCategoria] = useState('Todas')
   const [filtroEstado, setFiltroEstado]       = useState('Todos')
+  const [ordenPor, setOrdenPor]               = useState<'prioridad' | 'fecha'>('prioridad')
   const [showFiltros, setShowFiltros]         = useState(false)
 
   const [form, setForm] = useState({
@@ -111,9 +112,14 @@ export default function MiTrabajoPage() {
     return true
   })
 
-  // Ordenar: alta prioridad primero, después por fecha
   const prioOrden: Record<string, number> = { Alta: 0, Media: 1, Baja: 2 }
   const activosOrdenados = [...activosFiltrados].sort((a, b) => {
+    if (ordenPor === 'fecha') {
+      if (!a.fecha_limite) return 1
+      if (!b.fecha_limite) return -1
+      return a.fecha_limite.localeCompare(b.fecha_limite)
+    }
+    // prioridad primero, luego fecha
     const pDiff = (prioOrden[a.prioridad] ?? 1) - (prioOrden[b.prioridad] ?? 1)
     if (pDiff !== 0) return pDiff
     if (!a.fecha_limite) return 1
@@ -223,61 +229,57 @@ export default function MiTrabajoPage() {
       {/* ACTIVOS */}
       {tab === 'activos' && (
         <div className="space-y-3">
-          {/* Barra de filtros */}
-          <div className="flex items-center gap-3 flex-wrap">
-            <button
-              onClick={() => setShowFiltros(!showFiltros)}
-              className={`flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-xl border font-medium transition-colors ${hayFiltrosActivos ? 'border-traza-700 text-traza-700 bg-traza-50' : 'border-gray-200 text-gray-500 hover:border-gray-300'}`}>
-              <SlidersHorizontal size={13} />
-              Filtrar
-              {hayFiltrosActivos && <span className="text-xs bg-traza-700 text-white rounded-full w-4 h-4 flex items-center justify-center ml-0.5">!</span>}
-            </button>
+          {/* Barra de filtros inline */}
+          <div className="flex items-center gap-2 flex-wrap">
+
+            {/* Ordenar */}
+            <div className="flex gap-1 bg-gray-100 p-0.5 rounded-lg">
+              {(['prioridad', 'fecha'] as const).map(v => (
+                <button key={v} onClick={() => setOrdenPor(v)}
+                  className={`text-xs px-2.5 py-1 rounded-md font-medium transition-all capitalize ${ordenPor === v ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
+                  {v === 'prioridad' ? 'Por prioridad' : 'Por fecha'}
+                </button>
+              ))}
+            </div>
+
+            <div className="w-px h-4 bg-gray-200" />
+
+            {/* Estado */}
+            <select value={filtroEstado} onChange={e => setFiltroEstado(e.target.value)}
+              className="text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 text-gray-600 bg-white font-medium focus:outline-none focus:border-gray-400">
+              <option value="Todos">Estado</option>
+              <option>Pendiente</option>
+              <option>En progreso</option>
+            </select>
+
+            {/* Prioridad */}
+            <select value={filtroPrioridad} onChange={e => setFiltroPrioridad(e.target.value)}
+              className="text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 text-gray-600 bg-white font-medium focus:outline-none focus:border-gray-400">
+              <option value="Todas">Prioridad</option>
+              <option>Alta</option>
+              <option>Media</option>
+              <option>Baja</option>
+            </select>
+
+            {/* Tipo */}
+            <select value={filtroCategoria} onChange={e => setFiltroCategoria(e.target.value)}
+              className="text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 text-gray-600 bg-white font-medium focus:outline-none focus:border-gray-400">
+              <option value="Todas">Tipo</option>
+              <option>Resultado</option>
+              <option>Eficiencia</option>
+              <option>Aprendizaje</option>
+              <option>Hábito</option>
+            </select>
+
             {hayFiltrosActivos && (
               <button onClick={() => { setFiltroPrioridad('Todas'); setFiltroCategoria('Todas'); setFiltroEstado('Todos') }}
                 className="text-xs text-gray-400 hover:text-gray-600 transition-colors">
-                Limpiar filtros
+                Limpiar
               </button>
             )}
+
             <span className="text-xs text-gray-400 ml-auto">{activosOrdenados.length} objetivo{activosOrdenados.length !== 1 ? 's' : ''}</span>
           </div>
-
-          {showFiltros && (
-            <div className="flex gap-3 flex-wrap p-4 bg-gray-50 rounded-xl border border-gray-100">
-              <div>
-                <p className="text-xs font-semibold text-gray-500 mb-1.5">Estado</p>
-                <div className="flex gap-1.5">
-                  {['Todos', 'Pendiente', 'En progreso'].map(v => (
-                    <button key={v} onClick={() => setFiltroEstado(v)}
-                      className={`text-xs px-3 py-1.5 rounded-lg border font-medium transition-colors ${filtroEstado === v ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'}`}>
-                      {v}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <p className="text-xs font-semibold text-gray-500 mb-1.5">Prioridad</p>
-                <div className="flex gap-1.5">
-                  {['Todas', 'Alta', 'Media', 'Baja'].map(v => (
-                    <button key={v} onClick={() => setFiltroPrioridad(v)}
-                      className={`text-xs px-3 py-1.5 rounded-lg border font-medium transition-colors ${filtroPrioridad === v ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'}`}>
-                      {v}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <p className="text-xs font-semibold text-gray-500 mb-1.5">Tipo</p>
-                <div className="flex gap-1.5">
-                  {['Todas', 'Resultado', 'Eficiencia', 'Aprendizaje', 'Hábito'].map(v => (
-                    <button key={v} onClick={() => setFiltroCategoria(v)}
-                      className={`text-xs px-3 py-1.5 rounded-lg border font-medium transition-colors ${filtroCategoria === v ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'}`}>
-                      {v}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
 
           {activosOrdenados.length === 0 ? (
             <div className="traza-card p-10 text-center text-gray-400 text-sm">

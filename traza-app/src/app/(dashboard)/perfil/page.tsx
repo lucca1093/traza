@@ -453,24 +453,16 @@ function ObjetivoHistorialRow({ obj }: { obj: Objetivo }) {
           <p className="text-sm font-medium text-gray-900 truncate">{obj.titulo}</p>
           <p className="text-xs text-gray-400 mt-0.5">{formatFecha(obj.fecha_limite)}</p>
         </div>
-        <div className="flex items-center gap-1.5 flex-shrink-0">
-          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${getEstadoClasses(obj.estado)}`}>
-            {obj.estado}
-          </span>
-          {(obj as any).autoevaluacion && (
-            <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ backgroundColor: '#FEF3C7', color: '#92400E' }}>
-              Auto: {(obj as any).autoevaluacion}
+        <div className="flex items-center gap-2 flex-shrink-0">
+          {/* Solo mostramos el resultado más relevante, sin apilar chips */}
+          {obj.validacion ? (
+            <span className="text-xs font-medium text-gray-400">
+              {obj.validacion === 'De acuerdo' ? 'Validado' : obj.validacion === 'Parcialmente de acuerdo' ? 'Parcial' : 'En desacuerdo'}
             </span>
-          )}
-          {obj.validacion && (
-            <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={getValidacionStyle(obj.validacion)}>
-              Sup: {obj.validacion}
-            </span>
-          )}
-          {(obj as any).validacion_admin && (
-            <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={getValidacionStyle((obj as any).validacion_admin)}>
-              Admin: {(obj as any).validacion_admin}
-            </span>
+          ) : (obj as any).autoevaluacion ? (
+            <span className="text-xs font-medium text-gray-400">{(obj as any).autoevaluacion}</span>
+          ) : (
+            <span className="text-xs text-gray-300">{obj.estado}</span>
           )}
         </div>
       </div>
