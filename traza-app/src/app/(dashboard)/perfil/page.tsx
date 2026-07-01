@@ -440,7 +440,7 @@ export default function PerfilPage() {
             <div className="space-y-3">
               {[
                 { letra: 'A', nombre: 'Resultados validados', peso: '35%', desc: 'Promedio de las validaciones de tus objetivos por supervisor y admin.' },
-                { letra: 'B', nombre: 'Cumplimiento',         peso: '25%', desc: '% de objetivos vencidos que completaste a tiempo.' },
+                { letra: 'B', nombre: 'Cumplimiento',         peso: '25%', desc: 'Cuántos de tus objetivos con fecha de entrega fueron completados.' },
                 { letra: 'C', nombre: 'Proactividad',         peso: '20%', desc: 'Regularidad con la que registrás avances semana a semana.' },
                 { letra: 'D', nombre: 'Alineación',           peso: '10%', desc: 'Qué tan cerca está tu autoevaluación de la validación del supervisor.' },
                 { letra: 'E', nombre: 'Evolución',            peso: '10%', desc: 'Si tu score mejoró o bajó respecto al período anterior.' },
