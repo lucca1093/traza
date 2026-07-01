@@ -463,27 +463,36 @@ function ObjetivoRow({ obj, autoExpand, onEdit, onDelete }: {
     })
   }
 
+  const borde = obj.prioridad === 'Alta' ? '#111827' : obj.prioridad === 'Media' ? '#9ca3af' : '#e5e7eb'
+
   return (
-    <div id={`obj-row-${obj.id}`} className={open ? 'bg-white' : ''}>
+    <div id={`obj-row-${obj.id}`} className="mx-4 mb-2 bg-white rounded-2xl border border-gray-100 overflow-hidden"
+      style={{ borderLeft: `3px solid ${borde}` }}>
       {/* Fila resumen */}
       <div
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-3 pl-16 pr-4 py-3 cursor-pointer hover:bg-white transition-colors"
+        className="flex items-center justify-between px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors"
       >
-        <p className="flex-1 font-medium text-gray-900 text-sm truncate">{obj.titulo}</p>
-        <span className="text-xs text-gray-400">{obj.es_continuo ? '—' : formatFecha(obj.fecha_limite)}</span>
-        <span className="text-xs text-gray-400">{obj.estado}</span>
-        {obj.categoria && <span className="text-xs text-gray-400">{getCategoriaStyle(obj.categoria).label}</span>}
-        <div className="flex gap-2 ml-2" onClick={e => e.stopPropagation()}>
-          <button onClick={() => onEdit(obj)} className="text-xs text-traza-700 hover:underline">Editar</button>
-          <button onClick={() => onDelete(obj.id)} className="text-xs text-red-500 hover:underline">Eliminar</button>
+        <div className="flex-1 min-w-0 mr-3">
+          <p className="text-sm font-medium text-gray-900 truncate">{obj.titulo}</p>
+          <p className="text-xs text-gray-400 mt-0.5">
+            {obj.es_continuo ? 'Continuo' : formatFecha(obj.fecha_limite)}
+            {obj.estado ? ` · ${obj.estado}` : ''}
+            {obj.categoria ? ` · ${getCategoriaStyle(obj.categoria).label}` : ''}
+          </p>
         </div>
-        <span className="text-gray-300 text-sm ml-1">{open ? '↑' : '↓'}</span>
+        <div className="flex items-center gap-3 flex-shrink-0">
+          <div className="flex gap-2" onClick={e => e.stopPropagation()}>
+            <button onClick={() => onEdit(obj)} className="text-xs text-traza-700 hover:underline">Editar</button>
+            <button onClick={() => onDelete(obj.id)} className="text-xs text-red-500 hover:underline">Eliminar</button>
+          </div>
+          <ChevronDown size={14} className={`text-gray-300 transition-transform ${open ? 'rotate-180' : ''}`} />
+        </div>
       </div>
 
       {/* Panel de avances */}
       {open && (
-        <div className="pl-16 pr-6 pb-5 space-y-3">
+        <div className="px-4 pb-4 pt-1 space-y-3 border-t border-gray-50">
           {avances.length === 0 ? (
             <p className="text-xs text-gray-400 italic">El colaborador aún no registró avances.</p>
           ) : avances.map(a => {
