@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import TraceIndexBar from '@/components/ui/TraceIndexBar'
 import { calcularIndiceTraza, getValidacionStyle, getEstadoClasses, formatFecha } from '@/lib/traza'
-import { CheckCircle2, Trophy, Award, MessageSquare, ChevronDown, ChevronRight, Link2, Paperclip, Eye, EyeOff, Globe, Lock } from 'lucide-react'
+import { CheckCircle2, Trophy, Award, MessageSquare, ChevronDown, ChevronRight, Link2, Paperclip, Eye, EyeOff, Globe, Lock, Info, X } from 'lucide-react'
 import type { Objetivo, Persona, Profile } from '@/types'
 
 export default function PerfilPage() {
@@ -18,6 +18,7 @@ export default function PerfilPage() {
   const [savingDisp,       setSavingDisp]       = useState(false)
   const [credencialPublica, setCredencialPublica] = useState(true)
   const [savingCred,       setSavingCred]       = useState(false)
+  const [showInfo, setShowInfo]     = useState(false)
   const [data, setData]             = useState<{
     persona: Persona | null
     objetivos: Objetivo[]
@@ -233,7 +234,16 @@ export default function PerfilPage() {
           {/* Índice TRAZA */}
           <div className="traza-card p-6">
             <div className="flex items-center justify-between mb-5">
-              <h3 className="font-semibold text-gray-900">Índice TRAZA</h3>
+              <div className="flex items-center gap-1.5">
+                <h3 className="font-semibold text-gray-900">Índice TRAZA</h3>
+                <button
+                  onClick={() => setShowInfo(true)}
+                  className="p-0.5 rounded-full text-gray-400 hover:text-gray-600 transition-colors"
+                  title="¿Cómo se calcula?"
+                >
+                  <Info size={14} />
+                </button>
+              </div>
               <span className="text-xs font-semibold px-2.5 py-1 rounded-full"
                 style={{ backgroundColor: scoreBg, color: scoreColor }}>
                 {indice.badge}
@@ -410,6 +420,53 @@ export default function PerfilPage() {
             </div>
           )}
         </>
+      )}
+      {/* Modal info Índice TRAZA */}
+      {showInfo && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ backgroundColor: 'rgba(0,0,0,0.4)' }}
+          onClick={() => setShowInfo(false)}>
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 space-y-4"
+            onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between">
+              <h3 className="font-bold text-gray-900">¿Cómo se calcula?</h3>
+              <button onClick={() => setShowInfo(false)} className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors">
+                <X size={16} className="text-gray-500" />
+              </button>
+            </div>
+            <p className="text-sm text-gray-500 leading-relaxed">
+              El Índice Traza es un score de 0 a 100 que refleja tu desempeño profesional en base a 5 dimensiones.
+            </p>
+            <div className="space-y-3">
+              {[
+                { letra: 'A', nombre: 'Resultados validados', peso: '35%', desc: 'Promedio de las validaciones de tus objetivos por supervisor y admin.' },
+                { letra: 'B', nombre: 'Cumplimiento',         peso: '25%', desc: '% de objetivos vencidos que completaste a tiempo.' },
+                { letra: 'C', nombre: 'Proactividad',         peso: '20%', desc: 'Regularidad con la que registrás avances semana a semana.' },
+                { letra: 'D', nombre: 'Alineación',           peso: '10%', desc: 'Qué tan cerca está tu autoevaluación de la validación del supervisor.' },
+                { letra: 'E', nombre: 'Evolución',            peso: '10%', desc: 'Si tu score mejoró o bajó respecto al período anterior.' },
+              ].map(d => (
+                <div key={d.letra} className="flex gap-3">
+                  <div className="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0 text-xs font-bold text-white"
+                    style={{ backgroundColor: '#0F4C81' }}>
+                    {d.letra}
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-gray-800">{d.nombre} <span className="text-gray-400 font-normal">· {d.peso}</span></p>
+                    <p className="text-xs text-gray-500 leading-relaxed">{d.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="rounded-xl bg-gray-50 px-4 py-3">
+              <p className="text-xs text-gray-500 leading-relaxed">
+                Los niveles son: <span className="font-semibold text-gray-700">Élite</span> (85+),{' '}
+                <span className="font-semibold text-gray-700">Avanzado</span> (65–84),{' '}
+                <span className="font-semibold text-gray-700">En desarrollo</span> (40–64) e{' '}
+                <span className="font-semibold text-gray-700">Inicial</span> (menos de 40).
+              </p>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )
