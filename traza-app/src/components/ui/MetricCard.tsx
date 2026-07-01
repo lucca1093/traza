@@ -43,7 +43,6 @@ export default function MetricCard({ label, value, icon, sub, highlight, classNa
         className={cn('rounded-2xl p-5 relative overflow-hidden', className)}
         style={{ backgroundColor: '#0F4C81', border: '1px solid #0A3A65' }}
       >
-        {/* Glow sutil de fondo */}
         <div
           className="absolute inset-0 pointer-events-none"
           style={{ background: 'radial-gradient(ellipse at 80% 20%, rgba(96,165,250,0.15) 0%, transparent 70%)' }}
