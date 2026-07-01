@@ -369,9 +369,8 @@ export default function ObjetivosPage() {
                 {sinPersona.map((obj: any) => (
                   <div key={obj.id} className="flex items-center px-6 py-3 border-t border-gray-100 hover:bg-gray-50 gap-4">
                     <p className="flex-1 text-sm font-medium text-gray-900">{obj.titulo}</p>
-                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${getPrioridadClasses(obj.prioridad)}`}>{obj.prioridad}</span>
-                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${getEstadoClasses(obj.estado)}`}>{obj.estado}</span>
-                    <span className="text-xs text-gray-500">{formatFecha(obj.fecha_limite)}</span>
+                    <span className="text-xs text-gray-400">{formatFecha(obj.fecha_limite)}</span>
+                    <span className="text-xs text-gray-400">{obj.estado}</span>
                     <div className="space-x-2">
                       <button onClick={() => handleEdit(obj)} className="text-xs text-traza-700 hover:underline">Editar</button>
                       <button onClick={() => handleDelete(obj.id)} className="text-xs text-red-500 hover:underline">Eliminar</button>
