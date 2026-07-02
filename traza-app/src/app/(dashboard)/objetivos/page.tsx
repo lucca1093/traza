@@ -21,6 +21,8 @@ export default function ObjetivosPage() {
   const [busqueda, setBusqueda]   = useState('')
   const [tabObj, setTabObj]       = useState<'activos' | 'completados'>('activos')
 
+  const [grupos, setGrupos]               = useState<any[]>([])
+
   type ModoObjetivo = 'individual' | 'equipo' | 'area' | 'externo'
   const [modo, setModo]                   = useState<ModoObjetivo>('individual')
   const [personasGrupo, setPersonasGrupo] = useState<string[]>([])
@@ -47,13 +49,15 @@ export default function ObjetivosPage() {
     const { data: p } = await supabase.from('profiles').select('*').eq('id', user!.id).single()
     setProfile(p)
 
-    const [{ data: obs }, { data: pers }] = await Promise.all([
+    const [{ data: obs }, { data: pers }, { data: grps }] = await Promise.all([
       supabase.from('objetivos').select('*, persona:personas(id, nombre, apellido, area)').eq('empresa_id', p!.empresa_id).order('fecha_limite', { ascending: true, nullsFirst: false }),
       supabase.from('personas').select('*').eq('empresa_id', p!.empresa_id).eq('empleo_activo', true).order('apellido'),
+      supabase.from('objetivo_grupos').select('*, externos:objetivo_externos(*), miembros:objetivos(id, persona:personas(nombre, apellido))').eq('empresa_id', p!.empresa_id).order('created_at', { ascending: false }),
     ])
 
     setObjetivos(obs ?? [])
     setPersonas(pers ?? [])
+    setGrupos(grps ?? [])
     if (pers && pers.length > 0 && !form.persona_id) {
       setForm(f => ({ ...f, persona_id: pers[0].id }))
     }
@@ -703,6 +707,83 @@ export default function ObjetivosPage() {
           </div>
         )}
       </div>
+
+      {/* ── Sección de grupos (equipo / área / con externos) ── */}
+      {grupos.length > 0 && (
+        <div className="traza-card overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-100">
+            <h2 className="font-semibold text-gray-900 text-sm">Objetivos grupales y con externos</h2>
+          </div>
+          <div className="divide-y divide-gray-100">
+            {grupos.map((g: any) => {
+              const tipoLabel: Record<string, string> = { equipo: 'Equipo', area: 'Por área', externo: 'Con externos' }
+              const tipoColor: Record<string, string> = { equipo: '#f0f6ff', area: '#f0fdf4', externo: '#f5f3ff' }
+              const tipoText: Record<string, string>  = { equipo: '#2563eb', area: '#16a34a', externo: '#7c3aed' }
+              const tipo = g.tipo ?? 'equipo'
+              const miembrosUnicos = (g.miembros ?? []).filter((m: any, i: number, arr: any[]) =>
+                arr.findIndex((x: any) => x.persona?.nombre === m.persona?.nombre) === i
+              )
+              const base = typeof window !== 'undefined' ? window.location.origin : ''
+              return (
+                <div key={g.id} className="px-6 py-4 hover:bg-gray-50 transition-colors">
+                  <div className="flex items-start justify-between gap-4 flex-wrap">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap mb-1">
+                        <p className="font-semibold text-gray-900 text-sm">{g.titulo}</p>
+                        <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ backgroundColor: tipoColor[tipo], color: tipoText[tipo] }}>
+                          {tipoLabel[tipo] ?? tipo}
+                        </span>
+                        {g.area_nombre && (
+                          <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">{g.area_nombre}</span>
+                        )}
+                      </div>
+                      {g.descripcion && <p className="text-xs text-gray-500 mb-2">{g.descripcion}</p>}
+
+                      {/* Miembros internos */}
+                      {miembrosUnicos.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5 mb-2">
+                          {miembrosUnicos.map((m: any, i: number) => m.persona && (
+                            <span key={i} className="text-xs px-2 py-0.5 bg-traza-50 text-traza-700 rounded-full border border-traza-100">
+                              {m.persona.nombre} {m.persona.apellido}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Externos con links */}
+                      {(g.externos ?? []).length > 0 && (
+                        <div className="space-y-1.5 mt-2">
+                          {g.externos.map((ex: any) => (
+                            <div key={ex.id} className="flex items-center gap-2 flex-wrap">
+                              <span className="text-xs font-medium text-violet-700">{ex.nombre}</span>
+                              {ex.empresa_nombre && <span className="text-xs text-gray-400">· {ex.empresa_nombre}</span>}
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const link = `${base}/colaborar/${ex.token}`
+                                  navigator.clipboard.writeText(link)
+                                  alert(`Link copiado:\n${link}`)
+                                }}
+                                className="text-xs px-2 py-0.5 rounded-full bg-violet-50 text-violet-600 border border-violet-100 hover:bg-violet-100 transition-colors"
+                              >
+                                Copiar link
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-shrink-0 text-right">
+                      <p className="text-xs text-gray-400">{g.es_continuo ? 'Continuo' : formatFecha(g.fecha_limite)}</p>
+                      <p className="text-xs text-gray-400 mt-0.5">{g.prioridad}</p>
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
