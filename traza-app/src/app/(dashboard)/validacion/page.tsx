@@ -109,6 +109,10 @@ export default function ValidacionPage() {
   async function handleValidarAdmin(e: React.FormEvent) {
     e.preventDefault()
     if (!selected) return
+    if (!comentarioAdmin.trim()) {
+      alert('Tenés que escribir un comentario antes de validar.')
+      return
+    }
     setSavingAdmin(true)
     const { data: { user } } = await supabase.auth.getUser()
     await supabase.from('objetivos').update({
@@ -144,11 +148,15 @@ export default function ValidacionPage() {
   async function handleValidar(e: React.FormEvent) {
     e.preventDefault()
     if (!selected) return
+    if (!comentario.trim()) {
+      alert('Tenés que escribir un comentario antes de validar.')
+      return
+    }
     setSaving(true)
     const { data: { user } } = await supabase.auth.getUser()
     await supabase.from('objetivos').update({
       validacion,
-      comentario_supervisor: comentario || null,
+      comentario_supervisor: comentario.trim(),
       validado_por: user!.id,
     }).eq('id', selected)
     setSuccess(true)
@@ -171,7 +179,10 @@ export default function ValidacionPage() {
 
   async function handleResponderAvance(avanceId: string) {
     const texto = respuestas[avanceId]?.trim()
-    if (!texto) return
+    if (!texto) {
+      alert('Escribí un comentario antes de aprobar el avance.')
+      return
+    }
     setSavingRespuesta(avanceId)
     await supabase
       .from('objetivo_avances')
@@ -466,11 +477,11 @@ export default function ValidacionPage() {
                                 </div>
                               ) : (
                                 <>
-                                  {/* Botón aprobar */}
+                                  {/* Botón aprobar — abre campo de comentario obligatorio */}
                                   <button
-                                    onClick={() => handleAprobarAvance(a.id)}
+                                    onClick={() => setReplyOpen(prev => ({ ...prev, [a.id]: true }))}
                                     disabled={savingRespuesta === a.id}
-                                    title="Aprobar avance"
+                                    title="Aprobar con comentario"
                                     className="w-7 h-7 rounded-lg flex items-center justify-center transition-colors disabled:opacity-40"
                                     style={{ backgroundColor: '#dcfce7', color: '#16a34a' }}
                                     onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#bbf7d0')}
@@ -478,22 +489,6 @@ export default function ValidacionPage() {
                                   >
                                     <Check size={13} strokeWidth={2.5} />
                                   </button>
-                                  {/* Botón responder — solo para supervisor */}
-                                  {profile && !['admin', 'super_admin'].includes(profile.rol) && (
-                                    <button
-                                      onClick={() => setReplyOpen(prev => ({ ...prev, [a.id]: !prev[a.id] }))}
-                                      title="Responder"
-                                      className="w-7 h-7 rounded-lg flex items-center justify-center transition-colors"
-                                      style={{
-                                        backgroundColor: isReplying ? '#dbeafe' : '#f3f4f6',
-                                        color: isReplying ? '#2563eb' : '#9ca3af',
-                                      }}
-                                      onMouseEnter={e => { if (!isReplying) (e.currentTarget as HTMLElement).style.backgroundColor = '#e5e7eb' }}
-                                      onMouseLeave={e => { if (!isReplying) (e.currentTarget as HTMLElement).style.backgroundColor = '#f3f4f6' }}
-                                    >
-                                      <Reply size={13} strokeWidth={2} />
-                                    </button>
-                                  )}
                                 </>
                               )}
                             </div>
@@ -588,11 +583,15 @@ export default function ValidacionPage() {
                         </label>
                       ))}
                     </div>
+                    <label className="traza-label">
+                      Comentario <span className="text-red-400">*</span>
+                    </label>
                     <textarea
                       className="traza-input min-h-[60px] resize-none text-sm"
                       value={comentarioAdmin}
                       onChange={e => setComentarioAdmin(e.target.value)}
-                      placeholder="Comentario del admin (opcional)..."
+                      placeholder="Requerido — explicá brevemente tu validación..."
+                      required
                     />
                     <div className="flex items-center gap-3">
                       <Button type="submit" size="sm" loading={savingAdmin}>
@@ -637,12 +636,15 @@ export default function ValidacionPage() {
                         </div>
                       </div>
                       <div>
-                        <label className="traza-label">Comentario / Feedback</label>
+                        <label className="traza-label">
+                          Comentario / Feedback <span className="text-red-400">*</span>
+                        </label>
                         <textarea
                           className="traza-input min-h-[80px] resize-none"
                           value={comentario}
                           onChange={e => setComentario(e.target.value)}
-                          placeholder="Escribí tu feedback..."
+                          placeholder="Requerido — explicá brevemente tu validación..."
+                          required
                         />
                       </div>
                       <div className="flex items-center gap-3">

@@ -704,31 +704,72 @@ function ObjetivoCard({ obj, saving, onUpdate, onUpdateAuto, onDelete, autoExpan
                 })}
               </div>
             )}
-            {addingType === null ? (
-              <div className="flex gap-4 pt-1">
-                {[
-                  { type: 'comentario' as const, icon: <MessageSquare size={12} />, label: 'Comentario' },
+            {/* Input conversacional */}
+            <div className="pt-1">
+              {/* Selector de tipo */}
+              <div className="flex gap-1 mb-2">
+                {([
+                  { type: 'comentario' as const, icon: <MessageSquare size={12} />, label: 'Nota' },
                   { type: 'link'       as const, icon: <Link2 size={12} />,         label: 'Link' },
                   { type: 'archivo'    as const, icon: <Paperclip size={12} />,     label: 'Archivo' },
-                ].map(({ type, icon, label }) => (
-                  <button key={type} onClick={() => setAddingType(type)}
-                    className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-700 transition-colors">
-                    <Plus size={11} strokeWidth={2.5} />{icon}{label}
+                ] as const).map(({ type, icon, label }) => (
+                  <button key={type} onClick={() => { setAddingType(type); setAddingContent('') }}
+                    className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-lg font-medium transition-all"
+                    style={addingType === type
+                      ? { backgroundColor: '#0F4C81', color: 'white' }
+                      : { backgroundColor: '#f3f4f6', color: '#6b7280' }}>
+                    {icon}{label}
                   </button>
                 ))}
               </div>
-            ) : (
-              <div className="space-y-2 pt-1">
-                {addingType === 'comentario'
-                  ? <textarea autoFocus className="traza-input text-sm min-h-[72px] resize-none" placeholder="Describí tu avance..." value={addingContent} onChange={e => setAddingContent(e.target.value)} />
-                  : <input autoFocus type="url" className="traza-input text-sm" placeholder={addingType === 'link' ? 'https://...' : 'Link al archivo'} value={addingContent} onChange={e => setAddingContent(e.target.value)} />
-                }
-                <div className="flex gap-2">
-                  <Button size="sm" loading={savingAvance} onClick={addAvance}>Agregar</Button>
-                  <Button size="sm" variant="ghost" onClick={() => { setAddingType(null); setAddingContent('') }}>Cancelar</Button>
+
+              {/* Campo de entrada */}
+              {addingType === 'comentario' && (
+                <div className="space-y-2">
+                  <textarea autoFocus rows={3}
+                    className="w-full text-sm rounded-xl border border-gray-200 px-3 py-2.5 resize-none focus:outline-none focus:border-gray-400 placeholder-gray-300 bg-gray-50"
+                    placeholder="¿Qué avanzaste en este objetivo?"
+                    value={addingContent} onChange={e => setAddingContent(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) addAvance() }}
+                  />
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-gray-300">Ctrl+Enter para enviar</span>
+                    <div className="flex gap-2">
+                      <button onClick={() => { setAddingType(null); setAddingContent('') }} className="text-xs text-gray-400 hover:text-gray-600 px-3 py-1.5">Cancelar</button>
+                      <button onClick={addAvance} disabled={!addingContent.trim() || savingAvance}
+                        className="text-xs font-semibold px-3 py-1.5 rounded-lg text-white disabled:opacity-40 transition-all"
+                        style={{ backgroundColor: '#0F4C81' }}>
+                        {savingAvance ? 'Enviando...' : 'Registrar avance'}
+                      </button>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+              {(addingType === 'link' || addingType === 'archivo') && (
+                <div className="space-y-2">
+                  <input autoFocus type="url"
+                    className="w-full text-sm rounded-xl border border-gray-200 px-3 py-2.5 focus:outline-none focus:border-gray-400 placeholder-gray-300 bg-gray-50"
+                    placeholder={addingType === 'link' ? 'https://...' : 'Link al archivo o documento'}
+                    value={addingContent} onChange={e => setAddingContent(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter') addAvance() }}
+                  />
+                  <div className="flex justify-end gap-2">
+                    <button onClick={() => { setAddingType(null); setAddingContent('') }} className="text-xs text-gray-400 hover:text-gray-600 px-3 py-1.5">Cancelar</button>
+                    <button onClick={addAvance} disabled={!addingContent.trim() || savingAvance}
+                      className="text-xs font-semibold px-3 py-1.5 rounded-lg text-white disabled:opacity-40"
+                      style={{ backgroundColor: '#0F4C81' }}>
+                      {savingAvance ? 'Enviando...' : 'Agregar'}
+                    </button>
+                  </div>
+                </div>
+              )}
+              {!addingType && (
+                <button onClick={() => setAddingType('comentario')}
+                  className="w-full text-left text-sm text-gray-300 bg-gray-50 rounded-xl px-3 py-2.5 border border-gray-200 hover:border-gray-300 hover:text-gray-400 transition-colors">
+                  Registrá un avance...
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Validación externa */}

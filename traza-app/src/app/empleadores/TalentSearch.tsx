@@ -305,11 +305,12 @@ function CandidatoCard({ c }: { c: CandidatoPublico }) {
 }
 
 // ── Componente principal ──────────────────────────────────────
-export default function TalentSearch({ candidatos, areas }: { candidatos: CandidatoPublico[]; areas: string[] }) {
-  const [query,   setQuery]   = useState('')
-  const [tabKey,  setTabKey]  = useState('todos')
-  const [areaFlt, setAreaFlt] = useState('todas')
-  const [sortBy,  setSortBy]  = useState<'score' | 'nombre' | 'activo' | 'validaciones'>('score')
+export default function TalentSearch({ candidatos, areas, rubros }: { candidatos: CandidatoPublico[]; areas: string[]; rubros: string[] }) {
+  const [query,    setQuery]    = useState('')
+  const [tabKey,   setTabKey]   = useState('todos')
+  const [areaFlt,  setAreaFlt]  = useState('todas')
+  const [rubroFlt, setRubroFlt] = useState('todos')
+  const [sortBy,   setSortBy]   = useState<'score' | 'nombre' | 'activo' | 'validaciones'>('score')
   const [multiEmp, setMultiEmp] = useState(false)
 
   const tab = SCORE_TABS.find(t => t.key === tabKey)!
@@ -318,7 +319,8 @@ export default function TalentSearch({ candidatos, areas }: { candidatos: Candid
     return candidatos
       .filter(c => {
         if (c.score < tab.min || c.score > tab.max) return false
-        if (areaFlt !== 'todas' && c.area !== areaFlt) return false
+        if (areaFlt  !== 'todas' && c.area  !== areaFlt)  return false
+        if (rubroFlt !== 'todos' && c.rubro !== rubroFlt) return false
         if (multiEmp && c.empresasCount < 2) return false
         if (!query) return true
         const q = query.toLowerCase()
@@ -338,7 +340,7 @@ export default function TalentSearch({ candidatos, areas }: { candidatos: Candid
   }, [candidatos, query, tabKey, areaFlt, sortBy, multiEmp])
 
   // Top 3 para featured (solo cuando se muestra "Todos" y sin búsqueda activa)
-  const showFeatured = tabKey === 'todos' && !query && areaFlt === 'todas' && !multiEmp
+  const showFeatured = tabKey === 'todos' && !query && areaFlt === 'todas' && rubroFlt === 'todos' && !multiEmp
   const featured = useMemo(() =>
     [...candidatos].sort((a, b) => b.score - a.score).slice(0, 3)
   , [candidatos])
@@ -349,7 +351,7 @@ export default function TalentSearch({ candidatos, areas }: { candidatos: Candid
   return (
     <div>
       {/* Distribución */}
-      <PoolDistribution candidatos={candidatos} onFilter={k => { setTabKey(k); setQuery(''); setAreaFlt('todas') }} />
+      <PoolDistribution candidatos={candidatos} onFilter={k => { setTabKey(k); setQuery(''); setAreaFlt('todas'); setRubroFlt('todos') }} />
 
       {/* Featured */}
       {showFeatured && featured.length > 0 && (
@@ -391,6 +393,13 @@ export default function TalentSearch({ candidatos, areas }: { candidatos: Candid
             value={query} onChange={e => setQuery(e.target.value)}
             className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 bg-white" />
         </div>
+        {rubros.length > 0 && (
+          <select value={rubroFlt} onChange={e => setRubroFlt(e.target.value)}
+            className="px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none bg-white">
+            <option value="todos">Todos los sectores</option>
+            {rubros.map(r => <option key={r} value={r}>{r}</option>)}
+          </select>
+        )}
         {areas.length > 0 && (
           <select value={areaFlt} onChange={e => setAreaFlt(e.target.value)}
             className="px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none bg-white">
@@ -424,8 +433,8 @@ export default function TalentSearch({ candidatos, areas }: { candidatos: Candid
               ? `${restantes.length} perfil${restantes.length !== 1 ? 'es' : ''} más`
               : `${resultado.length} perfil${resultado.length !== 1 ? 'es' : ''} encontrado${resultado.length !== 1 ? 's' : ''}`}
         </p>
-        {(query || tabKey !== 'todos' || areaFlt !== 'todas' || multiEmp) && (
-          <button onClick={() => { setQuery(''); setTabKey('todos'); setAreaFlt('todas'); setMultiEmp(false) }}
+        {(query || tabKey !== 'todos' || areaFlt !== 'todas' || rubroFlt !== 'todos' || multiEmp) && (
+          <button onClick={() => { setQuery(''); setTabKey('todos'); setAreaFlt('todas'); setRubroFlt('todos'); setMultiEmp(false) }}
             className="text-xs text-blue-600 hover:underline">
             Limpiar filtros
           </button>

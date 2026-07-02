@@ -133,7 +133,8 @@ export default async function EmpleadoresPage() {
     ? Math.round((candidatos.filter(c => c.score >= 65).length / candidatos.length) * 100)
     : 0
 
-  const areas = [...new Set(candidatos.map(c => c.area).filter(Boolean))] as string[]
+  const areas  = [...new Set(candidatos.map(c => c.area).filter(Boolean))]  as string[]
+  const rubros = [...new Set(candidatos.map(c => c.rubro).filter(Boolean))] as string[]
 
   return (
     <div style={{ backgroundColor: '#f8fafc' }}>
@@ -330,7 +331,7 @@ export default async function EmpleadoresPage() {
             </p>
           </div>
         ) : (
-          <TalentSearch candidatos={candidatos} areas={areas} />
+          <TalentSearch candidatos={candidatos} areas={areas} rubros={rubros} />
         )}
       </div>
 

@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase'
 import MetricCard from '@/components/ui/MetricCard'
 import TraceIndexBar from '@/components/ui/TraceIndexBar'
 import { calcularIndiceTraza } from '@/lib/traza'
-import { CheckCircle2, AlertTriangle, Trophy } from 'lucide-react'
+import { CheckCircle2, AlertTriangle, Trophy, Sparkles, X } from 'lucide-react'
 import type { Objetivo, Persona } from '@/types'
 
 export default function AnalyticsPage() {
@@ -19,6 +19,8 @@ export default function AnalyticsPage() {
   const [miEmpresaId, setMiEmpresaId]     = useState<string | null>(null)
   const [evalSupervisor, setEvalSupervisor] = useState<any[]>([])
   const [empresaActivaId, setEmpresaActivaId] = useState<string | null>(null)
+  const [analisisIA, setAnalisisIA]   = useState<string | null>(null)
+  const [loadingIA, setLoadingIA]     = useState(false)
 
   function InfoBtn({ id, children }: { id: string; children: React.ReactNode }) {
     const open = openInfo === id
@@ -213,6 +215,24 @@ export default function AnalyticsPage() {
     }
   }
 
+  async function handleAnalisisIA() {
+    if (!stats) return
+    setLoadingIA(true)
+    setAnalisisIA(null)
+    try {
+      const res = await fetch('/api/analisis-equipo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ stats, ranking }),
+      })
+      const data = await res.json()
+      setAnalisisIA(data.analisis ?? data.error ?? 'Sin respuesta')
+    } catch {
+      setAnalisisIA('Error al conectar con el servicio de IA.')
+    }
+    setLoadingIA(false)
+  }
+
   if (!stats) return <div className="text-gray-400 py-12 text-center">Cargando...</div>
 
   const topPerformer = ranking[0]
@@ -224,8 +244,8 @@ export default function AnalyticsPage() {
           <h1 className="text-2xl font-bold text-gray-900">Analytics</h1>
           <p className="text-gray-500 mt-1">Indicadores consolidados de desempeño organizacional.</p>
         </div>
-        {isSuperAdmin && (
-          <div>
+        <div className="flex items-center gap-3">
+          {isSuperAdmin && (
             <select
               className="traza-input w-auto"
               value={filtroEmpresa}
@@ -234,9 +254,35 @@ export default function AnalyticsPage() {
               <option value="todas">Todas las empresas</option>
               {empresas.map(e => <option key={e.id} value={e.id}>{e.nombre}</option>)}
             </select>
-          </div>
-        )}
+          )}
+          <button
+            onClick={handleAnalisisIA}
+            disabled={loadingIA}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all disabled:opacity-50"
+            style={{ backgroundColor: '#0F4C81', color: 'white' }}
+          >
+            <Sparkles size={14} />
+            {loadingIA ? 'Analizando...' : 'Analizar con IA'}
+          </button>
+        </div>
       </div>
+
+      {/* Panel análisis IA */}
+      {analisisIA && (
+        <div className="rounded-2xl border p-5 relative" style={{ backgroundColor: '#f0f6ff', borderColor: '#bfdbfe' }}>
+          <button
+            onClick={() => setAnalisisIA(null)}
+            className="absolute top-3 right-3 text-gray-400 hover:text-gray-600"
+          >
+            <X size={14} />
+          </button>
+          <div className="flex items-center gap-2 mb-3">
+            <Sparkles size={13} style={{ color: '#0F4C81' }} />
+            <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: '#0F4C81' }}>Análisis IA del equipo</p>
+          </div>
+          <p className="text-sm text-gray-700 leading-relaxed">{analisisIA}</p>
+        </div>
+      )}
 
       {/* KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">

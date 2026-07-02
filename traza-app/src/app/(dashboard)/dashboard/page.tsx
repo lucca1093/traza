@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase-server'
 import MetricCard from '@/components/ui/MetricCard'
-import { calcularIndiceTraza, getEstadoClasses, getValidacionStyle, formatFecha } from '@/lib/traza'
+import { calcularIndiceTraza, getEstadoClasses, getValidacionStyle, formatFecha, detectarDiscrepancia } from '@/lib/traza'
 import { AlertTriangle, Clock, MessageSquare, Link2, Paperclip, CheckCircle2, TrendingUp } from 'lucide-react'
 import type { Objetivo } from '@/types'
 import Link from 'next/link'
@@ -35,6 +35,16 @@ export default async function DashboardPage() {
     const completados = objs.filter(o => o.estado === 'Completado').length
     const cumplimiento = totalObjs > 0 ? Math.round(completados / totalObjs * 100) : 0
     const pendValidar  = objs.filter(o => o.estado === 'Completado' && !o.validacion).length
+
+    // Discrepancias y calificaciones bajas para alertas del manager
+    const objsConDiscrepancia = objs.filter(o => {
+      if (!o.autoevaluacion || !o.validacion) return false
+      const disc = detectarDiscrepancia(o.autoevaluacion, o.validacion)
+      return disc === 'alta'
+    })
+    const objsCalBaja = objs.filter(o =>
+      o.validacion === 'En desacuerdo' && !objsConDiscrepancia.find(d => d.id === o.id)
+    )
 
     // Avances recientes del equipo (filtrado por empresa via join en objetivos)
     const { data: avancesEquipo } = await supabase
@@ -98,6 +108,49 @@ export default async function DashboardPage() {
             >
               Validar →
             </Link>
+          </div>
+        )}
+
+        {/* Alertas de discrepancia y calificaciones bajas */}
+        {(objsConDiscrepancia.length > 0 || objsCalBaja.length > 0) && (
+          <div className="traza-card overflow-hidden">
+            <div className="px-6 py-4 border-b border-red-50 flex items-center gap-2" style={{ backgroundColor: '#FFF5F5' }}>
+              <AlertTriangle size={15} strokeWidth={1.75} style={{ color: '#DC2626' }} />
+              <h2 className="text-base font-semibold" style={{ color: '#DC2626' }}>Alertas que requieren atención</h2>
+            </div>
+            <div className="divide-y divide-gray-50">
+              {objsConDiscrepancia.map((obj: any) => (
+                <div key={obj.id} className="px-6 py-4 flex items-start gap-4">
+                  <div className="w-2 h-2 rounded-full mt-1.5 flex-shrink-0" style={{ backgroundColor: '#DC2626' }} />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-gray-900">{obj.titulo}</p>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      {obj.persona
+                        ? `${(obj as any).persona?.nombre ?? ''} ${(obj as any).persona?.apellido ?? ''} · `.trim()
+                        : ''}
+                      Alta discrepancia entre autoevaluación ({obj.autoevaluacion}) y validación ({obj.validacion})
+                    </p>
+                  </div>
+                  <Link href="/validacion" className="flex-shrink-0 text-xs font-medium text-red-600 hover:underline">
+                    Revisar →
+                  </Link>
+                </div>
+              ))}
+              {objsCalBaja.map((obj: any) => (
+                <div key={obj.id} className="px-6 py-4 flex items-start gap-4">
+                  <div className="w-2 h-2 rounded-full mt-1.5 flex-shrink-0" style={{ backgroundColor: '#D97706' }} />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-gray-900">{obj.titulo}</p>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      Calificación baja — supervisor marcó "En desacuerdo"
+                    </p>
+                  </div>
+                  <Link href="/validacion" className="flex-shrink-0 text-xs font-medium text-amber-600 hover:underline">
+                    Revisar →
+                  </Link>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
