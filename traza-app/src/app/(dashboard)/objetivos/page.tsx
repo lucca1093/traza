@@ -750,13 +750,23 @@ export default function ObjetivosPage() {
                         </div>
                       )}
 
-                      {/* Externos con links */}
+                      {/* Externos con links y estado */}
                       {(g.externos ?? []).length > 0 && (
                         <div className="space-y-1.5 mt-2">
                           {g.externos.map((ex: any) => (
                             <div key={ex.id} className="flex items-center gap-2 flex-wrap">
+                              <span className={`w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0 ${ex.completado_en ? 'bg-green-100' : 'bg-gray-100'}`}>
+                                {ex.completado_en
+                                  ? <span className="text-green-600 text-xs font-bold">✓</span>
+                                  : <span className="w-2 h-2 rounded-full bg-gray-300 block" />
+                                }
+                              </span>
                               <span className="text-xs font-medium text-violet-700">{ex.nombre}</span>
                               {ex.empresa_nombre && <span className="text-xs text-gray-400">· {ex.empresa_nombre}</span>}
+                              {ex.completado_en
+                                ? <span className="text-xs text-green-500">Completó su parte</span>
+                                : <span className="text-xs text-gray-400">En progreso</span>
+                              }
                               <button
                                 type="button"
                                 onClick={() => {
@@ -764,7 +774,7 @@ export default function ObjetivosPage() {
                                   navigator.clipboard.writeText(link)
                                   alert(`Link copiado:\n${link}`)
                                 }}
-                                className="text-xs px-2 py-0.5 rounded-full bg-violet-50 text-violet-600 border border-violet-100 hover:bg-violet-100 transition-colors"
+                                className="text-xs px-2 py-0.5 rounded-full bg-violet-50 text-violet-600 border border-violet-100 hover:bg-violet-100 transition-colors ml-auto"
                               >
                                 Copiar link
                               </button>

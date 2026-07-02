@@ -1,24 +1,22 @@
 'use client'
-import { useState, useEffect } from 'react'
-import { supabase } from '@/lib/supabase'
-import { MessageSquare, Link2, Paperclip, Send, CheckCircle, Clock, Users } from 'lucide-react'
+import { useState, useEffect, useCallback } from 'react'
+import { MessageSquare, Link2, Paperclip, Send, CheckCircle, Clock, Users, Check } from 'lucide-react'
 
 function formatFecha(f: string | null) {
   if (!f) return 'Sin vencimiento'
   return new Date(f + 'T00:00:00').toLocaleDateString('es-AR', { day: '2-digit', month: 'long', year: 'numeric' })
 }
-
 function formatDT(dt: string) {
   return new Date(dt).toLocaleString('es-AR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
+}
+function formatFechaCorta(dt: string) {
+  return new Date(dt).toLocaleDateString('es-AR', { day: '2-digit', month: 'short' })
 }
 
 type TipoAvance = 'comentario' | 'link' | 'archivo'
 
 export default function ColaborarPage({ params }: { params: { token: string } }) {
-  const [externo, setExterno]         = useState<any>(null)
-  const [grupo, setGrupo]             = useState<any>(null)
-  const [avances, setAvances]         = useState<any[]>([])
-  const [miembros, setMiembros]       = useState<any[]>([])
+  const [data, setData]               = useState<any>(null)
   const [cargando, setCargando]       = useState(true)
   const [noEncontrado, setNoEncontrado] = useState(false)
 
@@ -26,196 +24,198 @@ export default function ColaborarPage({ params }: { params: { token: string } })
   const [contenido, setContenido]     = useState('')
   const [enviando, setEnviando]       = useState(false)
   const [enviado, setEnviado]         = useState(false)
+  const [marcando, setMarcando]       = useState(false)
+  const [confirmandoCompleto, setConfirmandoCompleto] = useState(false)
 
-  async function cargarDatos() {
-    // 1. Buscar el registro externo por token
-    const { data: ext, error } = await supabase
-      .from('objetivo_externos')
-      .select('*, grupo:objetivo_grupos(*)')
-      .eq('token', params.token)
-      .single()
-
-    if (error || !ext) { setNoEncontrado(true); setCargando(false); return }
-
-    setExterno(ext)
-    setGrupo(ext.grupo)
-
-    // 2. Cargar todos los objetivos del grupo y sus avances
-    const { data: obs } = await supabase
-      .from('objetivos')
-      .select('id, persona:personas(nombre, apellido)')
-      .eq('grupo_id', ext.grupo_id)
-
-    setMiembros(obs ?? [])
-
-    if (obs && obs.length > 0) {
-      const ids = obs.map((o: any) => o.id)
-      const { data: avs } = await supabase
-        .from('objetivo_avances')
-        .select('*')
-        .in('objetivo_id', ids)
-        .order('creado_en', { ascending: true })
-      setAvances(avs ?? [])
-    }
-
-    // 3. También cargar avances propios del externo (con externo_id)
-    const { data: avsExt } = await supabase
-      .from('objetivo_avances')
-      .select('*')
-      .eq('externo_id', ext.id)
-      .order('creado_en', { ascending: true })
-
-    if (avsExt && avsExt.length > 0) {
-      setAvances(prev => {
-        const ids = new Set(prev.map((a: any) => a.id))
-        const nuevos = avsExt.filter((a: any) => !ids.has(a.id))
-        return [...prev, ...nuevos].sort((a, b) => new Date(a.creado_en).getTime() - new Date(b.creado_en).getTime())
-      })
-    }
-
+  const cargar = useCallback(async () => {
+    const res = await fetch(`/api/colaborar/${params.token}`)
+    if (!res.ok) { setNoEncontrado(true); setCargando(false); return }
+    const json = await res.json()
+    setData(json)
     setCargando(false)
-  }
+  }, [params.token])
 
-  useEffect(() => { cargarDatos() }, [params.token])
+  useEffect(() => { cargar() }, [cargar])
 
   async function handleEnviar() {
-    if (!contenido.trim() || !externo) return
+    if (!contenido.trim()) return
     setEnviando(true)
-
-    // El avance del externo no tiene objetivo_id de un interno específico.
-    // Lo guardamos con externo_id + nombre_externo, objetivo_id null si no hay internos,
-    // o apuntando al primer objetivo del grupo.
-    const primerObjetivoId = miembros[0]?.id ?? null
-
-    const { error } = await supabase.from('objetivo_avances').insert({
-      objetivo_id:     primerObjetivoId,
-      externo_id:      externo.id,
-      nombre_externo:  externo.nombre,
-      contenido:       contenido.trim(),
-      tipo,
-      creado_en:       new Date().toISOString(),
+    await fetch(`/api/colaborar/${params.token}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contenido: contenido.trim(), tipo }),
     })
-
-    if (!error) {
-      setContenido('')
-      setTipo('comentario')
-      setEnviado(true)
-      setTimeout(() => setEnviado(false), 3000)
-      cargarDatos()
-    }
+    setContenido('')
+    setTipo('comentario')
+    setEnviado(true)
+    setTimeout(() => setEnviado(false), 2500)
+    cargar()
     setEnviando(false)
+  }
+
+  async function handleMarcarCompleto() {
+    setMarcando(true)
+    await fetch(`/api/colaborar/${params.token}`, { method: 'PATCH' })
+    setConfirmandoCompleto(false)
+    cargar()
+    setMarcando(false)
   }
 
   if (cargando) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-gray-400 text-sm">Cargando...</div>
+        <p className="text-gray-400 text-sm">Cargando...</p>
       </div>
     )
   }
 
-  if (noEncontrado) {
+  if (noEncontrado || !data) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <p className="text-xl font-semibold text-gray-700 mb-2">Link no encontrado</p>
-          <p className="text-sm text-gray-400">Este link no es válido o ya expiró.</p>
+          <p className="text-xl font-semibold text-gray-700 mb-2">Link no válido</p>
+          <p className="text-sm text-gray-400">Este link no existe o ya expiró.</p>
         </div>
       </div>
     )
   }
 
+  const { externo, grupo, objetivos, avances, todosExternos } = data
+  const yaComplete = !!externo.completado_en
+
   // Enriquecer avances con nombre del autor
-  const avancesConNombre = avances.map(a => {
+  const avancesConNombre = avances.map((a: any) => {
     if (a.externo_id) {
-      return { ...a, autorNombre: a.nombre_externo ?? 'Colaborador externo', esExterno: true, esMio: a.externo_id === externo.id }
+      const ext = todosExternos.find((e: any) => e.id === a.externo_id)
+      return {
+        ...a,
+        autorNombre: ext?.nombre ?? a.nombre_externo ?? 'Externo',
+        empresaNombre: ext?.empresa_nombre,
+        esExterno: true,
+        esMio: a.externo_id === externo.id,
+      }
     }
-    const miembro = miembros.find((m: any) => m.id === a.objetivo_id)
+    const miembro = objetivos.find((o: any) => o.id === a.objetivo_id)
     const persona = miembro?.persona
-    return { ...a, autorNombre: persona ? `${persona.nombre} ${persona.apellido[0]}.` : 'Interno', esExterno: false, esMio: false }
+    return {
+      ...a,
+      autorNombre: persona ? `${persona.nombre} ${persona.apellido[0]}.` : 'Interno',
+      esExterno: false,
+      esMio: false,
+    }
   })
 
-  const prioridadColor: Record<string, string> = { Alta: '#111827', Media: '#9ca3af', Baja: '#e5e7eb' }
+  const prioridadBorde: Record<string, string> = { Alta: '#111827', Media: '#9ca3af', Baja: '#e5e7eb' }
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-white border-b border-gray-100 px-4 py-4">
+      <div className="bg-white border-b border-gray-100 px-4 py-3.5">
         <div className="max-w-2xl mx-auto flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm" style={{ backgroundColor: '#0F4C81' }}>
-            T
-          </div>
-          <div>
-            <p className="text-xs text-gray-400">Objetivo compartido · TRAZA</p>
-          </div>
+          <div className="w-7 h-7 rounded-lg flex items-center justify-center text-white font-bold text-sm" style={{ backgroundColor: '#0F4C81' }}>T</div>
+          <p className="text-xs text-gray-400 font-medium">Objetivo compartido · TRAZA</p>
         </div>
       </div>
 
-      <div className="max-w-2xl mx-auto px-4 py-8 space-y-6">
+      <div className="max-w-2xl mx-auto px-4 py-8 space-y-5">
 
-        {/* Tarjeta del objetivo */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm" style={{ borderLeft: `4px solid ${prioridadColor[grupo?.prioridad ?? 'Media']}` }}>
+        {/* Objetivo */}
+        <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm" style={{ borderLeft: `4px solid ${prioridadBorde[grupo?.prioridad ?? 'Media']}` }}>
           <div className="flex items-start justify-between gap-4">
-            <div>
+            <div className="flex-1 min-w-0">
               <p className="text-xs text-gray-400 uppercase tracking-wide font-medium mb-1">{grupo?.categoria ?? ''}</p>
               <h1 className="text-xl font-bold text-gray-900">{grupo?.titulo}</h1>
-              {grupo?.descripcion && <p className="text-sm text-gray-500 mt-2">{grupo.descripcion}</p>}
+              {grupo?.descripcion && <p className="text-sm text-gray-500 mt-2 leading-relaxed">{grupo.descripcion}</p>}
             </div>
             <span className="flex-shrink-0 text-xs px-2 py-1 rounded-full font-medium" style={{ backgroundColor: '#f0f6ff', color: '#0F4C81' }}>
               {grupo?.prioridad}
             </span>
           </div>
-          <div className="flex items-center gap-4 mt-4 text-xs text-gray-400">
+
+          <div className="flex items-center gap-4 mt-4 text-xs text-gray-400 flex-wrap">
             <span className="flex items-center gap-1">
               <Clock size={12} />
               {grupo?.es_continuo ? 'Sin vencimiento' : formatFecha(grupo?.fecha_limite)}
             </span>
             <span className="flex items-center gap-1">
               <Users size={12} />
-              {miembros.length} interno{miembros.length !== 1 ? 's' : ''} + {externo?.nombre}
+              {objetivos.length} interno{objetivos.length !== 1 ? 's' : ''} · {todosExternos.length} externo{todosExternos.length !== 1 ? 's' : ''}
             </span>
           </div>
-          <div className="mt-4 pt-4 border-t border-gray-50">
-            <p className="text-xs text-gray-400">Participás como</p>
-            <p className="text-sm font-semibold text-gray-800 mt-0.5">{externo?.nombre}
-              {externo?.empresa_nombre && <span className="font-normal text-gray-500"> · {externo.empresa_nombre}</span>}
-            </p>
+
+          {/* Mi info como externo */}
+          <div className="mt-4 pt-4 border-t border-gray-50 flex items-center justify-between gap-4 flex-wrap">
+            <div>
+              <p className="text-xs text-gray-400">Participás como</p>
+              <p className="text-sm font-semibold text-gray-800 mt-0.5">
+                {externo.nombre}
+                {externo.empresa_nombre && <span className="font-normal text-gray-500"> · {externo.empresa_nombre}</span>}
+              </p>
+            </div>
+            {yaComplete ? (
+              <span className="flex items-center gap-1.5 text-sm font-medium text-green-600">
+                <CheckCircle size={15} />
+                Tu parte: completada {formatFechaCorta(externo.completado_en)}
+              </span>
+            ) : (
+              <span className="text-xs text-gray-400">Tu parte: en progreso</span>
+            )}
           </div>
+
+          {/* Estado de todos los externos */}
+          {todosExternos.length > 1 && (
+            <div className="mt-3 pt-3 border-t border-gray-50 space-y-1.5">
+              <p className="text-xs text-gray-400 font-medium mb-2">Estado de externos</p>
+              {todosExternos.map((ex: any) => (
+                <div key={ex.id} className="flex items-center gap-2 text-sm">
+                  <span className={`w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0 ${ex.completado_en ? 'bg-green-100' : 'bg-gray-100'}`}>
+                    {ex.completado_en
+                      ? <Check size={10} className="text-green-600" />
+                      : <span className="w-2 h-2 rounded-full bg-gray-300 block" />
+                    }
+                  </span>
+                  <span className={ex.completado_en ? 'text-gray-700' : 'text-gray-500'}>{ex.nombre}</span>
+                  {ex.empresa_nombre && <span className="text-xs text-gray-400">· {ex.empresa_nombre}</span>}
+                  {ex.completado_en && <span className="text-xs text-green-500 ml-auto">{formatFechaCorta(ex.completado_en)}</span>}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
-        {/* Timeline de avances */}
+        {/* Timeline */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
           <div className="px-5 py-4 border-b border-gray-50">
             <h2 className="font-semibold text-gray-900 text-sm">Progreso del equipo</h2>
           </div>
           {avancesConNombre.length === 0 ? (
-            <div className="p-8 text-center text-gray-400 text-sm">Todavía no hay avances registrados. ¡Sé el primero en agregar uno!</div>
+            <div className="p-8 text-center text-gray-400 text-sm">Todavía no hay avances. ¡Sé el primero!</div>
           ) : (
             <div className="divide-y divide-gray-50">
-              {avancesConNombre.map(a => (
-                <div key={a.id} className={`px-5 py-4 ${a.esMio ? 'bg-violet-50' : ''}`}>
+              {avancesConNombre.map((a: any) => (
+                <div key={a.id} className={`px-5 py-4 ${a.esMio ? 'bg-violet-50/50' : ''}`}>
                   <div className="flex items-start gap-3">
-                    <div className={`w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center text-xs font-bold ${a.esExterno ? 'bg-violet-100 text-violet-700' : 'bg-traza-100 text-traza-700'}`}>
+                    <div className={`w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center text-xs font-bold ${a.esExterno ? 'bg-violet-100 text-violet-700' : 'bg-blue-50 text-blue-700'}`}>
                       {a.autorNombre[0]}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
+                      <div className="flex items-center gap-2 flex-wrap mb-0.5">
                         <p className="text-sm font-semibold text-gray-800">{a.autorNombre}</p>
+                        {a.empresaNombre && <span className="text-xs text-gray-400">· {a.empresaNombre}</span>}
                         {a.esMio && <span className="text-xs px-1.5 py-0.5 bg-violet-100 text-violet-600 rounded-full">Vos</span>}
-                        {a.esExterno && !a.esMio && <span className="text-xs text-violet-500">· Externo</span>}
-                        <span className="text-xs text-gray-400">{formatDT(a.creado_en)}</span>
+                        <span className="text-xs text-gray-400 ml-auto">{formatDT(a.creado_en)}</span>
                       </div>
-                      {a.tipo === 'link' || a.tipo === 'archivo' ? (
-                        <a href={a.contenido} target="_blank" rel="noopener noreferrer" className="text-traza-700 hover:underline text-sm break-all mt-0.5 flex items-center gap-1">
+                      {(a.tipo === 'link' || a.tipo === 'archivo') ? (
+                        <a href={a.contenido} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline text-sm break-all flex items-center gap-1">
                           {a.tipo === 'link' ? <Link2 size={12} /> : <Paperclip size={12} />}
                           {a.contenido}
                         </a>
                       ) : (
-                        <p className="text-sm text-gray-700 mt-0.5">{a.contenido}</p>
+                        <p className="text-sm text-gray-700">{a.contenido}</p>
                       )}
                       {a.respuesta_supervisor && (
                         <div className="mt-2 px-3 py-2 bg-gray-50 rounded-lg border border-gray-100">
-                          <p className="text-xs font-medium text-gray-500 mb-0.5">Respuesta</p>
+                          <p className="text-xs font-medium text-gray-400 mb-0.5">Respuesta del equipo</p>
                           <p className="text-sm text-gray-700">{a.respuesta_supervisor}</p>
                         </div>
                       )}
@@ -227,47 +227,83 @@ export default function ColaborarPage({ params }: { params: { token: string } })
           )}
         </div>
 
-        {/* Form para agregar avance */}
+        {/* Form avance */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
           <h2 className="font-semibold text-gray-900 text-sm mb-4">Registrar avance</h2>
-
-          {/* Tipo chips */}
           <div className="flex gap-2 mb-3">
             {(['comentario', 'link', 'archivo'] as const).map(t => {
-              const icons = { comentario: <MessageSquare size={13} />, link: <Link2 size={13} />, archivo: <Paperclip size={13} /> }
+              const icons = { comentario: <MessageSquare size={12} />, link: <Link2 size={12} />, archivo: <Paperclip size={12} /> }
               const labels = { comentario: 'Nota', link: 'Link', archivo: 'Archivo' }
               return (
-                <button
-                  key={t}
-                  type="button"
-                  onClick={() => setTipo(t)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${tipo === t ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400'}`}
-                >
+                <button key={t} type="button" onClick={() => setTipo(t)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${tipo === t ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400'}`}>
                   {icons[t]}{labels[t]}
                 </button>
               )
             })}
           </div>
-
           <textarea
             value={contenido}
             onChange={e => setContenido(e.target.value)}
-            placeholder={tipo === 'comentario' ? 'Contá qué avanzaste...' : tipo === 'link' ? 'https://...' : 'URL del archivo...'}
-            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-traza-300 resize-none min-h-[90px]"
+            placeholder={tipo === 'comentario' ? 'Contá qué avanzaste...' : 'https://...'}
+            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 resize-none min-h-[80px]"
             onKeyDown={e => { if (e.key === 'Enter' && e.ctrlKey) handleEnviar() }}
           />
           <div className="flex items-center justify-between mt-3">
             <p className="text-xs text-gray-400">Ctrl+Enter para enviar</p>
-            <button
-              onClick={handleEnviar}
-              disabled={!contenido.trim() || enviando}
+            <button onClick={handleEnviar} disabled={!contenido.trim() || enviando}
               className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-white disabled:opacity-40 transition-colors"
-              style={{ backgroundColor: '#0F4C81' }}
-            >
-              {enviado ? <><CheckCircle size={14} /> Enviado</> : <><Send size={14} /> {enviando ? 'Enviando...' : 'Enviar avance'}</>}
+              style={{ backgroundColor: '#0F4C81' }}>
+              {enviado ? <><CheckCircle size={14} />Enviado</> : <><Send size={14} />{enviando ? 'Enviando...' : 'Enviar'}</>}
             </button>
           </div>
         </div>
+
+        {/* Marcar mi parte como completa */}
+        {!yaComplete && (
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+            {!confirmandoCompleto ? (
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-sm font-semibold text-gray-800">¿Terminaste tu parte?</p>
+                  <p className="text-xs text-gray-400 mt-0.5">Marcá cuando hayas completado tu contribución al objetivo.</p>
+                </div>
+                <button onClick={() => setConfirmandoCompleto(true)}
+                  className="flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium border border-gray-200 text-gray-700 hover:border-gray-400 hover:bg-gray-50 transition-all">
+                  <Check size={14} />
+                  Marcar completa
+                </button>
+              </div>
+            ) : (
+              <div>
+                <p className="text-sm font-semibold text-gray-800 mb-1">¿Confirmás que completaste tu parte?</p>
+                <p className="text-xs text-gray-400 mb-4">El equipo interno va a ver que finalizaste. Igual podés seguir cargando avances.</p>
+                <div className="flex gap-3">
+                  <button onClick={handleMarcarCompleto} disabled={marcando}
+                    className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-white disabled:opacity-40 transition-colors"
+                    style={{ backgroundColor: '#16a34a' }}>
+                    <CheckCircle size={14} />
+                    {marcando ? 'Guardando...' : 'Sí, completé mi parte'}
+                  </button>
+                  <button onClick={() => setConfirmandoCompleto(false)}
+                    className="px-4 py-2 rounded-xl text-sm text-gray-500 hover:text-gray-700 transition-colors">
+                    Cancelar
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {yaComplete && (
+          <div className="flex items-center gap-3 px-5 py-4 bg-green-50 rounded-2xl border border-green-100">
+            <CheckCircle size={18} className="text-green-500 flex-shrink-0" />
+            <div>
+              <p className="text-sm font-semibold text-green-800">Marcaste tu parte como completada</p>
+              <p className="text-xs text-green-600 mt-0.5">El equipo puede ver que finalizaste. Igualmente podés seguir cargando avances.</p>
+            </div>
+          </div>
+        )}
 
         <p className="text-center text-xs text-gray-300 pb-4">Impulsado por TRAZA</p>
       </div>
