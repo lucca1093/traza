@@ -49,7 +49,7 @@ export default function MiTrabajoPage() {
       setPersona(p)
       if (p) {
         const { data: obs } = await supabase
-          .from('objetivos').select('*').eq('persona_id', p.id)
+          .from('objetivos').select('*, grupo:objetivo_grupos(tipo)').eq('persona_id', p.id)
           .order('fecha_limite', { ascending: true, nullsFirst: false })
         setObjetivos((obs ?? []) as Objetivo[])
       }
@@ -74,7 +74,7 @@ export default function MiTrabajoPage() {
     })
     setForm({ titulo: '', descripcion: '', prioridad: 'Media', categoria: 'Resultado', es_continuo: false, fecha_limite: '' })
     setShowForm(false)
-    const { data: obs } = await supabase.from('objetivos').select('*').eq('persona_id', persona.id)
+    const { data: obs } = await supabase.from('objetivos').select('*, grupo:objetivo_grupos(tipo)').eq('persona_id', persona.id)
       .order('fecha_limite', { ascending: true, nullsFirst: false })
     setObjetivos((obs ?? []) as Objetivo[])
     setSaving(null)
@@ -571,7 +571,19 @@ function ObjetivoCard({ obj, saving, onUpdate, onUpdateAuto, onDelete, autoExpan
       {/* Header */}
       <div className="flex items-center justify-between px-5 py-4 cursor-pointer hover:bg-gray-50 transition-colors" onClick={() => setExpanded(!expanded)}>
         <div className="flex-1 min-w-0">
-          <p className="font-semibold text-gray-900 leading-tight">{obj.titulo}</p>
+          <div className="flex items-center gap-2 flex-wrap">
+            <p className="font-semibold text-gray-900 leading-tight">{obj.titulo}</p>
+            {(obj as any).grupo_id && (() => {
+              const tipo = (obj as any).grupo?.tipo ?? 'equipo'
+              const label: Record<string, string> = { equipo: 'En equipo', area: 'Por área', externo: 'Con externos' }
+              return (
+                <span className="flex items-center gap-1 text-[11px] px-1.5 py-0.5 rounded-md border border-gray-200 text-gray-500 bg-white font-medium flex-shrink-0">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                  {label[tipo] ?? 'Grupal'}
+                </span>
+              )
+            })()}
+          </div>
           <div className="flex items-center gap-3 mt-0.5">
             {obj.fecha_limite && <p className="text-xs text-gray-400">{formatFecha(obj.fecha_limite)}</p>}
             {vencido && (
@@ -772,6 +784,27 @@ function ObjetivoCard({ obj, saving, onUpdate, onUpdateAuto, onDelete, autoExpan
               )}
             </div>
           </div>
+
+          {/* Marcar mi parte — solo para objetivos grupales */}
+          {(obj as any).grupo_id && (
+            <div className="px-5 pb-4 pt-3 border-t border-gray-100">
+              {yaCompletado ? (
+                <div className="flex items-center gap-2 text-green-600 text-xs font-medium">
+                  <CheckCircle2 size={13} />
+                  Marcaste tu parte como completada
+                </div>
+              ) : (
+                <button
+                  onClick={() => { onUpdate(obj.id, 'Completado'); setEstado('Completado') }}
+                  disabled={saving === obj.id}
+                  className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-700 border border-gray-200 hover:border-gray-300 rounded-lg px-3 py-1.5 hover:bg-gray-50 transition-all disabled:opacity-40"
+                >
+                  <Check size={12} />
+                  Marcar mi parte como completada
+                </button>
+              )}
+            </div>
+          )}
 
           {/* Validación externa */}
           <div className="px-5 pb-5 pt-3 border-t border-gray-100">
