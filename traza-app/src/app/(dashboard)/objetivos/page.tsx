@@ -21,6 +21,9 @@ export default function ObjetivosPage() {
   const [busqueda, setBusqueda]   = useState('')
   const [tabObj, setTabObj]       = useState<'activos' | 'completados'>('activos')
 
+  const [modoGrupal, setModoGrupal]       = useState(false)
+  const [personasGrupo, setPersonasGrupo] = useState<string[]>([])
+
   const [form, setForm] = useState({
     persona_id: '',
     titulo: '',
@@ -102,6 +105,66 @@ export default function ObjetivosPage() {
   function resetForm() {
     setForm({ persona_id: personas[0]?.id ?? '', titulo: '', descripcion: '', prioridad: 'Media', categoria: 'Resultado', es_continuo: false, fecha_limite: '', estado: 'Pendiente', tipo: 'Asignado', evidencia_url: '' })
     setEditId(null)
+    setPersonasGrupo([])
+  }
+
+  async function handleSubmitGrupal(e: React.FormEvent) {
+    e.preventDefault()
+    if (personasGrupo.length < 2) { alert('Seleccioná al menos 2 colaboradores para un objetivo grupal.'); return }
+    if (!form.titulo.trim()) { alert('El título es obligatorio.'); return }
+    setLoading(true)
+
+    const { data: { user } } = await supabase.auth.getUser()
+    const { data: prof } = await supabase.from('profiles').select('empresa_id').eq('id', user!.id).single()
+
+    // 1. Crear el grupo
+    const { data: grupo, error: grupoError } = await supabase.from('objetivo_grupos').insert({
+      empresa_id: prof!.empresa_id,
+      titulo:      form.titulo,
+      descripcion: form.descripcion || null,
+      prioridad:   form.prioridad,
+      categoria:   form.categoria,
+      es_continuo: form.es_continuo,
+      fecha_limite: form.es_continuo ? null : (form.fecha_limite || null),
+      creado_por:  user!.id,
+    }).select().single()
+
+    if (grupoError || !grupo) {
+      alert('Error al crear el grupo.')
+      setLoading(false)
+      return
+    }
+
+    // 2. Crear un objetivo por cada persona seleccionada
+    const objetivosInsert = personasGrupo.map(persona_id => ({
+      empresa_id:    prof!.empresa_id,
+      persona_id,
+      creado_por:    user!.id,
+      titulo:        form.titulo,
+      descripcion:   form.descripcion || null,
+      prioridad:     form.prioridad,
+      categoria:     form.categoria,
+      es_continuo:   form.es_continuo,
+      fecha_limite:  form.es_continuo ? null : (form.fecha_limite || null),
+      estado:        form.estado,
+      tipo:          'Asignado',
+      evidencia_url: form.evidencia_url || null,
+      grupo_id:      grupo.id,
+    }))
+
+    await supabase.from('objetivos').insert(objetivosInsert)
+
+    setSuccess(true)
+    setTimeout(() => setSuccess(false), 3000)
+    resetForm()
+    fetchData()
+    setLoading(false)
+  }
+
+  function togglePersonaGrupo(id: string) {
+    setPersonasGrupo(prev =>
+      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+    )
   }
 
   function handleEdit(obj: any) {
@@ -168,14 +231,60 @@ export default function ObjetivosPage() {
 
       {/* Formulario */}
       <div className="traza-card p-6">
-        <h2 className="font-semibold text-gray-900 mb-5">{editId ? 'Editar objetivo' : 'Nuevo objetivo'}</h2>
-        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="traza-label">Colaborador</label>
-            <select className="traza-input" value={form.persona_id} onChange={e => f('persona_id', e.target.value)}>
-              {personas.map(p => <option key={p.id} value={p.id}>{p.nombre} {p.apellido}</option>)}
-            </select>
-          </div>
+        <div className="flex items-center justify-between mb-5">
+          <h2 className="font-semibold text-gray-900">{editId ? 'Editar objetivo' : 'Nuevo objetivo'}</h2>
+          {!editId && (
+            <div className="flex gap-1 bg-gray-100 p-1 rounded-xl">
+              <button
+                type="button"
+                onClick={() => { setModoGrupal(false); setPersonasGrupo([]) }}
+                className={`px-3 py-1 rounded-lg text-sm font-medium transition-all ${!modoGrupal ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+              >
+                Individual
+              </button>
+              <button
+                type="button"
+                onClick={() => setModoGrupal(true)}
+                className={`px-3 py-1 rounded-lg text-sm font-medium transition-all ${modoGrupal ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+              >
+                Grupal
+              </button>
+            </div>
+          )}
+        </div>
+        <form onSubmit={modoGrupal ? handleSubmitGrupal : handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {!modoGrupal ? (
+            <div>
+              <label className="traza-label">Colaborador</label>
+              <select className="traza-input" value={form.persona_id} onChange={e => f('persona_id', e.target.value)}>
+                {personas.map(p => <option key={p.id} value={p.id}>{p.nombre} {p.apellido}</option>)}
+              </select>
+            </div>
+          ) : (
+            <div className="md:col-span-2">
+              <label className="traza-label">Colaboradores del grupo <span className="text-gray-400 font-normal">(seleccioná 2 o más)</span></label>
+              <div className="mt-1 grid grid-cols-2 sm:grid-cols-3 gap-2 p-3 border border-gray-200 rounded-xl bg-gray-50 max-h-40 overflow-y-auto">
+                {personas.map(p => {
+                  const sel = personasGrupo.includes(p.id)
+                  return (
+                    <label key={p.id} className={`flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer border transition-all text-sm ${sel ? 'bg-white border-traza-400 text-traza-800 font-medium' : 'border-transparent text-gray-600 hover:bg-white hover:border-gray-200'}`}>
+                      <input
+                        type="checkbox"
+                        checked={sel}
+                        onChange={() => togglePersonaGrupo(p.id)}
+                        className="w-3.5 h-3.5 accent-traza-700 flex-shrink-0"
+                      />
+                      {p.nombre} {p.apellido}
+                    </label>
+                  )
+                })}
+              </div>
+              {personasGrupo.length > 0 && (
+                <p className="text-xs text-traza-700 mt-1.5">{personasGrupo.length} seleccionado{personasGrupo.length !== 1 ? 's' : ''}</p>
+              )}
+            </div>
+          )}
+
           <div>
             <label className="traza-label">Título *</label>
             <input className="traza-input" value={form.titulo} onChange={e => f('titulo', e.target.value)} placeholder="Título del objetivo" required />
@@ -474,7 +583,12 @@ function ObjetivoRow({ obj, autoExpand, onEdit, onDelete }: {
         className="flex items-center justify-between px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors"
       >
         <div className="flex-1 min-w-0 mr-3">
-          <p className="text-sm font-medium text-gray-900 truncate">{obj.titulo}</p>
+          <p className="text-sm font-medium text-gray-900 truncate flex items-center gap-2">
+            {obj.titulo}
+            {obj.grupo_id && (
+              <span className="flex-shrink-0 text-xs px-1.5 py-0.5 rounded-full bg-violet-50 text-violet-600 border border-violet-100 font-medium">Grupal</span>
+            )}
+          </p>
           <p className="text-xs text-gray-400 mt-0.5">
             {obj.es_continuo ? 'Continuo' : formatFecha(obj.fecha_limite)}
             {obj.estado ? ` · ${obj.estado}` : ''}
