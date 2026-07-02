@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Button from '@/components/ui/Button'
 import { getEstadoClasses, getPrioridadClasses, getCategoriaStyle, formatFecha } from '@/lib/traza'
-import { ChevronDown, ChevronRight, Search, MessageSquare, Link2, Paperclip, X, Users, Copy } from 'lucide-react'
+import { ChevronDown, ChevronRight, Search, MessageSquare, Link2, Paperclip, X, Users, Copy, Check, CheckCircle } from 'lucide-react'
 import type { Objetivo, Persona, Profile, CategoriaObjetivo } from '@/types'
 
 export default function ObjetivosPage() {
@@ -52,7 +52,7 @@ export default function ObjetivosPage() {
     const [{ data: obs }, { data: pers }, { data: grps }] = await Promise.all([
       supabase.from('objetivos').select('*, persona:personas(id, nombre, apellido, area)').eq('empresa_id', p!.empresa_id).order('fecha_limite', { ascending: true, nullsFirst: false }),
       supabase.from('personas').select('*').eq('empresa_id', p!.empresa_id).eq('empleo_activo', true).order('apellido'),
-      supabase.from('objetivo_grupos').select('*, externos:objetivo_externos(*), miembros:objetivos(id, persona:personas(nombre, apellido))').eq('empresa_id', p!.empresa_id).order('created_at', { ascending: false }),
+      supabase.from('objetivo_grupos').select('*, externos:objetivo_externos(*), miembros:objetivos(id, estado, persona:personas(nombre, apellido))').eq('empresa_id', p!.empresa_id).order('created_at', { ascending: false }),
     ])
 
     setObjetivos(obs ?? [])
@@ -685,6 +685,7 @@ export default function ObjetivosPage() {
                           autoExpand={obj.id === objetivoDestacado}
                           onEdit={handleEdit}
                           onDelete={handleDelete}
+                          onRefresh={fetchData}
                         />
                       ))}
                     </div>
@@ -739,17 +740,20 @@ const REVISION_STYLES: Record<string, { bg: string; border: string; label: strin
 }
 
 // -------- Fila de objetivo expandible con avances --------
-function ObjetivoRow({ obj, autoExpand, onEdit, onDelete }: {
+function ObjetivoRow({ obj, autoExpand, onEdit, onDelete, onRefresh }: {
   obj: any
   autoExpand?: boolean
   onEdit: (obj: any) => void
   onDelete: (id: string) => void
+  onRefresh?: () => void
 }) {
-  const [open, setOpen]               = useState(autoExpand ?? false)
-  const [avances, setAvances]         = useState<any[]>([])
-  const [cambiando, setCambiando]     = useState<string | null>(null)
-  const [respondiendo, setRespondiendo] = useState<string | null>(null)
-  const [textoResp, setTextoResp]     = useState<Record<string, string>>({})
+  const [open, setOpen]                   = useState(autoExpand ?? false)
+  const [avances, setAvances]             = useState<any[]>([])
+  const [cambiando, setCambiando]         = useState<string | null>(null)
+  const [respondiendo, setRespondiendo]   = useState<string | null>(null)
+  const [textoResp, setTextoResp]         = useState<Record<string, string>>({})
+  const [miParteCompleta, setMiParteCompleta] = useState(obj.estado === 'Completado')
+  const [marcandoCompleto, setMarcandoCompleto] = useState(false)
 
   useEffect(() => {
     if (autoExpand) {
@@ -800,6 +804,14 @@ function ObjetivoRow({ obj, autoExpand, onEdit, onDelete }: {
     setTextoResp(prev => ({ ...prev, [avanceId]: '' }))
     setRespondiendo(null)
     loadAvances()
+  }
+
+  async function marcarMiParteCompleta() {
+    setMarcandoCompleto(true)
+    await supabase.from('objetivos').update({ estado: 'Completado' }).eq('id', obj.id)
+    setMiParteCompleta(true)
+    setMarcandoCompleto(false)
+    onRefresh?.()
   }
 
   function formatDT(dt: string) {
@@ -920,6 +932,27 @@ function ObjetivoRow({ obj, autoExpand, onEdit, onDelete }: {
               </div>
             )
           })}
+
+          {/* Bloque "mi parte" — solo para objetivos grupales */}
+          {obj.grupo_id && (
+            <div className="pt-3 border-t border-gray-100 mt-1">
+              {miParteCompleta ? (
+                <div className="flex items-center gap-2 text-green-600 text-xs font-medium">
+                  <CheckCircle size={13} />
+                  Marcaste tu parte como completada
+                </div>
+              ) : (
+                <button
+                  onClick={marcarMiParteCompleta}
+                  disabled={marcandoCompleto}
+                  className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-700 border border-gray-200 hover:border-gray-300 rounded-lg px-3 py-1.5 hover:bg-gray-50 transition-all disabled:opacity-40"
+                >
+                  <Check size={12} />
+                  {marcandoCompleto ? 'Guardando...' : 'Marcar mi parte como completada'}
+                </button>
+              )}
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -944,6 +977,13 @@ function GrupoRow({ grupo: g, onRefresh }: { grupo: any; onRefresh: () => void }
     arr.findIndex((x: any) => x.persona?.nombre === m.persona?.nombre) === i
   )
   const base = typeof window !== 'undefined' ? window.location.origin : ''
+
+  // Progreso grupal
+  const completadosInternos = miembrosUnicos.filter((m: any) => m.estado === 'Completado').length
+  const completadosExternos = (g.externos ?? []).filter((ex: any) => ex.completado_en).length
+  const totalParticipantes  = miembrosUnicos.length + (g.externos ?? []).length
+  const totalCompletos      = completadosInternos + completadosExternos
+  const todosCompletos      = totalParticipantes > 0 && totalCompletos === totalParticipantes
 
   useEffect(() => { if (open) loadAvances() }, [open])
 
@@ -1078,6 +1118,11 @@ function GrupoRow({ grupo: g, onRefresh }: { grupo: any; onRefresh: () => void }
                 <p className="text-xs text-gray-400">{g.es_continuo ? 'Continuo' : formatFecha(g.fecha_limite)}</p>
                 <p className="text-xs text-gray-400 mt-0.5">{g.prioridad}</p>
               </div>
+              {totalParticipantes > 0 && (
+                <span className={`text-[11px] px-2 py-0.5 rounded-md border font-medium ${todosCompletos ? 'border-green-200 text-green-700 bg-green-50' : 'border-gray-200 text-gray-400 bg-white'}`}>
+                  {totalCompletos}/{totalParticipantes}
+                </span>
+              )}
               <div className="flex gap-2" onClick={e => e.stopPropagation()}>
                 <button onClick={() => { setEditData({ ...g, fecha_limite: g.fecha_limite ?? '' }); setEditing(true) }}
                   className="text-xs text-traza-700 hover:underline">Editar</button>
@@ -1126,6 +1171,43 @@ function GrupoRow({ grupo: g, onRefresh }: { grupo: any; onRefresh: () => void }
       {/* Panel de avances del grupo */}
       {open && !editing && (
         <div className="bg-gray-50 border-t border-gray-100 px-6 py-4 space-y-3">
+
+          {/* Sección participantes */}
+          {totalParticipantes > 0 && (
+            <div className="pb-3 border-b border-gray-100">
+              <p className="text-[11px] text-gray-400 font-medium uppercase tracking-wide mb-2">Participantes</p>
+              <div className="space-y-1.5">
+                {miembrosUnicos.map((m: any, i: number) => m.persona && (
+                  <div key={i} className="flex items-center gap-2">
+                    <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${m.estado === 'Completado' ? 'bg-green-500' : 'bg-gray-300'}`} />
+                    <div className="w-5 h-5 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center text-[9px] font-semibold text-gray-500 flex-shrink-0">
+                      {m.persona.nombre[0]}{m.persona.apellido[0]}
+                    </div>
+                    <span className="text-xs text-gray-700">{m.persona.nombre} {m.persona.apellido}</span>
+                    {m.estado === 'Completado'
+                      ? <span className="ml-auto text-[11px] text-green-600 font-medium">Completó</span>
+                      : <span className="ml-auto text-[11px] text-gray-400">{m.estado ?? 'Pendiente'}</span>
+                    }
+                  </div>
+                ))}
+                {(g.externos ?? []).map((ex: any) => (
+                  <div key={ex.id} className="flex items-center gap-2">
+                    <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${ex.completado_en ? 'bg-green-500' : 'bg-gray-300'}`} />
+                    <div className="w-5 h-5 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center text-[9px] font-semibold text-gray-400 flex-shrink-0">
+                      {ex.nombre[0]}
+                    </div>
+                    <span className="text-xs text-gray-700">{ex.nombre}</span>
+                    <span className="text-[11px] text-gray-400">Externo</span>
+                    {ex.completado_en
+                      ? <span className="ml-auto text-[11px] text-green-600 font-medium">Completó</span>
+                      : <span className="ml-auto text-[11px] text-gray-400">Pendiente</span>
+                    }
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {avances.length === 0 ? (
             <p className="text-xs text-gray-400 italic">Todavía no hay avances en este objetivo.</p>
           ) : avances.map(a => {
