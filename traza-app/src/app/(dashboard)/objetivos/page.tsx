@@ -346,34 +346,58 @@ export default function ObjetivosPage() {
                   {modo === 'equipo' ? '(mínimo 2)' : '(opcional)'}
                 </span>
               </label>
-              {/* Buscador */}
-              <div className="relative mt-1 mb-2">
-                <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+
+              {/* Chips de seleccionados */}
+              {personasGrupo.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 mt-2 mb-2">
+                  {personasGrupo.map(id => {
+                    const p = personas.find(x => x.id === id)
+                    if (!p) return null
+                    return (
+                      <span key={id} className="flex items-center gap-1 text-xs px-2.5 py-1 bg-traza-50 text-traza-800 rounded-full border border-traza-100 font-medium">
+                        {p.nombre} {p.apellido}
+                        <button type="button" onClick={() => togglePersonaGrupo(id)} className="text-traza-300 hover:text-traza-600 ml-0.5">
+                          <X size={11} />
+                        </button>
+                      </span>
+                    )
+                  })}
+                </div>
+              )}
+
+              {/* Buscador con dropdown */}
+              <div className="relative mt-1">
+                <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
                 <input
                   type="text"
                   value={buscarPersona}
                   onChange={e => setBuscarPersona(e.target.value)}
-                  placeholder="Buscar por nombre..."
+                  placeholder={personasGrupo.length > 0 ? 'Agregar más...' : 'Buscar colaborador...'}
                   className="w-full pl-8 pr-4 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-traza-300"
+                  autoComplete="off"
                 />
+                {buscarPersona.trim().length > 0 && (
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg z-20 max-h-48 overflow-y-auto">
+                    {personasParaGrupo.filter(p => !personasGrupo.includes(p.id)).length === 0 ? (
+                      <p className="text-xs text-gray-400 text-center py-3">Sin resultados</p>
+                    ) : personasParaGrupo.filter(p => !personasGrupo.includes(p.id)).map(p => (
+                      <button
+                        key={p.id}
+                        type="button"
+                        onMouseDown={e => e.preventDefault()} // evita que el input pierda foco
+                        onClick={() => { togglePersonaGrupo(p.id); setBuscarPersona('') }}
+                        className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2.5"
+                      >
+                        <div className="w-6 h-6 rounded-full bg-traza-100 flex items-center justify-center flex-shrink-0">
+                          <span className="text-traza-700 text-xs font-bold">{p.nombre[0]}{p.apellido[0]}</span>
+                        </div>
+                        <span>{p.nombre} {p.apellido}</span>
+                        {(p as any).area && <span className="text-xs text-gray-400 ml-auto">{(p as any).area}</span>}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
-              {/* Lista filtrada */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 p-2 border border-gray-200 rounded-xl bg-gray-50 max-h-44 overflow-y-auto">
-                {personasParaGrupo.length === 0 ? (
-                  <p className="col-span-3 text-xs text-gray-400 text-center py-2">Sin resultados</p>
-                ) : personasParaGrupo.map(p => {
-                  const sel = personasGrupo.includes(p.id)
-                  return (
-                    <label key={p.id} className={`flex items-center gap-2 px-2.5 py-2 rounded-lg cursor-pointer border transition-all text-sm ${sel ? 'bg-white border-traza-400 text-traza-800 font-medium' : 'border-transparent text-gray-600 hover:bg-white hover:border-gray-200'}`}>
-                      <input type="checkbox" checked={sel} onChange={() => togglePersonaGrupo(p.id)} className="w-3.5 h-3.5 accent-traza-700 flex-shrink-0" />
-                      <span className="truncate">{p.nombre} {p.apellido}</span>
-                    </label>
-                  )
-                })}
-              </div>
-              {personasGrupo.length > 0 && (
-                <p className="text-xs text-traza-700 mt-1.5 font-medium">{personasGrupo.length} seleccionado{personasGrupo.length !== 1 ? 's' : ''}</p>
-              )}
             </div>
           )}
 
