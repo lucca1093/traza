@@ -22,6 +22,8 @@ export default function ObjetivosPage() {
   const [tabObj, setTabObj]       = useState<'activos' | 'completados'>('activos')
 
   const [grupos, setGrupos]               = useState<any[]>([])
+  const [editingGrupo, setEditingGrupo]   = useState<any | null>(null)
+  const [savingGrupo, setSavingGrupo]     = useState(false)
 
   type ModoObjetivo = 'individual' | 'equipo' | 'area' | 'externo'
   const [modo, setModo]                   = useState<ModoObjetivo>('individual')
@@ -258,6 +260,38 @@ export default function ObjetivosPage() {
   async function handleDelete(id: string) {
     if (!confirm('¿Eliminar este objetivo?')) return
     await supabase.from('objetivos').delete().eq('id', id)
+    fetchData()
+  }
+
+  async function handleDeleteGrupo(grupoId: string) {
+    if (!confirm('¿Eliminar este objetivo grupal? Se eliminarán también los objetivos individuales y los links de colaboradores externos.')) return
+    // Eliminar objetivos individuales del grupo primero
+    await supabase.from('objetivos').delete().eq('grupo_id', grupoId)
+    // Luego el grupo (cascada elimina objetivo_externos)
+    await supabase.from('objetivo_grupos').delete().eq('id', grupoId)
+    fetchData()
+  }
+
+  async function handleSaveGrupo() {
+    if (!editingGrupo) return
+    setSavingGrupo(true)
+    await supabase.from('objetivo_grupos').update({
+      titulo:      editingGrupo.titulo,
+      descripcion: editingGrupo.descripcion || null,
+      prioridad:   editingGrupo.prioridad,
+      fecha_limite: editingGrupo.es_continuo ? null : (editingGrupo.fecha_limite || null),
+      es_continuo: editingGrupo.es_continuo,
+    }).eq('id', editingGrupo.id)
+    // Actualizar también los objetivos individuales del grupo
+    await supabase.from('objetivos').update({
+      titulo:      editingGrupo.titulo,
+      descripcion: editingGrupo.descripcion || null,
+      prioridad:   editingGrupo.prioridad,
+      fecha_limite: editingGrupo.es_continuo ? null : (editingGrupo.fecha_limite || null),
+      es_continuo: editingGrupo.es_continuo,
+    }).eq('grupo_id', editingGrupo.id)
+    setSavingGrupo(false)
+    setEditingGrupo(null)
     fetchData()
   }
 
@@ -724,70 +758,114 @@ export default function ObjetivosPage() {
                 arr.findIndex((x: any) => x.persona?.nombre === m.persona?.nombre) === i
               )
               const base = typeof window !== 'undefined' ? window.location.origin : ''
+              const isEditing = editingGrupo?.id === g.id
               return (
-                <div key={g.id} className="px-6 py-4 hover:bg-gray-50 transition-colors">
-                  <div className="flex items-start justify-between gap-4 flex-wrap">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap mb-1">
-                        <p className="font-semibold text-gray-900 text-sm">{g.titulo}</p>
-                        <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ backgroundColor: tipoColor[tipo], color: tipoText[tipo] }}>
-                          {tipoLabel[tipo] ?? tipo}
-                        </span>
-                        {g.area_nombre && (
-                          <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">{g.area_nombre}</span>
+                <div key={g.id} className="px-6 py-4">
+
+                  {/* Vista normal */}
+                  {!isEditing && (
+                    <div className="flex items-start justify-between gap-4 flex-wrap">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap mb-1">
+                          <p className="font-semibold text-gray-900 text-sm">{g.titulo}</p>
+                          <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ backgroundColor: tipoColor[tipo], color: tipoText[tipo] }}>
+                            {tipoLabel[tipo] ?? tipo}
+                          </span>
+                          {g.area_nombre && <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">{g.area_nombre}</span>}
+                        </div>
+                        {g.descripcion && <p className="text-xs text-gray-500 mb-2">{g.descripcion}</p>}
+
+                        {miembrosUnicos.length > 0 && (
+                          <div className="flex flex-wrap gap-1.5 mb-2">
+                            {miembrosUnicos.map((m: any, i: number) => m.persona && (
+                              <span key={i} className="text-xs px-2 py-0.5 bg-traza-50 text-traza-700 rounded-full border border-traza-100">
+                                {m.persona.nombre} {m.persona.apellido}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+
+                        {(g.externos ?? []).length > 0 && (
+                          <div className="space-y-1.5 mt-2">
+                            {g.externos.map((ex: any) => (
+                              <div key={ex.id} className="flex items-center gap-2 flex-wrap">
+                                <span className={`w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0 ${ex.completado_en ? 'bg-green-100' : 'bg-gray-100'}`}>
+                                  {ex.completado_en
+                                    ? <span className="text-green-600 text-xs font-bold">✓</span>
+                                    : <span className="w-2 h-2 rounded-full bg-gray-300 block" />}
+                                </span>
+                                <span className="text-xs font-medium text-violet-700">{ex.nombre}</span>
+                                {ex.empresa_nombre && <span className="text-xs text-gray-400">· {ex.empresa_nombre}</span>}
+                                {ex.completado_en
+                                  ? <span className="text-xs text-green-500">Completó su parte</span>
+                                  : <span className="text-xs text-gray-400">En progreso</span>}
+                                <button type="button"
+                                  onClick={() => { const link = `${base}/colaborar/${ex.token}`; navigator.clipboard.writeText(link); alert(`Link copiado:\n${link}`) }}
+                                  className="text-xs px-2 py-0.5 rounded-full bg-violet-50 text-violet-600 border border-violet-100 hover:bg-violet-100 transition-colors ml-auto">
+                                  Copiar link
+                                </button>
+                              </div>
+                            ))}
+                          </div>
                         )}
                       </div>
-                      {g.descripcion && <p className="text-xs text-gray-500 mb-2">{g.descripcion}</p>}
 
-                      {/* Miembros internos */}
-                      {miembrosUnicos.length > 0 && (
-                        <div className="flex flex-wrap gap-1.5 mb-2">
-                          {miembrosUnicos.map((m: any, i: number) => m.persona && (
-                            <span key={i} className="text-xs px-2 py-0.5 bg-traza-50 text-traza-700 rounded-full border border-traza-100">
-                              {m.persona.nombre} {m.persona.apellido}
-                            </span>
-                          ))}
+                      <div className="flex items-start gap-4 flex-shrink-0">
+                        <div className="text-right">
+                          <p className="text-xs text-gray-400">{g.es_continuo ? 'Continuo' : formatFecha(g.fecha_limite)}</p>
+                          <p className="text-xs text-gray-400 mt-0.5">{g.prioridad}</p>
                         </div>
-                      )}
+                        <div className="flex gap-2">
+                          <button onClick={() => setEditingGrupo({ ...g, fecha_limite: g.fecha_limite ?? '' })}
+                            className="text-xs text-traza-700 hover:underline">Editar</button>
+                          <button onClick={() => handleDeleteGrupo(g.id)}
+                            className="text-xs text-red-500 hover:underline">Eliminar</button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
-                      {/* Externos con links y estado */}
-                      {(g.externos ?? []).length > 0 && (
-                        <div className="space-y-1.5 mt-2">
-                          {g.externos.map((ex: any) => (
-                            <div key={ex.id} className="flex items-center gap-2 flex-wrap">
-                              <span className={`w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0 ${ex.completado_en ? 'bg-green-100' : 'bg-gray-100'}`}>
-                                {ex.completado_en
-                                  ? <span className="text-green-600 text-xs font-bold">✓</span>
-                                  : <span className="w-2 h-2 rounded-full bg-gray-300 block" />
-                                }
-                              </span>
-                              <span className="text-xs font-medium text-violet-700">{ex.nombre}</span>
-                              {ex.empresa_nombre && <span className="text-xs text-gray-400">· {ex.empresa_nombre}</span>}
-                              {ex.completado_en
-                                ? <span className="text-xs text-green-500">Completó su parte</span>
-                                : <span className="text-xs text-gray-400">En progreso</span>
-                              }
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  const link = `${base}/colaborar/${ex.token}`
-                                  navigator.clipboard.writeText(link)
-                                  alert(`Link copiado:\n${link}`)
-                                }}
-                                className="text-xs px-2 py-0.5 rounded-full bg-violet-50 text-violet-600 border border-violet-100 hover:bg-violet-100 transition-colors ml-auto"
-                              >
-                                Copiar link
-                              </button>
-                            </div>
-                          ))}
+                  {/* Formulario de edición inline */}
+                  {isEditing && (
+                    <div className="space-y-3">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div className="md:col-span-2">
+                          <label className="traza-label">Título</label>
+                          <input className="traza-input" value={editingGrupo.titulo}
+                            onChange={e => setEditingGrupo((prev: any) => ({ ...prev, titulo: e.target.value }))} />
                         </div>
-                      )}
+                        <div className="md:col-span-2">
+                          <label className="traza-label">Descripción</label>
+                          <textarea className="traza-input resize-none min-h-[60px]" value={editingGrupo.descripcion ?? ''}
+                            onChange={e => setEditingGrupo((prev: any) => ({ ...prev, descripcion: e.target.value }))} />
+                        </div>
+                        <div>
+                          <label className="traza-label">Prioridad</label>
+                          <select className="traza-input" value={editingGrupo.prioridad}
+                            onChange={e => setEditingGrupo((prev: any) => ({ ...prev, prioridad: e.target.value }))}>
+                            <option>Alta</option><option>Media</option><option>Baja</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="traza-label">Fecha límite</label>
+                          <input type="date" className="traza-input disabled:opacity-40"
+                            value={editingGrupo.fecha_limite ?? ''}
+                            disabled={editingGrupo.es_continuo}
+                            onChange={e => setEditingGrupo((prev: any) => ({ ...prev, fecha_limite: e.target.value }))} />
+                          <label className="flex items-center gap-2 mt-1.5 cursor-pointer">
+                            <input type="checkbox" checked={editingGrupo.es_continuo}
+                              onChange={e => setEditingGrupo((prev: any) => ({ ...prev, es_continuo: e.target.checked, fecha_limite: '' }))}
+                              className="w-3.5 h-3.5 accent-traza-700" />
+                            <span className="text-xs text-gray-500">Sin fecha de vencimiento</span>
+                          </label>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3 pt-1">
+                        <Button type="button" loading={savingGrupo} onClick={handleSaveGrupo}>Guardar</Button>
+                        <Button type="button" variant="ghost" onClick={() => setEditingGrupo(null)}>Cancelar</Button>
+                      </div>
                     </div>
-                    <div className="flex-shrink-0 text-right">
-                      <p className="text-xs text-gray-400">{g.es_continuo ? 'Continuo' : formatFecha(g.fecha_limite)}</p>
-                      <p className="text-xs text-gray-400 mt-0.5">{g.prioridad}</p>
-                    </div>
-                  </div>
+                  )}
                 </div>
               )
             })}
