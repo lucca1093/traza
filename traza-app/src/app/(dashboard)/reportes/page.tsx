@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import Button from '@/components/ui/Button'
-import { getEstadoClasses, getValidacionStyle, formatFecha } from '@/lib/traza'
+import { getEstadoClasses, getPrioridadClasses, getValidacionStyle, formatFecha } from '@/lib/traza'
 import { ChevronDown, ChevronRight, Paperclip } from 'lucide-react'
 
 export default function ReportesPage() {
@@ -205,17 +205,17 @@ export default function ReportesPage() {
                             )}
                           </div>
                           <div className="col-span-2">
-                            <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-gray-100 text-gray-600">
+                            <span className={`text-xs px-2 py-0.5 rounded-md font-medium ${getPrioridadClasses(obj.prioridad)}`}>
                               {obj.prioridad}
                             </span>
                           </div>
                           <div className="col-span-2">
-                            <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${getEstadoClasses(obj.estado)}`}>
+                            <span className={`text-xs px-2 py-0.5 rounded-md font-medium ${getEstadoClasses(obj.estado)}`}>
                               {obj.estado}
                             </span>
                           </div>
                           <div className="col-span-2">
-                            <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={getValidacionStyle(obj.validacion)}>
+                            <span className="text-xs px-2 py-0.5 rounded-md font-medium" style={getValidacionStyle(obj.validacion)}>
                               {obj.validacion ?? 'Sin validar'}
                             </span>
                           </div>

@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Button from '@/components/ui/Button'
 import { getEstadoClasses, getPrioridadClasses, getCategoriaStyle, formatFecha } from '@/lib/traza'
-import { ChevronDown, ChevronRight, Search, MessageSquare, Link2, Paperclip, X } from 'lucide-react'
+import { ChevronDown, ChevronRight, Search, MessageSquare, Link2, Paperclip, X, Users, Copy } from 'lucide-react'
 import type { Objetivo, Persona, Profile, CategoriaObjetivo } from '@/types'
 
 export default function ObjetivosPage() {
@@ -358,10 +358,13 @@ export default function ObjetivosPage() {
                     const p = personas.find(x => x.id === id)
                     if (!p) return null
                     return (
-                      <span key={id} className="flex items-center gap-1 text-xs px-2.5 py-1 bg-traza-50 text-traza-800 rounded-full border border-traza-100 font-medium">
+                      <span key={id} className="flex items-center gap-1.5 text-xs pl-1 pr-2 py-0.5 border border-gray-200 rounded-lg bg-white text-gray-700">
+                        <div className="w-4 h-4 rounded-full bg-gray-100 flex items-center justify-center text-[9px] font-semibold text-gray-500 flex-shrink-0">
+                          {p.nombre[0]}{p.apellido[0]}
+                        </div>
                         {p.nombre} {p.apellido}
-                        <button type="button" onClick={() => togglePersonaGrupo(id)} className="text-traza-300 hover:text-traza-600 ml-0.5">
-                          <X size={11} />
+                        <button type="button" onClick={() => togglePersonaGrupo(id)} className="text-gray-300 hover:text-gray-500 ml-0.5">
+                          <X size={10} />
                         </button>
                       </span>
                     )
@@ -423,7 +426,10 @@ export default function ObjetivosPage() {
                   <label className="traza-label">Colaboradores del área</label>
                   <div className="mt-1 flex flex-wrap gap-1.5">
                     {personas.filter(p => (p as any).area === areaSeleccionada).map(p => (
-                      <span key={p.id} className="text-xs px-2 py-1 bg-traza-50 text-traza-700 rounded-full border border-traza-100">
+                      <span key={p.id} className="flex items-center gap-1.5 text-xs pl-1 pr-2 py-0.5 border border-gray-200 rounded-lg bg-white text-gray-600">
+                        <div className="w-4 h-4 rounded-full bg-gray-100 flex items-center justify-center text-[9px] font-semibold text-gray-500 flex-shrink-0">
+                          {p.nombre[0]}{p.apellido[0]}
+                        </div>
                         {p.nombre} {p.apellido}
                       </span>
                     ))}
@@ -816,7 +822,7 @@ function ObjetivoRow({ obj, autoExpand, onEdit, onDelete }: {
           <p className="text-sm font-medium text-gray-900 truncate flex items-center gap-2">
             {obj.titulo}
             {obj.grupo_id && (
-              <span className="flex-shrink-0 text-xs px-1.5 py-0.5 rounded-full bg-violet-50 text-violet-600 border border-violet-100 font-medium">Grupal</span>
+              <span className="flex-shrink-0 flex items-center gap-1 text-[11px] px-1.5 py-0.5 rounded-md border border-gray-200 text-gray-500 bg-white font-medium"><Users size={10} />Grupal</span>
             )}
           </p>
           <p className="text-xs text-gray-400 mt-0.5">
@@ -922,8 +928,6 @@ function ObjetivoRow({ obj, autoExpand, onEdit, onDelete }: {
 
 // -------- Fila de grupo expandible con avances unificados --------
 const TIPO_LABEL: Record<string, string> = { equipo: 'Equipo', area: 'Por área', externo: 'Con externos' }
-const TIPO_COLOR: Record<string, string> = { equipo: '#f0f6ff', area: '#f0fdf4', externo: '#f5f3ff' }
-const TIPO_TEXT:  Record<string, string> = { equipo: '#2563eb', area: '#16a34a', externo: '#7c3aed' }
 
 function GrupoRow({ grupo: g, onRefresh }: { grupo: any; onRefresh: () => void }) {
   const [open, setOpen]               = useState(false)
@@ -1029,17 +1033,20 @@ function GrupoRow({ grupo: g, onRefresh }: { grupo: any; onRefresh: () => void }
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap mb-1">
                 <p className="font-semibold text-gray-900 text-sm">{g.titulo}</p>
-                <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ backgroundColor: TIPO_COLOR[tipo], color: TIPO_TEXT[tipo] }}>
-                  {TIPO_LABEL[tipo] ?? tipo}
+                <span className="flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-md border border-gray-200 text-gray-500 bg-white font-medium">
+                  <Users size={10} />{TIPO_LABEL[tipo] ?? tipo}
                 </span>
-                {g.area_nombre && <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">{g.area_nombre}</span>}
+                {g.area_nombre && <span className="text-[11px] px-2 py-0.5 rounded-md border border-gray-200 text-gray-400 bg-white">{g.area_nombre}</span>}
               </div>
               {g.descripcion && <p className="text-xs text-gray-500 mb-2">{g.descripcion}</p>}
               {/* Chips de miembros */}
               {miembrosUnicos.length > 0 && (
-                <div className="flex flex-wrap gap-1.5 mb-1.5">
+                <div className="flex flex-wrap gap-2 mb-1.5">
                   {miembrosUnicos.map((m: any, i: number) => m.persona && (
-                    <span key={i} className="text-xs px-2 py-0.5 bg-traza-50 text-traza-700 rounded-full border border-traza-100">
+                    <span key={i} className="flex items-center gap-1.5 text-xs text-gray-600">
+                      <div className="w-5 h-5 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center text-[9px] font-semibold text-gray-500 flex-shrink-0">
+                        {m.persona.nombre[0]}{m.persona.apellido[0]}
+                      </div>
                       {m.persona.nombre} {m.persona.apellido}
                     </span>
                   ))}
@@ -1047,17 +1054,21 @@ function GrupoRow({ grupo: g, onRefresh }: { grupo: any; onRefresh: () => void }
               )}
               {/* Externos */}
               {(g.externos ?? []).length > 0 && (
-                <div className="flex flex-wrap gap-2 mt-1" onClick={e => e.stopPropagation()}>
+                <div className="flex flex-col gap-1.5 mt-1.5" onClick={e => e.stopPropagation()}>
                   {g.externos.map((ex: any) => (
-                    <span key={ex.id} className={`flex items-center gap-1 text-xs px-2 py-0.5 rounded-full border ${ex.completado_en ? 'bg-green-50 border-green-100 text-green-700' : 'bg-violet-50 border-violet-100 text-violet-700'}`}>
-                      {ex.completado_en ? '✓' : '○'} {ex.nombre}
+                    <div key={ex.id} className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg border border-gray-100 bg-white text-xs">
+                      <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${ex.completado_en ? 'bg-green-500' : 'bg-gray-300'}`} />
+                      <span className="font-medium text-gray-700">{ex.nombre}</span>
+                      {ex.empresa_nombre && <span className="text-gray-400">· {ex.empresa_nombre}</span>}
+                      {ex.completado_en && <span className="text-green-600 ml-auto text-[10px]">Completó</span>}
                       <button
-                        onClick={() => { const l = `${base}/colaborar/${ex.token}`; navigator.clipboard.writeText(l); alert(`Link copiado:\n${l}`) }}
-                        className="ml-1 text-violet-400 hover:text-violet-600 underline text-[10px]"
+                        onClick={() => { const l = `${base}/colaborar/${ex.token}`; navigator.clipboard.writeText(l).then(() => alert(`Link copiado:\n${l}`)) }}
+                        className="ml-auto text-gray-300 hover:text-gray-600 transition-colors"
+                        title="Copiar link"
                       >
-                        link
+                        <Copy size={11} />
                       </button>
-                    </span>
+                    </div>
                   ))}
                 </div>
               )}
@@ -1132,7 +1143,7 @@ function GrupoRow({ grupo: g, onRefresh }: { grupo: any; onRefresh: () => void }
                   <div className="flex-1 min-w-0">
                     <p className="text-xs font-semibold text-gray-500 mb-0.5 flex items-center gap-1.5">
                       {autorNombre}
-                      {esExterno && <span className="px-1.5 py-0.5 rounded-full bg-violet-50 text-violet-500 text-[10px]">Externo</span>}
+                      {esExterno && <span className="px-1.5 py-0.5 rounded-md border border-gray-200 text-gray-400 text-[10px]">Externo</span>}
                     </p>
                     {(a.tipo === 'link' || a.tipo === 'archivo') ? (
                       <a href={a.contenido} target="_blank" rel="noopener noreferrer" className="text-traza-700 hover:underline break-all text-xs">{a.contenido}</a>

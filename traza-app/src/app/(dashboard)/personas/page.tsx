@@ -268,8 +268,8 @@ export default function PersonasPage() {
                   <td className="px-6 py-4 text-gray-500">{p.area ?? '—'}</td>
                   <td className="px-6 py-4">
                     {p.user_id
-                      ? <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 font-medium">Con acceso</span>
-                      : <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">Sin acceso</span>
+                      ? <span className="text-xs px-2 py-0.5 rounded-md border border-green-200 text-green-700 bg-green-50 font-medium">Con acceso</span>
+                      : <span className="text-xs px-2 py-0.5 rounded-md border border-gray-200 text-gray-400 bg-white">Sin acceso</span>
                     }
                   </td>
                   <td className="px-6 py-4 text-right space-x-2">

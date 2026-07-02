@@ -202,20 +202,20 @@ export function getNivelClasses(nivel: NivelTraza): string {
 
 export function getEstadoClasses(estado: string): string {
   const map: Record<string, string> = {
-    'Completado':  'bg-gray-100 text-gray-600',
-    'En progreso': 'bg-gray-100 text-gray-700',
-    'Pendiente':   'bg-gray-50 text-gray-500',
+    'Completado':  'border border-green-200 text-green-700 bg-green-50',
+    'En progreso': 'border border-blue-200 text-blue-700 bg-blue-50',
+    'Pendiente':   'border border-gray-200 text-gray-500 bg-white',
   }
-  return map[estado] ?? 'bg-gray-100 text-gray-600'
+  return map[estado] ?? 'border border-gray-200 text-gray-500 bg-white'
 }
 
 export function getPrioridadClasses(prioridad: string): string {
   const map: Record<string, string> = {
-    'Alta':  'bg-gray-900 text-white',
-    'Media': 'bg-gray-200 text-gray-700',
-    'Baja':  'bg-gray-100 text-gray-500',
+    'Alta':  'border border-gray-700 text-gray-800 bg-white',
+    'Media': 'border border-amber-300 text-amber-700 bg-amber-50',
+    'Baja':  'border border-gray-200 text-gray-400 bg-white',
   }
-  return map[prioridad] ?? 'bg-gray-100 text-gray-600'
+  return map[prioridad] ?? 'border border-gray-200 text-gray-400 bg-white'
 }
 
 export function getValidacionClasses(validacion: string | null): string {
@@ -255,8 +255,18 @@ export function detectarDiscrepancia(
   return null
 }
 
-export function getValidacionStyle(validacion: string | null): { backgroundColor: string; color: string } {
-  return { backgroundColor: '#f3f4f6', color: '#6b7280' }
+export function getValidacionStyle(validacion: string | null): { backgroundColor: string; color: string; border: string } {
+  const map: Record<string, { backgroundColor: string; color: string; border: string }> = {
+    'De acuerdo':              { backgroundColor: '#f0fdf4', color: '#15803d', border: '0.5px solid #86efac' },
+    'Parcialmente de acuerdo': { backgroundColor: '#fffbeb', color: '#b45309', border: '0.5px solid #fcd34d' },
+    'En desacuerdo':           { backgroundColor: '#fef2f2', color: '#b91c1c', border: '0.5px solid #fca5a5' },
+    'Cumplido':                { backgroundColor: '#f0fdf4', color: '#15803d', border: '0.5px solid #86efac' },
+    'Parcialmente cumplido':   { backgroundColor: '#fffbeb', color: '#b45309', border: '0.5px solid #fcd34d' },
+    'No cumplido':             { backgroundColor: '#fef2f2', color: '#b91c1c', border: '0.5px solid #fca5a5' },
+    'Aprobado':                { backgroundColor: '#f0fdf4', color: '#15803d', border: '0.5px solid #86efac' },
+    'Rechazado':               { backgroundColor: '#fef2f2', color: '#b91c1c', border: '0.5px solid #fca5a5' },
+  }
+  return map[validacion ?? ''] ?? { backgroundColor: '#f9fafb', color: '#6b7280', border: '0.5px solid #e5e7eb' }
 }
 
 

@@ -229,7 +229,7 @@ export default async function DashboardPage() {
                       >
                         {a.objetivo?.titulo}
                       </Link>
-                      <span className={`flex-shrink-0 text-xs px-2 py-0.5 rounded-full font-medium ${getEstadoClasses(a.objetivo?.estado)}`}>
+                      <span className={`flex-shrink-0 text-xs px-2 py-0.5 rounded-md font-medium ${getEstadoClasses(a.objetivo?.estado)}`}>
                         {a.objetivo?.estado}
                       </span>
                     </div>
@@ -340,7 +340,7 @@ export default async function DashboardPage() {
                         </p>
                       </div>
                     </div>
-                    <span className={`ml-3 flex-shrink-0 text-xs px-2.5 py-1 rounded-full font-medium ${getEstadoClasses(obj.estado)}`}>
+                    <span className={`ml-3 flex-shrink-0 text-xs px-2.5 py-1 rounded-md font-medium ${getEstadoClasses(obj.estado)}`}>
                       {obj.estado}
                     </span>
                   </div>

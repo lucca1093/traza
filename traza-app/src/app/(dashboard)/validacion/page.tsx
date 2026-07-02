@@ -231,7 +231,7 @@ export default function ValidacionPage() {
             >
               Por validar
               {pendientes.length > 0 && (
-                <span className="ml-1.5 bg-amber-100 text-amber-700 text-xs font-semibold px-1.5 py-0.5 rounded-full">
+                <span className="ml-1.5 border border-amber-300 text-amber-700 bg-amber-50 text-xs font-semibold px-1.5 py-0.5 rounded-md">
                   {pendientes.length}
                 </span>
               )}
@@ -242,7 +242,7 @@ export default function ValidacionPage() {
             >
               Validados
               {validados.length > 0 && (
-                <span className="ml-1.5 bg-gray-100 text-gray-500 text-xs font-semibold px-1.5 py-0.5 rounded-full">
+                <span className="ml-1.5 border border-gray-200 text-gray-400 bg-white text-xs font-semibold px-1.5 py-0.5 rounded-md">
                   {validados.length}
                 </span>
               )}
@@ -298,16 +298,16 @@ export default function ValidacionPage() {
                               <p className="text-xs text-gray-400 mt-0.5">{formatFecha(obj.fecha_limite)}</p>
                             </div>
                             <div className="flex items-center gap-1.5 flex-shrink-0">
-                              <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${getEstadoClasses(obj.estado)}`}>
+                              <span className={`text-xs px-2 py-0.5 rounded-md font-medium ${getEstadoClasses(obj.estado)}`}>
                                 {obj.estado}
                               </span>
                               {obj.validacion && (
-                                <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={getValidacionStyle(obj.validacion)}>
+                                <span className="text-xs px-2 py-0.5 rounded-md font-medium" style={getValidacionStyle(obj.validacion)}>
                                   Sup: {obj.validacion}
                                 </span>
                               )}
                               {obj.validacion_admin && (
-                                <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={getValidacionStyle(obj.validacion_admin)}>
+                                <span className="text-xs px-2 py-0.5 rounded-md font-medium" style={getValidacionStyle(obj.validacion_admin)}>
                                   Admin: {obj.validacion_admin}
                                 </span>
                               )}
@@ -532,7 +532,7 @@ export default function ValidacionPage() {
                   {objSeleccionado.validacion && (
                     <div className="mb-4 bg-gray-50 rounded-xl p-3 space-y-1">
                       <p className="text-xs text-gray-400 mb-1">Validación del supervisor</p>
-                      <span className="text-xs px-2.5 py-1 rounded-full font-medium inline-block"
+                      <span className="text-xs px-2.5 py-1 rounded-md font-medium inline-block"
                         style={getValidacionStyle(objSeleccionado.validacion)}>
                         {objSeleccionado.validacion}
                       </span>
@@ -545,7 +545,7 @@ export default function ValidacionPage() {
                   {objSeleccionado.validacion_admin && (
                     <div className="mb-3 bg-blue-50 border border-blue-100 rounded-xl p-3 space-y-1">
                       <p className="text-xs text-blue-600 font-medium mb-1">Tu validación actual</p>
-                      <span className="text-xs px-2.5 py-1 rounded-full font-medium inline-block"
+                      <span className="text-xs px-2.5 py-1 rounded-md font-medium inline-block"
                         style={getValidacionStyle(objSeleccionado.validacion_admin)}>
                         {objSeleccionado.validacion_admin}
                       </span>
@@ -592,7 +592,7 @@ export default function ValidacionPage() {
                     <div className="space-y-3">
                       <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Validación del supervisor</p>
                       <div className="bg-gray-50 rounded-xl p-4 space-y-2">
-                        <span className="text-sm font-semibold text-gray-900 inline-block px-3 py-1 rounded-full" style={getValidacionStyle(objSeleccionado.validacion)}>
+                        <span className="text-sm font-semibold text-gray-900 inline-block px-3 py-1 rounded-md" style={getValidacionStyle(objSeleccionado.validacion)}>
                           {objSeleccionado.validacion}
                         </span>
                         {objSeleccionado.comentario_supervisor && (
