@@ -21,8 +21,13 @@ export default function ObjetivosPage() {
   const [busqueda, setBusqueda]   = useState('')
   const [tabObj, setTabObj]       = useState<'activos' | 'completados'>('activos')
 
-  const [modoGrupal, setModoGrupal]       = useState(false)
+  type ModoObjetivo = 'individual' | 'equipo' | 'area' | 'externo'
+  const [modo, setModo]                   = useState<ModoObjetivo>('individual')
   const [personasGrupo, setPersonasGrupo] = useState<string[]>([])
+  const [buscarPersona, setBuscarPersona] = useState('')
+  const [areaSeleccionada, setAreaSeleccionada] = useState('')
+  const [externos, setExternos]           = useState<{ nombre: string; empresa: string; email: string }[]>([])
+  const [nuevoExterno, setNuevoExterno]   = useState({ nombre: '', empresa: '', email: '' })
 
   const [form, setForm] = useState({
     persona_id: '',
@@ -106,40 +111,18 @@ export default function ObjetivosPage() {
     setForm({ persona_id: personas[0]?.id ?? '', titulo: '', descripcion: '', prioridad: 'Media', categoria: 'Resultado', es_continuo: false, fecha_limite: '', estado: 'Pendiente', tipo: 'Asignado', evidencia_url: '' })
     setEditId(null)
     setPersonasGrupo([])
+    setBuscarPersona('')
+    setAreaSeleccionada('')
+    setExternos([])
+    setNuevoExterno({ nombre: '', empresa: '', email: '' })
   }
 
-  async function handleSubmitGrupal(e: React.FormEvent) {
-    e.preventDefault()
-    if (personasGrupo.length < 2) { alert('Seleccioná al menos 2 colaboradores para un objetivo grupal.'); return }
-    if (!form.titulo.trim()) { alert('El título es obligatorio.'); return }
-    setLoading(true)
-
-    const { data: { user } } = await supabase.auth.getUser()
-    const { data: prof } = await supabase.from('profiles').select('empresa_id').eq('id', user!.id).single()
-
-    // 1. Crear el grupo
-    const { data: grupo, error: grupoError } = await supabase.from('objetivo_grupos').insert({
-      empresa_id: prof!.empresa_id,
-      titulo:      form.titulo,
-      descripcion: form.descripcion || null,
-      prioridad:   form.prioridad,
-      categoria:   form.categoria,
-      es_continuo: form.es_continuo,
-      fecha_limite: form.es_continuo ? null : (form.fecha_limite || null),
-      creado_por:  user!.id,
-    }).select().single()
-
-    if (grupoError || !grupo) {
-      alert('Error al crear el grupo.')
-      setLoading(false)
-      return
-    }
-
-    // 2. Crear un objetivo por cada persona seleccionada
-    const objetivosInsert = personasGrupo.map(persona_id => ({
-      empresa_id:    prof!.empresa_id,
-      persona_id,
-      creado_por:    user!.id,
+  // Helper: payload base de un objetivo para bulk insert
+  function buildObjetivoPayload(empresaId: string, userId: string, personaId: string, grupoId: string) {
+    return {
+      empresa_id:    empresaId,
+      persona_id:    personaId,
+      creado_por:    userId,
       titulo:        form.titulo,
       descripcion:   form.descripcion || null,
       prioridad:     form.prioridad,
@@ -149,22 +132,106 @@ export default function ObjetivosPage() {
       estado:        form.estado,
       tipo:          'Asignado',
       evidencia_url: form.evidencia_url || null,
-      grupo_id:      grupo.id,
-    }))
+      grupo_id:      grupoId,
+    }
+  }
 
-    await supabase.from('objetivos').insert(objetivosInsert)
+  async function crearGrupo(empresaId: string, userId: string, tipoGrupo: string, areaNombre?: string) {
+    return supabase.from('objetivo_grupos').insert({
+      empresa_id:  empresaId,
+      titulo:      form.titulo,
+      descripcion: form.descripcion || null,
+      prioridad:   form.prioridad,
+      categoria:   form.categoria,
+      es_continuo: form.es_continuo,
+      fecha_limite: form.es_continuo ? null : (form.fecha_limite || null),
+      creado_por:  userId,
+      tipo:        tipoGrupo,
+      area_nombre: areaNombre ?? null,
+    }).select().single()
+  }
 
-    setSuccess(true)
-    setTimeout(() => setSuccess(false), 3000)
-    resetForm()
-    fetchData()
-    setLoading(false)
+  // Modo Equipo: personas internas con buscador
+  async function handleSubmitEquipo(e: React.FormEvent) {
+    e.preventDefault()
+    if (personasGrupo.length < 2) { alert('Seleccioná al menos 2 colaboradores.'); return }
+    if (!form.titulo.trim()) { alert('El título es obligatorio.'); return }
+    setLoading(true)
+    const { data: { user } } = await supabase.auth.getUser()
+    const { data: prof } = await supabase.from('profiles').select('empresa_id').eq('id', user!.id).single()
+    const { data: grupo, error } = await crearGrupo(prof!.empresa_id, user!.id, 'equipo')
+    if (error || !grupo) { alert('Error al crear el grupo.'); setLoading(false); return }
+    await supabase.from('objetivos').insert(personasGrupo.map(pid => buildObjetivoPayload(prof!.empresa_id, user!.id, pid, grupo.id)))
+    setSuccess(true); setTimeout(() => setSuccess(false), 3000)
+    resetForm(); fetchData(); setLoading(false)
+  }
+
+  // Modo Área: auto-asigna a todos los de un área
+  async function handleSubmitArea(e: React.FormEvent) {
+    e.preventDefault()
+    if (!areaSeleccionada) { alert('Seleccioná un área.'); return }
+    if (!form.titulo.trim()) { alert('El título es obligatorio.'); return }
+    const personasDelArea = personas.filter(p => p.area === areaSeleccionada)
+    if (personasDelArea.length === 0) { alert('No hay colaboradores activos en esa área.'); return }
+    setLoading(true)
+    const { data: { user } } = await supabase.auth.getUser()
+    const { data: prof } = await supabase.from('profiles').select('empresa_id').eq('id', user!.id).single()
+    const { data: grupo, error } = await crearGrupo(prof!.empresa_id, user!.id, 'area', areaSeleccionada)
+    if (error || !grupo) { alert('Error al crear el grupo.'); setLoading(false); return }
+    await supabase.from('objetivos').insert(personasDelArea.map(p => buildObjetivoPayload(prof!.empresa_id, user!.id, p.id, grupo.id)))
+    setSuccess(true); setTimeout(() => setSuccess(false), 3000)
+    resetForm(); fetchData(); setLoading(false)
+  }
+
+  // Modo Externo: internos + colaboradores de otra empresa con link
+  async function handleSubmitExterno(e: React.FormEvent) {
+    e.preventDefault()
+    if (!form.titulo.trim()) { alert('El título es obligatorio.'); return }
+    if (personasGrupo.length === 0 && externos.length === 0) { alert('Agregá al menos un participante interno o externo.'); return }
+    if (externos.length === 0) { alert('Agregá al menos un colaborador externo. Si el objetivo es solo interno, usá el modo Equipo.'); return }
+    setLoading(true)
+    const { data: { user } } = await supabase.auth.getUser()
+    const { data: prof } = await supabase.from('profiles').select('empresa_id').eq('id', user!.id).single()
+    const { data: grupo, error } = await crearGrupo(prof!.empresa_id, user!.id, 'externo')
+    if (error || !grupo) { alert('Error al crear el objetivo.'); setLoading(false); return }
+    if (personasGrupo.length > 0) {
+      await supabase.from('objetivos').insert(personasGrupo.map(pid => buildObjetivoPayload(prof!.empresa_id, user!.id, pid, grupo.id)))
+    }
+    if (externos.length > 0) {
+      await supabase.from('objetivo_externos').insert(externos.map(ex => ({
+        grupo_id:      grupo.id,
+        empresa_id:    prof!.empresa_id,
+        nombre:        ex.nombre,
+        empresa_nombre: ex.empresa || null,
+        email:         ex.email || null,
+      })))
+    }
+    // Obtener tokens generados y mostrar links
+    const { data: exts } = await supabase.from('objetivo_externos').select('nombre, token').eq('grupo_id', grupo.id)
+    if (exts && exts.length > 0) {
+      const base = window.location.origin
+      const linksMsg = exts.map((e: any) => `${e.nombre}:\n${base}/colaborar/${e.token}`).join('\n\n')
+      alert(`✓ Objetivo creado.\n\nLinks para colaboradores externos (copiá y enviáselos):\n\n${linksMsg}`)
+    }
+    setSuccess(true); setTimeout(() => setSuccess(false), 3000)
+    resetForm(); fetchData(); setLoading(false)
   }
 
   function togglePersonaGrupo(id: string) {
-    setPersonasGrupo(prev =>
-      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
-    )
+    setPersonasGrupo(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id])
+  }
+
+  function agregarExterno() {
+    if (!nuevoExterno.nombre.trim()) return
+    setExternos(prev => [...prev, { ...nuevoExterno }])
+    setNuevoExterno({ nombre: '', empresa: '', email: '' })
+  }
+
+  function getSubmitHandler() {
+    if (modo === 'equipo')   return handleSubmitEquipo
+    if (modo === 'area')     return handleSubmitArea
+    if (modo === 'externo')  return handleSubmitExterno
+    return handleSubmit
   }
 
   function handleEdit(obj: any) {
@@ -200,6 +267,14 @@ export default function ObjetivosPage() {
 
   const f = (k: string, v: string | boolean) => setForm(prev => ({ ...prev, [k]: v }))
 
+  // Áreas únicas extraídas de personas
+  const areas = [...new Set(personas.map(p => (p as any).area).filter(Boolean))].sort() as string[]
+
+  // Personas filtradas para el buscador del multi-select
+  const personasParaGrupo = buscarPersona.trim()
+    ? personas.filter(p => `${p.nombre} ${p.apellido}`.toLowerCase().includes(buscarPersona.toLowerCase()))
+    : personas
+
   // Filtrar y agrupar objetivos por persona
   const objFiltradosPorTab = objetivos.filter(o =>
     tabObj === 'activos' ? o.estado !== 'Completado' : o.estado === 'Completado'
@@ -231,57 +306,170 @@ export default function ObjetivosPage() {
 
       {/* Formulario */}
       <div className="traza-card p-6">
-        <div className="flex items-center justify-between mb-5">
+        <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
           <h2 className="font-semibold text-gray-900">{editId ? 'Editar objetivo' : 'Nuevo objetivo'}</h2>
           {!editId && (
-            <div className="flex gap-1 bg-gray-100 p-1 rounded-xl">
-              <button
-                type="button"
-                onClick={() => { setModoGrupal(false); setPersonasGrupo([]) }}
-                className={`px-3 py-1 rounded-lg text-sm font-medium transition-all ${!modoGrupal ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
-              >
-                Individual
-              </button>
-              <button
-                type="button"
-                onClick={() => setModoGrupal(true)}
-                className={`px-3 py-1 rounded-lg text-sm font-medium transition-all ${modoGrupal ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
-              >
-                Grupal
-              </button>
+            <div className="flex gap-1 bg-gray-100 p-1 rounded-xl text-sm">
+              {(['individual', 'equipo', 'area', 'externo'] as const).map(m => {
+                const labels = { individual: 'Individual', equipo: 'Equipo', area: 'Por área', externo: 'Con externos' }
+                return (
+                  <button
+                    key={m}
+                    type="button"
+                    onClick={() => { setModo(m); setPersonasGrupo([]); setBuscarPersona(''); setAreaSeleccionada(''); setExternos([]) }}
+                    className={`px-3 py-1 rounded-lg font-medium transition-all ${modo === m ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                  >
+                    {labels[m]}
+                  </button>
+                )
+              })}
             </div>
           )}
         </div>
-        <form onSubmit={modoGrupal ? handleSubmitGrupal : handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {!modoGrupal ? (
+        <form onSubmit={getSubmitHandler()} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+          {/* ─── Selector de persona según modo ─── */}
+          {modo === 'individual' && (
             <div>
               <label className="traza-label">Colaborador</label>
               <select className="traza-input" value={form.persona_id} onChange={e => f('persona_id', e.target.value)}>
                 {personas.map(p => <option key={p.id} value={p.id}>{p.nombre} {p.apellido}</option>)}
               </select>
             </div>
-          ) : (
+          )}
+
+          {(modo === 'equipo' || modo === 'externo') && (
             <div className="md:col-span-2">
-              <label className="traza-label">Colaboradores del grupo <span className="text-gray-400 font-normal">(seleccioná 2 o más)</span></label>
-              <div className="mt-1 grid grid-cols-2 sm:grid-cols-3 gap-2 p-3 border border-gray-200 rounded-xl bg-gray-50 max-h-40 overflow-y-auto">
-                {personas.map(p => {
+              <label className="traza-label">
+                {modo === 'equipo' ? 'Colaboradores del equipo' : 'Colaboradores internos'}
+                <span className="text-gray-400 font-normal ml-1">
+                  {modo === 'equipo' ? '(mínimo 2)' : '(opcional)'}
+                </span>
+              </label>
+              {/* Buscador */}
+              <div className="relative mt-1 mb-2">
+                <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <input
+                  type="text"
+                  value={buscarPersona}
+                  onChange={e => setBuscarPersona(e.target.value)}
+                  placeholder="Buscar por nombre..."
+                  className="w-full pl-8 pr-4 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-traza-300"
+                />
+              </div>
+              {/* Lista filtrada */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 p-2 border border-gray-200 rounded-xl bg-gray-50 max-h-44 overflow-y-auto">
+                {personasParaGrupo.length === 0 ? (
+                  <p className="col-span-3 text-xs text-gray-400 text-center py-2">Sin resultados</p>
+                ) : personasParaGrupo.map(p => {
                   const sel = personasGrupo.includes(p.id)
                   return (
-                    <label key={p.id} className={`flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer border transition-all text-sm ${sel ? 'bg-white border-traza-400 text-traza-800 font-medium' : 'border-transparent text-gray-600 hover:bg-white hover:border-gray-200'}`}>
-                      <input
-                        type="checkbox"
-                        checked={sel}
-                        onChange={() => togglePersonaGrupo(p.id)}
-                        className="w-3.5 h-3.5 accent-traza-700 flex-shrink-0"
-                      />
-                      {p.nombre} {p.apellido}
+                    <label key={p.id} className={`flex items-center gap-2 px-2.5 py-2 rounded-lg cursor-pointer border transition-all text-sm ${sel ? 'bg-white border-traza-400 text-traza-800 font-medium' : 'border-transparent text-gray-600 hover:bg-white hover:border-gray-200'}`}>
+                      <input type="checkbox" checked={sel} onChange={() => togglePersonaGrupo(p.id)} className="w-3.5 h-3.5 accent-traza-700 flex-shrink-0" />
+                      <span className="truncate">{p.nombre} {p.apellido}</span>
                     </label>
                   )
                 })}
               </div>
               {personasGrupo.length > 0 && (
-                <p className="text-xs text-traza-700 mt-1.5">{personasGrupo.length} seleccionado{personasGrupo.length !== 1 ? 's' : ''}</p>
+                <p className="text-xs text-traza-700 mt-1.5 font-medium">{personasGrupo.length} seleccionado{personasGrupo.length !== 1 ? 's' : ''}</p>
               )}
+            </div>
+          )}
+
+          {modo === 'area' && (
+            <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="traza-label">Área</label>
+                {areas.length === 0 ? (
+                  <p className="text-xs text-gray-400 mt-1">No hay áreas registradas en los colaboradores.</p>
+                ) : (
+                  <select className="traza-input" value={areaSeleccionada} onChange={e => setAreaSeleccionada(e.target.value)}>
+                    <option value="">Seleccioná un área...</option>
+                    {areas.map(a => <option key={a} value={a}>{a}</option>)}
+                  </select>
+                )}
+              </div>
+              {areaSeleccionada && (
+                <div>
+                  <label className="traza-label">Colaboradores del área</label>
+                  <div className="mt-1 flex flex-wrap gap-1.5">
+                    {personas.filter(p => (p as any).area === areaSeleccionada).map(p => (
+                      <span key={p.id} className="text-xs px-2 py-1 bg-traza-50 text-traza-700 rounded-full border border-traza-100">
+                        {p.nombre} {p.apellido}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {modo === 'externo' && (
+            <div className="md:col-span-2">
+              <label className="traza-label">Colaboradores externos</label>
+              <p className="text-xs text-gray-400 mb-2">Completá los datos y se generará un link único por persona.</p>
+              {/* Lista de externos ya agregados */}
+              {externos.length > 0 && (
+                <div className="mb-2 space-y-1.5">
+                  {externos.map((ex, i) => (
+                    <div key={i} className="flex items-center gap-2 px-3 py-2 bg-violet-50 border border-violet-100 rounded-lg text-sm">
+                      <div className="flex-1 min-w-0">
+                        <span className="font-medium text-violet-800">{ex.nombre}</span>
+                        {ex.empresa && <span className="text-violet-500 ml-1.5">· {ex.empresa}</span>}
+                        {ex.email && <span className="text-violet-400 ml-1.5 text-xs">{ex.email}</span>}
+                      </div>
+                      <button type="button" onClick={() => setExternos(prev => prev.filter((_, j) => j !== i))} className="text-violet-300 hover:text-violet-500">
+                        <X size={14} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {/* Formulario para agregar externo */}
+              <div className="flex flex-wrap gap-2 items-end p-3 border border-dashed border-gray-300 rounded-xl bg-gray-50">
+                <div className="flex-1 min-w-[140px]">
+                  <label className="text-xs text-gray-500 mb-0.5 block">Nombre *</label>
+                  <input
+                    type="text"
+                    value={nuevoExterno.nombre}
+                    onChange={e => setNuevoExterno(p => ({ ...p, nombre: e.target.value }))}
+                    placeholder="Ej: Juan García"
+                    className="traza-input text-sm py-1.5"
+                    onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); agregarExterno() }}}
+                  />
+                </div>
+                <div className="flex-1 min-w-[140px]">
+                  <label className="text-xs text-gray-500 mb-0.5 block">Empresa</label>
+                  <input
+                    type="text"
+                    value={nuevoExterno.empresa}
+                    onChange={e => setNuevoExterno(p => ({ ...p, empresa: e.target.value }))}
+                    placeholder="Ej: Acme Corp"
+                    className="traza-input text-sm py-1.5"
+                    onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); agregarExterno() }}}
+                  />
+                </div>
+                <div className="flex-1 min-w-[160px]">
+                  <label className="text-xs text-gray-500 mb-0.5 block">Email (opcional)</label>
+                  <input
+                    type="email"
+                    value={nuevoExterno.email}
+                    onChange={e => setNuevoExterno(p => ({ ...p, email: e.target.value }))}
+                    placeholder="juan@acme.com"
+                    className="traza-input text-sm py-1.5"
+                    onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); agregarExterno() }}}
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={agregarExterno}
+                  disabled={!nuevoExterno.nombre.trim()}
+                  className="px-3 py-1.5 text-sm rounded-lg font-medium bg-violet-600 text-white disabled:opacity-40 hover:bg-violet-700 transition-colors"
+                >
+                  + Agregar
+                </button>
+              </div>
             </div>
           )}
 
