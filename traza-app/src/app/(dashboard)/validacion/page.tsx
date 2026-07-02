@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import Button from '@/components/ui/Button'
 import { getEstadoClasses, getValidacionStyle, getCategoriaStyle, detectarDiscrepancia, formatFecha } from '@/lib/traza'
-import { MessageSquare, Link2, Paperclip, ChevronDown, ChevronRight, AlertTriangle, Check, CheckCheck, Reply, Pencil } from 'lucide-react'
+import { MessageSquare, Link2, Paperclip, ChevronDown, ChevronRight, AlertTriangle } from 'lucide-react'
 
 export default function ValidacionPage() {
   const [objetivos, setObjetivos]   = useState<any[]>([])
@@ -165,31 +165,25 @@ export default function ValidacionPage() {
     setSaving(false)
   }
 
-  async function handleAprobarAvance(avanceId: string) {
+  async function handleCambiarEstado(avanceId: string, nuevoEstado: string) {
     setSavingRespuesta(avanceId)
-    await supabase
-      .from('objetivo_avances')
-      .update({ estado_revision: 'aprobado' })
+    await supabase.from('objetivo_avances')
+      .update({ estado_revision: nuevoEstado })
       .eq('id', avanceId)
     setAvances(prev => prev.map(a =>
-      a.id === avanceId ? { ...a, estado_revision: 'aprobado' } : a
+      a.id === avanceId ? { ...a, estado_revision: nuevoEstado } : a
     ))
     setSavingRespuesta(null)
   }
 
-  async function handleResponderAvance(avanceId: string) {
-    const texto = respuestas[avanceId]?.trim()
-    if (!texto) {
-      alert('Escribí un comentario antes de aprobar el avance.')
-      return
-    }
+  async function handleGuardarComentario(avanceId: string) {
+    const texto = respuestas[avanceId]?.trim() ?? ''
     setSavingRespuesta(avanceId)
-    await supabase
-      .from('objetivo_avances')
-      .update({ respuesta_supervisor: texto, estado_revision: 'aprobado' })
+    await supabase.from('objetivo_avances')
+      .update({ respuesta_supervisor: texto || null })
       .eq('id', avanceId)
     setAvances(prev => prev.map(a =>
-      a.id === avanceId ? { ...a, respuesta_supervisor: texto, estado_revision: 'aprobado' } : a
+      a.id === avanceId ? { ...a, respuesta_supervisor: texto || null } : a
     ))
     setReplyOpen(prev => ({ ...prev, [avanceId]: false }))
     setSavingRespuesta(null)
@@ -398,31 +392,35 @@ export default function ValidacionPage() {
                 )
               })()}
 
-              {/* Avances del empleado */}
+              {/* Avances del colaborador */}
               <div className="mb-5 pb-5 border-b border-gray-100">
-                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">
-                    Avances del colaborador
-                    {avances.length > 0 && <span className="ml-2 font-normal text-gray-300 normal-case">({avances.length})</span>}
-                  </p>
-              {avances.length === 0 ? (
-                <p className="text-xs text-gray-400 italic">Sin avances registrados en este objetivo.</p>
-              ) : (
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">
+                  Avances del colaborador
+                  {avances.length > 0 && <span className="ml-2 font-normal text-gray-300 normal-case">({avances.length})</span>}
+                </p>
+
+                {avances.length === 0 ? (
+                  <p className="text-xs text-gray-400 italic">Sin avances registrados en este objetivo.</p>
+                ) : (
                   <div className="space-y-2">
                     {avances.map(a => {
                       const rev = a.estado_revision ?? 'sin_revisar'
-                      const aprobado = rev === 'aprobado'
                       const isReplying = replyOpen[a.id] ?? false
+                      const esAdmin = profile && ['admin', 'super_admin'].includes(profile.rol)
+
+                      const estadoConfig: Record<string, { bg: string; border: string; label: string; color: string }> = {
+                        sin_revisar: { bg: '#f9fafb', border: '#e5e7eb', label: 'Sin revisar', color: '#9ca3af' },
+                        visto:       { bg: '#eff6ff', border: '#bfdbfe', label: 'Visto',       color: '#2563eb' },
+                        aprobado:    { bg: '#f0fdf4', border: '#bbf7d0', label: 'Aprobado',    color: '#16a34a' },
+                        a_revisar:   { bg: '#fff1f2', border: '#fecaca', label: 'A revisar',   color: '#dc2626' },
+                      }
+                      const ec = estadoConfig[rev] ?? estadoConfig.sin_revisar
 
                       return (
-                        <div
-                          key={a.id}
-                          className="rounded-xl border transition-all"
-                          style={{
-                            backgroundColor: aprobado ? '#f0fdf4' : '#f9fafb',
-                            borderColor: aprobado ? '#bbf7d0' : '#f3f4f6',
-                          }}
-                        >
-                          {/* Cabecera del avance */}
+                        <div key={a.id} className="rounded-xl border overflow-hidden transition-all"
+                          style={{ backgroundColor: ec.bg, borderColor: ec.border }}>
+
+                          {/* Contenido del avance */}
                           <div className="flex gap-2.5 px-3 pt-3 pb-2">
                             <div className="flex-shrink-0 mt-0.5">
                               {a.tipo === 'comentario' && <MessageSquare size={13} className="text-gray-400" />}
@@ -438,104 +436,88 @@ export default function ValidacionPage() {
                               )}
                               <p className="text-xs text-gray-400 mt-1">{formatDT(a.creado_en)}</p>
                             </div>
-
-                            {/* Acciones del supervisor — admin ve en modo lectura */}
-                            <div className="flex items-start gap-1.5 flex-shrink-0 mt-0.5">
-                              {profile && ['admin', 'super_admin'].includes(profile.rol) ? (
-                                aprobado ? (
-                                  <span className="flex items-center gap-1 text-xs text-green-600 font-medium">
-                                    <CheckCheck size={13} />
-                                    Aprobado
-                                  </span>
-                                ) : (
-                                  <span className="flex items-center gap-1 text-xs text-gray-400">
-                                    <Check size={13} />
-                                    Sin aprobar
-                                  </span>
-                                )
-                              ) : aprobado ? (
-                                <div className="flex items-center gap-1">
-                                  <span className="flex items-center gap-1 text-xs text-green-600 font-medium">
-                                    <CheckCheck size={13} />
-                                    Aprobado
-                                  </span>
-                                  {profile && !['admin', 'super_admin'].includes(profile.rol) && (
-                                    <button
-                                      onClick={() => {
-                                        setRespuestas(prev => ({ ...prev, [a.id]: a.respuesta_supervisor ?? '' }))
-                                        setReplyOpen(prev => ({ ...prev, [a.id]: true }))
-                                      }}
-                                      title="Editar respuesta"
-                                      className="w-6 h-6 rounded-md flex items-center justify-center transition-colors"
-                                      style={{ color: '#9ca3af' }}
-                                      onMouseEnter={e => (e.currentTarget.style.color = '#4b5563')}
-                                      onMouseLeave={e => (e.currentTarget.style.color = '#9ca3af')}
-                                    >
-                                      <Pencil size={11} strokeWidth={2} />
-                                    </button>
-                                  )}
-                                </div>
-                              ) : (
-                                <>
-                                  {/* Botón aprobar — abre campo de comentario obligatorio */}
-                                  <button
-                                    onClick={() => setReplyOpen(prev => ({ ...prev, [a.id]: true }))}
-                                    disabled={savingRespuesta === a.id}
-                                    title="Aprobar con comentario"
-                                    className="w-7 h-7 rounded-lg flex items-center justify-center transition-colors disabled:opacity-40"
-                                    style={{ backgroundColor: '#dcfce7', color: '#16a34a' }}
-                                    onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#bbf7d0')}
-                                    onMouseLeave={e => (e.currentTarget.style.backgroundColor = '#dcfce7')}
-                                  >
-                                    <Check size={13} strokeWidth={2.5} />
-                                  </button>
-                                </>
-                              )}
-                            </div>
                           </div>
 
-                          {/* Respuesta existente del supervisor */}
+                          {/* Comentario del supervisor (si existe) */}
                           {a.respuesta_supervisor && (
-                            <div className="mx-3 mb-2 bg-blue-50 border border-blue-100 rounded-lg px-3 py-2">
-                              <p className="text-xs font-medium text-blue-600 mb-0.5">Respuesta del supervisor</p>
-                              <p className="text-xs text-blue-800">{a.respuesta_supervisor}</p>
+                            <div className="mx-3 mb-2 bg-white/70 border border-white rounded-lg px-3 py-2">
+                              <p className="text-xs font-medium mb-0.5" style={{ color: ec.color }}>Tu comentario</p>
+                              <p className="text-xs text-gray-700">{a.respuesta_supervisor}</p>
                             </div>
                           )}
 
-                          {/* Input respuesta / edición — solo supervisor */}
-                          {isReplying && profile && !['admin', 'super_admin'].includes(profile.rol) && (
+                          {/* Input de comentario (supervisor) */}
+                          {isReplying && !esAdmin && (
                             <div className="px-3 pb-3 space-y-2">
-                              <textarea
-                                rows={2}
-                                autoFocus
-                                className="w-full text-xs rounded-lg border border-blue-200 px-2.5 py-2 resize-none focus:outline-none focus:border-blue-400 bg-white placeholder-gray-300"
-                                placeholder="Escribí tu respuesta..."
+                              <textarea rows={2} autoFocus
+                                className="w-full text-xs rounded-lg border border-gray-200 px-2.5 py-2 resize-none focus:outline-none focus:border-gray-400 bg-white placeholder-gray-300"
+                                placeholder="Escribí tu comentario sobre este avance..."
                                 value={respuestas[a.id] ?? ''}
                                 onChange={e => setRespuestas(prev => ({ ...prev, [a.id]: e.target.value }))}
                               />
                               <div className="flex gap-2">
                                 <button
-                                  onClick={() => handleResponderAvance(a.id)}
-                                  disabled={!respuestas[a.id]?.trim() || savingRespuesta === a.id}
-                                  className="text-xs font-medium text-white px-3 py-1.5 rounded-lg transition-colors disabled:opacity-40"
-                                  style={{ backgroundColor: '#0F4C81' }}
-                                >
-                                  {savingRespuesta === a.id ? 'Guardando...' : aprobado ? 'Actualizar respuesta' : 'Enviar respuesta'}
+                                  onClick={() => handleGuardarComentario(a.id)}
+                                  disabled={savingRespuesta === a.id}
+                                  className="text-xs font-medium text-white px-3 py-1.5 rounded-lg disabled:opacity-40"
+                                  style={{ backgroundColor: '#0F4C81' }}>
+                                  {savingRespuesta === a.id ? 'Guardando...' : 'Guardar comentario'}
                                 </button>
                                 <button
                                   onClick={() => setReplyOpen(prev => ({ ...prev, [a.id]: false }))}
-                                  className="text-xs text-gray-400 hover:text-gray-600 px-2 py-1.5"
-                                >
+                                  className="text-xs text-gray-400 hover:text-gray-600 px-2 py-1.5">
                                   Cancelar
                                 </button>
                               </div>
+                            </div>
+                          )}
+
+                          {/* Barra de acciones — supervisor */}
+                          {!esAdmin && (
+                            <div className="px-3 pb-2.5 flex items-center justify-between">
+                              {/* Botones de estado */}
+                              <div className="flex gap-1">
+                                {([
+                                  { key: 'aprobado',  label: 'Aprobado',  activeColor: '#16a34a', activeBg: '#dcfce7' },
+                                  { key: 'a_revisar', label: 'A revisar', activeColor: '#dc2626', activeBg: '#fee2e2' },
+                                  { key: 'visto',     label: 'Visto',     activeColor: '#2563eb', activeBg: '#dbeafe' },
+                                ] as const).map(({ key, label, activeColor, activeBg }) => (
+                                  <button key={key}
+                                    onClick={() => handleCambiarEstado(a.id, key)}
+                                    disabled={savingRespuesta === a.id}
+                                    className="text-xs px-2.5 py-1 rounded-lg font-medium transition-all disabled:opacity-40"
+                                    style={rev === key
+                                      ? { backgroundColor: activeBg, color: activeColor }
+                                      : { backgroundColor: 'rgba(0,0,0,0.04)', color: '#9ca3af' }}>
+                                    {label}
+                                  </button>
+                                ))}
+                              </div>
+
+                              {/* Botón comentar */}
+                              <button
+                                onClick={() => {
+                                  setRespuestas(prev => ({ ...prev, [a.id]: a.respuesta_supervisor ?? '' }))
+                                  setReplyOpen(prev => ({ ...prev, [a.id]: !prev[a.id] }))
+                                }}
+                                className="text-xs font-medium transition-colors"
+                                style={{ color: isReplying ? '#0F4C81' : '#9ca3af' }}>
+                                {a.respuesta_supervisor ? 'Editar comentario' : 'Comentar'}
+                              </button>
+                            </div>
+                          )}
+
+                          {/* Admin: solo lectura del estado */}
+                          {esAdmin && (
+                            <div className="px-3 pb-2.5">
+                              <span className="text-xs font-medium" style={{ color: ec.color }}>{ec.label}</span>
                             </div>
                           )}
                         </div>
                       )
                     })}
                   </div>
-              )}
+                )}
               </div>
 
               {/* Panel validación según rol */}

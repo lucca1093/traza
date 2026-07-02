@@ -672,6 +672,7 @@ function ObjetivoCard({ obj, saving, onUpdate, onUpdateAuto, onDelete, autoExpan
                     sin_revisar: { bg: '#f9fafb', border: '#f3f4f6', dot: '#d1d5db', label: 'Sin revisar' },
                     visto:       { bg: '#eff6ff', border: '#bfdbfe', dot: '#2563eb', label: 'Visto'       },
                     aprobado:    { bg: '#f0fdf4', border: '#bbf7d0', dot: '#16a34a', label: 'Aprobado'    },
+                    a_revisar:   { bg: '#fff1f2', border: '#fecaca', dot: '#dc2626', label: 'A revisar'   },
                   }
                   const rs = revStyle[rev] ?? revStyle.sin_revisar
                   return (
