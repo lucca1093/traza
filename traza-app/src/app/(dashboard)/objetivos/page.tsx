@@ -22,8 +22,6 @@ export default function ObjetivosPage() {
   const [tabObj, setTabObj]       = useState<'activos' | 'completados'>('activos')
 
   const [grupos, setGrupos]               = useState<any[]>([])
-  const [editingGrupo, setEditingGrupo]   = useState<any | null>(null)
-  const [savingGrupo, setSavingGrupo]     = useState(false)
 
   type ModoObjetivo = 'individual' | 'equipo' | 'area' | 'externo'
   const [modo, setModo]                   = useState<ModoObjetivo>('individual')
@@ -260,38 +258,6 @@ export default function ObjetivosPage() {
   async function handleDelete(id: string) {
     if (!confirm('¿Eliminar este objetivo?')) return
     await supabase.from('objetivos').delete().eq('id', id)
-    fetchData()
-  }
-
-  async function handleDeleteGrupo(grupoId: string) {
-    if (!confirm('¿Eliminar este objetivo grupal? Se eliminarán también los objetivos individuales y los links de colaboradores externos.')) return
-    // Eliminar objetivos individuales del grupo primero
-    await supabase.from('objetivos').delete().eq('grupo_id', grupoId)
-    // Luego el grupo (cascada elimina objetivo_externos)
-    await supabase.from('objetivo_grupos').delete().eq('id', grupoId)
-    fetchData()
-  }
-
-  async function handleSaveGrupo() {
-    if (!editingGrupo) return
-    setSavingGrupo(true)
-    await supabase.from('objetivo_grupos').update({
-      titulo:      editingGrupo.titulo,
-      descripcion: editingGrupo.descripcion || null,
-      prioridad:   editingGrupo.prioridad,
-      fecha_limite: editingGrupo.es_continuo ? null : (editingGrupo.fecha_limite || null),
-      es_continuo: editingGrupo.es_continuo,
-    }).eq('id', editingGrupo.id)
-    // Actualizar también los objetivos individuales del grupo
-    await supabase.from('objetivos').update({
-      titulo:      editingGrupo.titulo,
-      descripcion: editingGrupo.descripcion || null,
-      prioridad:   editingGrupo.prioridad,
-      fecha_limite: editingGrupo.es_continuo ? null : (editingGrupo.fecha_limite || null),
-      es_continuo: editingGrupo.es_continuo,
-    }).eq('grupo_id', editingGrupo.id)
-    setSavingGrupo(false)
-    setEditingGrupo(null)
     fetchData()
   }
 
@@ -749,126 +715,9 @@ export default function ObjetivosPage() {
             <h2 className="font-semibold text-gray-900 text-sm">Objetivos grupales y con externos</h2>
           </div>
           <div className="divide-y divide-gray-100">
-            {grupos.map((g: any) => {
-              const tipoLabel: Record<string, string> = { equipo: 'Equipo', area: 'Por área', externo: 'Con externos' }
-              const tipoColor: Record<string, string> = { equipo: '#f0f6ff', area: '#f0fdf4', externo: '#f5f3ff' }
-              const tipoText: Record<string, string>  = { equipo: '#2563eb', area: '#16a34a', externo: '#7c3aed' }
-              const tipo = g.tipo ?? 'equipo'
-              const miembrosUnicos = (g.miembros ?? []).filter((m: any, i: number, arr: any[]) =>
-                arr.findIndex((x: any) => x.persona?.nombre === m.persona?.nombre) === i
-              )
-              const base = typeof window !== 'undefined' ? window.location.origin : ''
-              const isEditing = editingGrupo?.id === g.id
-              return (
-                <div key={g.id} className="px-6 py-4">
-
-                  {/* Vista normal */}
-                  {!isEditing && (
-                    <div className="flex items-start justify-between gap-4 flex-wrap">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap mb-1">
-                          <p className="font-semibold text-gray-900 text-sm">{g.titulo}</p>
-                          <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ backgroundColor: tipoColor[tipo], color: tipoText[tipo] }}>
-                            {tipoLabel[tipo] ?? tipo}
-                          </span>
-                          {g.area_nombre && <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">{g.area_nombre}</span>}
-                        </div>
-                        {g.descripcion && <p className="text-xs text-gray-500 mb-2">{g.descripcion}</p>}
-
-                        {miembrosUnicos.length > 0 && (
-                          <div className="flex flex-wrap gap-1.5 mb-2">
-                            {miembrosUnicos.map((m: any, i: number) => m.persona && (
-                              <span key={i} className="text-xs px-2 py-0.5 bg-traza-50 text-traza-700 rounded-full border border-traza-100">
-                                {m.persona.nombre} {m.persona.apellido}
-                              </span>
-                            ))}
-                          </div>
-                        )}
-
-                        {(g.externos ?? []).length > 0 && (
-                          <div className="space-y-1.5 mt-2">
-                            {g.externos.map((ex: any) => (
-                              <div key={ex.id} className="flex items-center gap-2 flex-wrap">
-                                <span className={`w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0 ${ex.completado_en ? 'bg-green-100' : 'bg-gray-100'}`}>
-                                  {ex.completado_en
-                                    ? <span className="text-green-600 text-xs font-bold">✓</span>
-                                    : <span className="w-2 h-2 rounded-full bg-gray-300 block" />}
-                                </span>
-                                <span className="text-xs font-medium text-violet-700">{ex.nombre}</span>
-                                {ex.empresa_nombre && <span className="text-xs text-gray-400">· {ex.empresa_nombre}</span>}
-                                {ex.completado_en
-                                  ? <span className="text-xs text-green-500">Completó su parte</span>
-                                  : <span className="text-xs text-gray-400">En progreso</span>}
-                                <button type="button"
-                                  onClick={() => { const link = `${base}/colaborar/${ex.token}`; navigator.clipboard.writeText(link); alert(`Link copiado:\n${link}`) }}
-                                  className="text-xs px-2 py-0.5 rounded-full bg-violet-50 text-violet-600 border border-violet-100 hover:bg-violet-100 transition-colors ml-auto">
-                                  Copiar link
-                                </button>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="flex items-start gap-4 flex-shrink-0">
-                        <div className="text-right">
-                          <p className="text-xs text-gray-400">{g.es_continuo ? 'Continuo' : formatFecha(g.fecha_limite)}</p>
-                          <p className="text-xs text-gray-400 mt-0.5">{g.prioridad}</p>
-                        </div>
-                        <div className="flex gap-2">
-                          <button onClick={() => setEditingGrupo({ ...g, fecha_limite: g.fecha_limite ?? '' })}
-                            className="text-xs text-traza-700 hover:underline">Editar</button>
-                          <button onClick={() => handleDeleteGrupo(g.id)}
-                            className="text-xs text-red-500 hover:underline">Eliminar</button>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Formulario de edición inline */}
-                  {isEditing && (
-                    <div className="space-y-3">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <div className="md:col-span-2">
-                          <label className="traza-label">Título</label>
-                          <input className="traza-input" value={editingGrupo.titulo}
-                            onChange={e => setEditingGrupo((prev: any) => ({ ...prev, titulo: e.target.value }))} />
-                        </div>
-                        <div className="md:col-span-2">
-                          <label className="traza-label">Descripción</label>
-                          <textarea className="traza-input resize-none min-h-[60px]" value={editingGrupo.descripcion ?? ''}
-                            onChange={e => setEditingGrupo((prev: any) => ({ ...prev, descripcion: e.target.value }))} />
-                        </div>
-                        <div>
-                          <label className="traza-label">Prioridad</label>
-                          <select className="traza-input" value={editingGrupo.prioridad}
-                            onChange={e => setEditingGrupo((prev: any) => ({ ...prev, prioridad: e.target.value }))}>
-                            <option>Alta</option><option>Media</option><option>Baja</option>
-                          </select>
-                        </div>
-                        <div>
-                          <label className="traza-label">Fecha límite</label>
-                          <input type="date" className="traza-input disabled:opacity-40"
-                            value={editingGrupo.fecha_limite ?? ''}
-                            disabled={editingGrupo.es_continuo}
-                            onChange={e => setEditingGrupo((prev: any) => ({ ...prev, fecha_limite: e.target.value }))} />
-                          <label className="flex items-center gap-2 mt-1.5 cursor-pointer">
-                            <input type="checkbox" checked={editingGrupo.es_continuo}
-                              onChange={e => setEditingGrupo((prev: any) => ({ ...prev, es_continuo: e.target.checked, fecha_limite: '' }))}
-                              className="w-3.5 h-3.5 accent-traza-700" />
-                            <span className="text-xs text-gray-500">Sin fecha de vencimiento</span>
-                          </label>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-3 pt-1">
-                        <Button type="button" loading={savingGrupo} onClick={handleSaveGrupo}>Guardar</Button>
-                        <Button type="button" variant="ghost" onClick={() => setEditingGrupo(null)}>Cancelar</Button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )
-            })}
+            {grupos.map((g: any) => (
+              <GrupoRow key={g.id} grupo={g} onRefresh={fetchData} />
+            ))}
           </div>
         </div>
       )}
@@ -1059,6 +908,273 @@ function ObjetivoRow({ obj, autoExpand, onEdit, onDelete }: {
                     className="text-xs px-3 py-1.5 rounded-lg font-medium transition-colors disabled:opacity-40"
                     style={{ backgroundColor: '#0F4C81', color: 'white' }}
                   >
+                    {respondiendo === a.id ? '...' : 'Enviar'}
+                  </button>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// -------- Fila de grupo expandible con avances unificados --------
+const TIPO_LABEL: Record<string, string> = { equipo: 'Equipo', area: 'Por área', externo: 'Con externos' }
+const TIPO_COLOR: Record<string, string> = { equipo: '#f0f6ff', area: '#f0fdf4', externo: '#f5f3ff' }
+const TIPO_TEXT:  Record<string, string> = { equipo: '#2563eb', area: '#16a34a', externo: '#7c3aed' }
+
+function GrupoRow({ grupo: g, onRefresh }: { grupo: any; onRefresh: () => void }) {
+  const [open, setOpen]               = useState(false)
+  const [avances, setAvances]         = useState<any[]>([])
+  const [editing, setEditing]         = useState(false)
+  const [editData, setEditData]       = useState<any>(null)
+  const [saving, setSaving]           = useState(false)
+  const [cambiando, setCambiando]     = useState<string | null>(null)
+  const [textoResp, setTextoResp]     = useState<Record<string, string>>({})
+  const [respondiendo, setRespondiendo] = useState<string | null>(null)
+
+  const tipo = g.tipo ?? 'equipo'
+  const miembrosUnicos = (g.miembros ?? []).filter((m: any, i: number, arr: any[]) =>
+    arr.findIndex((x: any) => x.persona?.nombre === m.persona?.nombre) === i
+  )
+  const base = typeof window !== 'undefined' ? window.location.origin : ''
+
+  useEffect(() => { if (open) loadAvances() }, [open])
+
+  async function loadAvances() {
+    const ids = (g.miembros ?? []).map((m: any) => m.id).filter(Boolean)
+    const externosIds = (g.externos ?? []).map((ex: any) => ex.id).filter(Boolean)
+    let todos: any[] = []
+
+    if (ids.length > 0) {
+      const { data } = await supabase.from('objetivo_avances').select('*').in('objetivo_id', ids).order('creado_en', { ascending: true })
+      todos = data ?? []
+    }
+    if (externosIds.length > 0) {
+      const { data } = await supabase.from('objetivo_avances').select('*').in('externo_id', externosIds).order('creado_en', { ascending: true })
+      const existIds = new Set(todos.map(a => a.id))
+      const nuevos = (data ?? []).filter(a => !existIds.has(a.id))
+      todos = [...todos, ...nuevos]
+    }
+    todos.sort((a, b) => new Date(a.creado_en).getTime() - new Date(b.creado_en).getTime())
+    setAvances(todos)
+  }
+
+  function autorDe(a: any): { nombre: string; esExterno: boolean } {
+    if (a.externo_id) {
+      const ex = (g.externos ?? []).find((e: any) => e.id === a.externo_id)
+      return { nombre: ex?.nombre ?? a.nombre_externo ?? 'Externo', esExterno: true }
+    }
+    const miembro = (g.miembros ?? []).find((m: any) => m.id === a.objetivo_id)
+    const p = miembro?.persona
+    return { nombre: p ? `${p.nombre} ${p.apellido[0]}.` : 'Interno', esExterno: false }
+  }
+
+  async function cambiarEstado(avanceId: string, estado: string) {
+    setCambiando(avanceId)
+    await supabase.from('objetivo_avances').update({ estado_revision: estado }).eq('id', avanceId)
+    setCambiando(null)
+    loadAvances()
+  }
+
+  async function enviarRespuesta(avanceId: string) {
+    const texto = textoResp[avanceId]?.trim()
+    if (!texto) return
+    setRespondiendo(avanceId)
+    await supabase.from('objetivo_avances').update({ respuesta_supervisor: texto, respondido_en: new Date().toISOString() }).eq('id', avanceId)
+    setTextoResp(prev => ({ ...prev, [avanceId]: '' }))
+    setRespondiendo(null)
+    loadAvances()
+  }
+
+  async function handleDelete() {
+    if (!confirm('¿Eliminar este objetivo grupal? Se eliminarán los objetivos individuales y los links externos.')) return
+    await supabase.from('objetivos').delete().eq('grupo_id', g.id)
+    await supabase.from('objetivo_grupos').delete().eq('id', g.id)
+    onRefresh()
+  }
+
+  async function handleSave() {
+    if (!editData) return
+    setSaving(true)
+    const payload = {
+      titulo:      editData.titulo,
+      descripcion: editData.descripcion || null,
+      prioridad:   editData.prioridad,
+      fecha_limite: editData.es_continuo ? null : (editData.fecha_limite || null),
+      es_continuo: editData.es_continuo,
+    }
+    await supabase.from('objetivo_grupos').update(payload).eq('id', g.id)
+    await supabase.from('objetivos').update(payload).eq('grupo_id', g.id)
+    setSaving(false)
+    setEditing(false)
+    onRefresh()
+  }
+
+  function formatDT(dt: string) {
+    return new Date(dt).toLocaleString('es-AR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
+  }
+
+  return (
+    <div>
+      {/* Header clickeable */}
+      {!editing && (
+        <div
+          onClick={() => setOpen(o => !o)}
+          className="px-6 py-4 cursor-pointer hover:bg-gray-50 transition-colors"
+        >
+          <div className="flex items-start justify-between gap-4 flex-wrap">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 flex-wrap mb-1">
+                <p className="font-semibold text-gray-900 text-sm">{g.titulo}</p>
+                <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ backgroundColor: TIPO_COLOR[tipo], color: TIPO_TEXT[tipo] }}>
+                  {TIPO_LABEL[tipo] ?? tipo}
+                </span>
+                {g.area_nombre && <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">{g.area_nombre}</span>}
+              </div>
+              {g.descripcion && <p className="text-xs text-gray-500 mb-2">{g.descripcion}</p>}
+              {/* Chips de miembros */}
+              {miembrosUnicos.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 mb-1.5">
+                  {miembrosUnicos.map((m: any, i: number) => m.persona && (
+                    <span key={i} className="text-xs px-2 py-0.5 bg-traza-50 text-traza-700 rounded-full border border-traza-100">
+                      {m.persona.nombre} {m.persona.apellido}
+                    </span>
+                  ))}
+                </div>
+              )}
+              {/* Externos */}
+              {(g.externos ?? []).length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-1" onClick={e => e.stopPropagation()}>
+                  {g.externos.map((ex: any) => (
+                    <span key={ex.id} className={`flex items-center gap-1 text-xs px-2 py-0.5 rounded-full border ${ex.completado_en ? 'bg-green-50 border-green-100 text-green-700' : 'bg-violet-50 border-violet-100 text-violet-700'}`}>
+                      {ex.completado_en ? '✓' : '○'} {ex.nombre}
+                      <button
+                        onClick={() => { const l = `${base}/colaborar/${ex.token}`; navigator.clipboard.writeText(l); alert(`Link copiado:\n${l}`) }}
+                        className="ml-1 text-violet-400 hover:text-violet-600 underline text-[10px]"
+                      >
+                        link
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="flex items-center gap-4 flex-shrink-0">
+              <div className="text-right">
+                <p className="text-xs text-gray-400">{g.es_continuo ? 'Continuo' : formatFecha(g.fecha_limite)}</p>
+                <p className="text-xs text-gray-400 mt-0.5">{g.prioridad}</p>
+              </div>
+              <div className="flex gap-2" onClick={e => e.stopPropagation()}>
+                <button onClick={() => { setEditData({ ...g, fecha_limite: g.fecha_limite ?? '' }); setEditing(true) }}
+                  className="text-xs text-traza-700 hover:underline">Editar</button>
+                <button onClick={handleDelete} className="text-xs text-red-500 hover:underline">Eliminar</button>
+              </div>
+              <ChevronDown size={14} className={`text-gray-300 transition-transform ${open ? 'rotate-180' : ''}`} />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Form edición */}
+      {editing && editData && (
+        <div className="px-6 py-4 bg-gray-50 border-b border-gray-100">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="md:col-span-2">
+              <label className="traza-label">Título</label>
+              <input className="traza-input" value={editData.titulo} onChange={e => setEditData((p: any) => ({ ...p, titulo: e.target.value }))} />
+            </div>
+            <div className="md:col-span-2">
+              <label className="traza-label">Descripción</label>
+              <textarea className="traza-input resize-none min-h-[60px]" value={editData.descripcion ?? ''} onChange={e => setEditData((p: any) => ({ ...p, descripcion: e.target.value }))} />
+            </div>
+            <div>
+              <label className="traza-label">Prioridad</label>
+              <select className="traza-input" value={editData.prioridad} onChange={e => setEditData((p: any) => ({ ...p, prioridad: e.target.value }))}>
+                <option>Alta</option><option>Media</option><option>Baja</option>
+              </select>
+            </div>
+            <div>
+              <label className="traza-label">Fecha límite</label>
+              <input type="date" className="traza-input disabled:opacity-40" value={editData.fecha_limite ?? ''} disabled={editData.es_continuo} onChange={e => setEditData((p: any) => ({ ...p, fecha_limite: e.target.value }))} />
+              <label className="flex items-center gap-2 mt-1.5 cursor-pointer">
+                <input type="checkbox" checked={editData.es_continuo} onChange={e => setEditData((p: any) => ({ ...p, es_continuo: e.target.checked, fecha_limite: '' }))} className="w-3.5 h-3.5 accent-traza-700" />
+                <span className="text-xs text-gray-500">Sin fecha de vencimiento</span>
+              </label>
+            </div>
+          </div>
+          <div className="flex gap-3 mt-3">
+            <Button type="button" loading={saving} onClick={handleSave}>Guardar</Button>
+            <Button type="button" variant="ghost" onClick={() => setEditing(false)}>Cancelar</Button>
+          </div>
+        </div>
+      )}
+
+      {/* Panel de avances del grupo */}
+      {open && !editing && (
+        <div className="bg-gray-50 border-t border-gray-100 px-6 py-4 space-y-3">
+          {avances.length === 0 ? (
+            <p className="text-xs text-gray-400 italic">Todavía no hay avances en este objetivo.</p>
+          ) : avances.map(a => {
+            const { nombre: autorNombre, esExterno } = autorDe(a)
+            const rev = a.estado_revision ?? 'sin_revisar'
+            const style = REVISION_STYLES[rev] ?? REVISION_STYLES.sin_revisar
+            return (
+              <div key={a.id} className="rounded-xl border transition-colors" style={{ backgroundColor: style.bg, borderColor: style.border }}>
+                <div className="flex gap-2.5 px-3 pt-3 pb-2">
+                  <div className="flex-shrink-0 mt-0.5">
+                    {a.tipo === 'comentario' && <MessageSquare size={13} className="text-gray-400" />}
+                    {a.tipo === 'link'       && <Link2 size={13} className="text-traza-500" />}
+                    {a.tipo === 'archivo'    && <Paperclip size={13} className="text-orange-400" />}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-semibold text-gray-500 mb-0.5 flex items-center gap-1.5">
+                      {autorNombre}
+                      {esExterno && <span className="px-1.5 py-0.5 rounded-full bg-violet-50 text-violet-500 text-[10px]">Externo</span>}
+                    </p>
+                    {(a.tipo === 'link' || a.tipo === 'archivo') ? (
+                      <a href={a.contenido} target="_blank" rel="noopener noreferrer" className="text-traza-700 hover:underline break-all text-xs">{a.contenido}</a>
+                    ) : (
+                      <p className="text-sm text-gray-700">{a.contenido}</p>
+                    )}
+                    <p className="text-xs text-gray-400 mt-0.5">{formatDT(a.creado_en)}</p>
+                  </div>
+                  <div className="flex-shrink-0 flex items-center gap-1" onClick={e => e.stopPropagation()}>
+                    {(['sin_revisar', 'visto', 'aprobado'] as const).map(estado => {
+                      const s = REVISION_STYLES[estado]
+                      const activo = rev === estado
+                      return (
+                        <button key={estado} onClick={() => cambiarEstado(a.id, estado)} disabled={cambiando === a.id} title={s.label}
+                          className="text-xs px-2 py-0.5 rounded-full border font-medium transition-all"
+                          style={activo
+                            ? { backgroundColor: style.border, color: style.labelColor, borderColor: style.border }
+                            : { backgroundColor: 'transparent', color: '#d1d5db', borderColor: '#e5e7eb' }
+                          }>
+                          {s.label}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+                {a.respuesta_supervisor && (
+                  <div className="mx-3 mb-2 px-3 py-2 rounded-lg bg-slate-50">
+                    <p className="text-xs font-semibold text-gray-500 mb-0.5">Supervisor</p>
+                    <p className="text-sm text-gray-700">{a.respuesta_supervisor}</p>
+                  </div>
+                )}
+                <div className="px-3 pb-3 flex gap-2" onClick={e => e.stopPropagation()}>
+                  <input
+                    className="flex-1 text-xs border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:border-traza-400 bg-white"
+                    placeholder={a.respuesta_supervisor ? 'Editar respuesta...' : 'Responder...'}
+                    value={textoResp[a.id] ?? ''}
+                    onChange={e => setTextoResp(prev => ({ ...prev, [a.id]: e.target.value }))}
+                    onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); enviarRespuesta(a.id) } }}
+                  />
+                  <button onClick={() => enviarRespuesta(a.id)} disabled={respondiendo === a.id || !textoResp[a.id]?.trim()}
+                    className="text-xs px-3 py-1.5 rounded-lg font-medium disabled:opacity-40 text-white"
+                    style={{ backgroundColor: '#0F4C81' }}>
                     {respondiendo === a.id ? '...' : 'Enviar'}
                   </button>
                 </div>
