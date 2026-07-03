@@ -583,6 +583,7 @@ export const NAV_ITEMS: NavItem[] = [
   { label: 'Empresas',             href: '/empresas',        icon: 'Building2',       roles: ['super_admin', 'admin'] },
   { label: 'Personas',             href: '/personas',        icon: 'Users',           roles: ['super_admin', 'admin'] },
   { label: 'Mi Trabajo',           href: '/mi-trabajo',      icon: 'Target',          roles: ['super_admin', 'admin', 'supervisor', 'empleado'] },
+  { label: 'Mi Equipo',            href: '/equipo',          icon: 'UsersRound',      roles: ['super_admin', 'admin', 'supervisor'] },
   { label: 'Gestión de Objetivos', href: '/objetivos',       icon: 'ClipboardList',   roles: ['super_admin', 'admin', 'supervisor'] },
   { label: 'Validación',           href: '/validacion',      icon: 'CheckSquare',     roles: ['super_admin', 'admin', 'supervisor'] },
   { label: 'Analytics',            href: '/analytics',       icon: 'BarChart2',       roles: ['super_admin', 'admin', 'supervisor'] },
