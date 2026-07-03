@@ -120,6 +120,13 @@ export async function POST(req: NextRequest, { params }: { params: { token: stri
 export async function PATCH(_req: NextRequest, { params }: { params: { token: string } }) {
   const supabase = admin()
 
+  // Obtener datos del externo antes de actualizar
+  const { data: externo } = await supabase
+    .from('objetivo_externos')
+    .select('id, nombre, grupo_id')
+    .eq('token', params.token)
+    .single()
+
   const { error } = await supabase
     .from('objetivo_externos')
     .update({ completado_en: new Date().toISOString() })
@@ -127,6 +134,42 @@ export async function PATCH(_req: NextRequest, { params }: { params: { token: st
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+
+  // Notificar al creador del grupo
+  if (externo?.grupo_id) {
+    const { data: grupo } = await supabase
+      .from('objetivo_grupos')
+      .select('titulo, empresa_id, creado_por')
+      .eq('id', externo.grupo_id)
+      .single()
+
+    if (grupo?.creado_por) {
+      // Buscar la persona del creador
+      const { data: persona } = await supabase
+        .from('personas')
+        .select('id')
+        .eq('user_id', grupo.creado_por)
+        .maybeSingle()
+
+      if (persona) {
+        // Obtener primer objetivo del grupo para linkear
+        const { data: primerObj } = await supabase
+          .from('objetivos')
+          .select('id')
+          .eq('grupo_id', externo.grupo_id)
+          .limit(1)
+          .maybeSingle()
+
+        await supabase.from('notificaciones').insert({
+          empresa_id:  grupo.empresa_id,
+          persona_id:  persona.id,
+          tipo:        'externo_completado',
+          objetivo_id: primerObj?.id ?? null,
+          mensaje:     `${externo.nombre} completó su parte en "${grupo.titulo}"`,
+        })
+      }
+    }
   }
 
   return NextResponse.json({ ok: true })

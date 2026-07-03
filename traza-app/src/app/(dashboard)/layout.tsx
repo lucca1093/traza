@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase-server'
 import Sidebar from '@/components/layout/Sidebar'
+import NotificationBell from '@/components/layout/NotificationBell'
 import type { Profile } from '@/types'
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -30,6 +31,10 @@ export default async function DashboardLayout({ children }: { children: React.Re
     <div className="flex h-screen overflow-hidden" style={{ backgroundColor: '#F5F4F0' }}>
       <Sidebar profile={profile as Profile} empresaNombre={empresa?.nombre ?? null} />
       <main className="flex-1 ml-64 overflow-y-auto">
+        {/* Top bar con campana */}
+        <div className="flex items-center justify-end px-8 py-3 border-b border-gray-100 bg-white/60 backdrop-blur-sm sticky top-0 z-40">
+          <NotificationBell userId={user.id} />
+        </div>
         <div className="max-w-7xl mx-auto px-8 py-8">
           {children}
         </div>

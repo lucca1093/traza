@@ -159,6 +159,20 @@ export default function ValidacionPage() {
       comentario_supervisor: comentario.trim(),
       validado_por: user!.id,
     }).eq('id', selected)
+
+    // Notificar al empleado
+    const obj = objetivos.find((o: any) => o.id === selected)
+    if (obj?.persona?.id) {
+      const emoji = validacion === 'De acuerdo' ? '✓' : validacion === 'Parcialmente de acuerdo' ? '~' : '✗'
+      await supabase.from('notificaciones').insert({
+        empresa_id:  obj.empresa_id,
+        persona_id:  obj.persona.id,
+        tipo:        'validacion_supervisor',
+        objetivo_id: selected,
+        mensaje:     `${emoji} Tu objetivo "${obj.titulo}" fue validado: ${validacion}`,
+      })
+    }
+
     setSuccess(true)
     setTimeout(() => setSuccess(false), 3000)
     fetchData()
