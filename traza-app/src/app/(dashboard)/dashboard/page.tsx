@@ -271,7 +271,64 @@ export default async function DashboardPage() {
     .from('objetivos').select('*').eq('persona_id', persona?.id ?? '')
 
   const objs = (misObjetivos ?? []) as Objetivo[]
-  const indice = calcularIndiceTraza(objs)
+
+  // Avances completos para calcular el score correctamente
+  const { data: todosAvances } = await supabase
+    .from('objetivo_avances')
+    .select('persona_id, creado_en')
+    .eq('persona_id', persona?.id ?? '')
+    .order('creado_en', { ascending: true })
+
+  const indice = calcularIndiceTraza(objs, todosAvances ?? [])
+
+  // Explicaciones por dimensión
+  function explicarDimension(key: 'A' | 'B' | 'C' | 'D' | 'E', val: number): string {
+    if (key === 'A') {
+      if (objs.filter(o => o.validacion).length === 0) return 'Todavía no tenés objetivos validados por el supervisor'
+      if (val >= 80) return 'Tus objetivos tienen validaciones positivas del supervisor'
+      if (val >= 50) return 'Algunos objetivos tienen validaciones parciales o negativas'
+      return 'Varios objetivos tienen validaciones negativas del supervisor'
+    }
+    if (key === 'B') {
+      const hoy = new Date()
+      const vencidos = objs.filter(o => !(o as any).es_continuo && o.fecha_limite && new Date(o.fecha_limite) < hoy)
+      if (vencidos.length === 0) return 'Sin objetivos vencidos — buen cumplimiento de fechas'
+      if (val >= 80) return 'Completás la mayoría de tus objetivos antes del vencimiento'
+      if (val >= 50) return 'Algunos objetivos vencieron sin completarse'
+      return 'Varios objetivos vencieron sin completarse'
+    }
+    if (key === 'C') {
+      if (!todosAvances?.length) return 'No registraste avances todavía'
+      const hoy = new Date()
+      const ultimoAvance = todosAvances[todosAvances.length - 1]
+      const diasSinActividad = ultimoAvance
+        ? Math.floor((hoy.getTime() - new Date(ultimoAvance.creado_en).getTime()) / (1000 * 60 * 60 * 24))
+        : 999
+      if (diasSinActividad > 14) return `Hace ${diasSinActividad} días que no registrás avances`
+      if (val >= 80) return 'Registrás avances de forma consistente semana a semana'
+      if (val >= 50) return 'Tu regularidad en el registro de avances es moderada'
+      return 'La regularidad de tus avances puede mejorar'
+    }
+    if (key === 'D') {
+      if (objs.filter(o => o.validacion && (o as any).autoevaluacion).length === 0) return 'Sin suficientes datos para medir alineación'
+      if (val >= 80) return 'Tu autoevaluación coincide con la validación del supervisor'
+      if (val >= 50) return 'Hay algunas diferencias entre tu autoevaluación y la del supervisor'
+      return 'Hay discrepancias importantes entre tu autoevaluación y la del supervisor'
+    }
+    // E
+    if (val >= 80) return 'Tu desempeño mejoró respecto al período anterior'
+    if (val >= 55) return 'Tu desempeño se mantuvo estable'
+    if (val <= 35) return 'Tu desempeño bajó respecto al período anterior'
+    return 'Sin suficientes datos para medir tendencia'
+  }
+
+  const dimensiones = [
+    { key: 'A' as const, label: 'Validaciones',  peso: 35, val: indice.moduloA    },
+    { key: 'B' as const, label: 'Cumplimiento',   peso: 25, val: indice.moduloB    },
+    { key: 'C' as const, label: 'Regularidad',    peso: 20, val: indice.moduloC    },
+    { key: 'D' as const, label: 'Alineación',     peso: 10, val: indice.alineacion },
+    { key: 'E' as const, label: 'Tendencia',      peso: 10, val: indice.evolucion  },
+  ]
 
   // Próximos vencimientos (próximos 14 días, no completados)
   const hoy14 = new Date(); hoy14.setDate(hoy14.getDate() + 14)
@@ -311,6 +368,50 @@ export default async function DashboardPage() {
         <MetricCard icon="CheckSquare" label="Completados"    value={indice.completados} />
         <MetricCard icon="TrendingUp"  label="Cumplimiento"   value={`${indice.cumplimiento}%`} />
         <MetricCard icon="Trophy"      label="Índice Traza"   value={`${indice.score}/100`} highlight />
+      </div>
+
+      {/* Scoring explicado */}
+      <div className="traza-card overflow-hidden">
+        <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+          <div>
+            <h2 className="font-semibold text-gray-900">Tu Índice Traza</h2>
+            <p className="text-xs text-gray-400 mt-0.5">Cómo se compone tu puntaje actual</p>
+          </div>
+          <div className="flex items-baseline gap-1">
+            <span className="text-3xl font-bold" style={{ color: indice.score >= 75 ? '#16a34a' : indice.score >= 50 ? '#d97706' : '#dc2626' }}>
+              {indice.score}
+            </span>
+            <span className="text-sm text-gray-400">/100</span>
+          </div>
+        </div>
+        <div className="divide-y divide-gray-50">
+          {dimensiones.map(({ key, label, peso, val }) => {
+            const color = val >= 75 ? '#16a34a' : val >= 50 ? '#d97706' : '#dc2626'
+            const bgBar = val >= 75 ? '#dcfce7' : val >= 50 ? '#fef3c7' : '#fee2e2'
+            const fillBar = val >= 75 ? '#16a34a' : val >= 50 ? '#d97706' : '#dc2626'
+            return (
+              <div key={key} className="px-6 py-4">
+                <div className="flex items-center gap-4">
+                  {/* Label + peso */}
+                  <div className="w-32 flex-shrink-0">
+                    <p className="text-sm font-medium text-gray-900">{label}</p>
+                    <p className="text-xs text-gray-400">{peso}% del score</p>
+                  </div>
+                  {/* Barra */}
+                  <div className="flex-1 h-2 rounded-full" style={{ backgroundColor: bgBar }}>
+                    <div className="h-2 rounded-full transition-all" style={{ width: `${val}%`, backgroundColor: fillBar }} />
+                  </div>
+                  {/* Valor */}
+                  <div className="w-8 text-right flex-shrink-0">
+                    <span className="text-sm font-bold" style={{ color }}>{val}</span>
+                  </div>
+                </div>
+                {/* Explicación */}
+                <p className="text-xs text-gray-400 mt-1.5 ml-36">{explicarDimension(key, val)}</p>
+              </div>
+            )
+          })}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
