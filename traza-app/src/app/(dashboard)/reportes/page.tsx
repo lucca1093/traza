@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import Button from '@/components/ui/Button'
-import { getEstadoClasses, getPrioridadClasses, getValidacionStyle, formatFecha } from '@/lib/traza'
-import { ChevronDown, ChevronRight, Paperclip } from 'lucide-react'
+import { getEstadoClasses, getPrioridadClasses, getValidacionStyle, formatFecha, calcularIndiceTraza } from '@/lib/traza'
+import { ChevronDown, ChevronRight, Paperclip, FileSpreadsheet, FileText } from 'lucide-react'
 
 export default function ReportesPage() {
   const [datos, setDatos]     = useState<any[]>([])
@@ -85,6 +85,126 @@ export default function ReportesPage() {
     URL.revokeObjectURL(url)
   }
 
+  async function exportExcel() {
+    const XLSX = await import('xlsx')
+    const fecha = new Date().toISOString().split('T')[0]
+    const wb = XLSX.utils.book_new()
+
+    // Hoja 1: Detalle por objetivo
+    const headersDetalle = ['Colaborador', 'Cargo', 'Área', 'Objetivo', 'Descripción', 'Prioridad', 'Fecha límite', 'Estado', 'Validación', 'Comentario supervisor']
+    const rowsDetalle = datos.map(d => [
+      d.persona ? `${d.persona.nombre} ${d.persona.apellido}` : '',
+      d.persona?.cargo ?? '',
+      d.persona?.area ?? '',
+      d.titulo,
+      d.descripcion ?? '',
+      d.prioridad,
+      d.fecha_limite ? formatFecha(d.fecha_limite) : '',
+      d.estado,
+      d.validacion ?? '',
+      d.comentario_supervisor ?? '',
+    ])
+    const wsDetalle = XLSX.utils.aoa_to_sheet([headersDetalle, ...rowsDetalle])
+    wsDetalle['!cols'] = [20, 18, 15, 30, 35, 10, 12, 14, 20, 35].map(w => ({ wch: w }))
+    XLSX.utils.book_append_sheet(wb, wsDetalle, 'Detalle')
+
+    // Hoja 2: Resumen por persona con score
+    const headerResumen = ['Colaborador', 'Cargo', 'Área', 'Total objetivos', 'Completados', 'Cumplimiento %', 'Índice Traza', 'Validados', 'Parciales', 'Rechazados']
+    const rowsResumen = grupos.map(({ persona, objetivos: obs }) => {
+      const indice = calcularIndiceTraza(obs)
+      return [
+        persona ? `${persona.nombre} ${persona.apellido}` : 'Sin asignar',
+        persona?.cargo ?? '',
+        persona?.area ?? '',
+        indice.total,
+        indice.completados,
+        `${indice.cumplimiento}%`,
+        indice.score,
+        indice.positivos,
+        indice.parciales,
+        indice.negativos,
+      ]
+    })
+    const wsResumen = XLSX.utils.aoa_to_sheet([headerResumen, ...rowsResumen])
+    wsResumen['!cols'] = [22, 18, 15, 14, 12, 13, 12, 10, 10, 12].map(w => ({ wch: w }))
+    XLSX.utils.book_append_sheet(wb, wsResumen, 'Resumen por persona')
+
+    XLSX.writeFile(wb, `reporte_traza_${fecha}.xlsx`)
+  }
+
+  function exportPDF() {
+    const fecha = new Date().toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' })
+    const printWindow = window.open('', '_blank')
+    if (!printWindow) return
+
+    const rows = grupos.map(({ persona, objetivos: obs }) => {
+      const indice = calcularIndiceTraza(obs)
+      const nombre = persona ? `${persona.nombre} ${persona.apellido}` : 'Sin asignar'
+      const obsRows = obs.map((o: any) => `
+        <tr>
+          <td style="padding:6px 10px;border-bottom:1px solid #f0f0f0;">${o.titulo}</td>
+          <td style="padding:6px 10px;border-bottom:1px solid #f0f0f0;text-align:center;">${o.prioridad}</td>
+          <td style="padding:6px 10px;border-bottom:1px solid #f0f0f0;text-align:center;">${o.estado}</td>
+          <td style="padding:6px 10px;border-bottom:1px solid #f0f0f0;text-align:center;">${o.validacion ?? '—'}</td>
+          <td style="padding:6px 10px;border-bottom:1px solid #f0f0f0;font-size:11px;color:#666;">${o.comentario_supervisor ?? '—'}</td>
+        </tr>
+      `).join('')
+      return `
+        <div style="margin-bottom:32px;break-inside:avoid;">
+          <div style="display:flex;justify-content:space-between;align-items:center;background:#0F4C81;color:white;padding:10px 14px;border-radius:8px 8px 0 0;">
+            <div>
+              <strong style="font-size:14px;">${nombre}</strong>
+              <span style="font-size:12px;margin-left:10px;opacity:0.8;">${persona?.cargo ?? ''}${persona?.area ? ` · ${persona.area}` : ''}</span>
+            </div>
+            <div style="text-align:right;">
+              <span style="font-size:20px;font-weight:bold;">${indice.score}</span>
+              <span style="font-size:11px;opacity:0.8;">/100</span>
+              <div style="font-size:11px;opacity:0.7;">${indice.completados}/${indice.total} completados</div>
+            </div>
+          </div>
+          <table style="width:100%;border-collapse:collapse;font-size:12px;">
+            <thead>
+              <tr style="background:#f8f9fa;">
+                <th style="padding:7px 10px;text-align:left;font-weight:600;color:#555;">Objetivo</th>
+                <th style="padding:7px 10px;text-align:center;font-weight:600;color:#555;">Prioridad</th>
+                <th style="padding:7px 10px;text-align:center;font-weight:600;color:#555;">Estado</th>
+                <th style="padding:7px 10px;text-align:center;font-weight:600;color:#555;">Validación</th>
+                <th style="padding:7px 10px;text-align:left;font-weight:600;color:#555;">Comentario</th>
+              </tr>
+            </thead>
+            <tbody>${obsRows}</tbody>
+          </table>
+        </div>
+      `
+    }).join('')
+
+    printWindow.document.write(`
+      <!DOCTYPE html><html><head>
+      <meta charset="utf-8">
+      <title>Reporte Traza — ${fecha}</title>
+      <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family: -apple-system, Arial, sans-serif; color:#1a1a1a; padding:40px; }
+        @media print { body { padding:20px; } }
+      </style>
+      </head><body>
+      <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:32px;padding-bottom:16px;border-bottom:2px solid #0F4C81;">
+        <div>
+          <div style="font-size:22px;font-weight:800;color:#0F4C81;letter-spacing:-0.5px;">TRAZA</div>
+          <div style="font-size:16px;font-weight:600;color:#1a1a1a;margin-top:4px;">Reporte de Performance</div>
+        </div>
+        <div style="text-align:right;font-size:12px;color:#666;">
+          <div>${fecha}</div>
+          <div>${datos.length} objetivo${datos.length !== 1 ? 's' : ''} · ${grupos.length} colaborador${grupos.length !== 1 ? 'es' : ''}</div>
+        </div>
+      </div>
+      ${rows}
+      </body></html>
+    `)
+    printWindow.document.close()
+    setTimeout(() => { printWindow.print() }, 400)
+  }
+
   // Agrupar por persona
   const personasMap: Record<string, { persona: any; objetivos: any[] }> = {}
   datos.forEach(d => {
@@ -121,7 +241,15 @@ export default function ReportesPage() {
             <option>Completado</option>
           </select>
         </div>
-        <Button onClick={exportCSV} variant="secondary">⬇ Exportar CSV</Button>
+        <div className="flex gap-2">
+          <Button onClick={exportCSV} variant="secondary">CSV</Button>
+          <Button onClick={exportExcel} variant="secondary">
+            <FileSpreadsheet size={14} className="mr-1.5" /> Excel
+          </Button>
+          <Button onClick={exportPDF} variant="secondary">
+            <FileText size={14} className="mr-1.5" /> PDF
+          </Button>
+        </div>
       </div>
 
       {/* Tabla agrupada */}
