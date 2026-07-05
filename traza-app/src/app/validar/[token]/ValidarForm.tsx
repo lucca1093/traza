@@ -1,7 +1,40 @@
 'use client'
 
 import { useState } from 'react'
-import { CheckCircle2, ChevronRight } from 'lucide-react'
+import { CheckCircle2, ChevronRight, ShieldCheck, ShieldAlert, Shield } from 'lucide-react'
+
+const DOMINIOS_PERSONALES = new Set([
+  'gmail.com','hotmail.com','yahoo.com','outlook.com','live.com','icloud.com',
+  'protonmail.com','yahoo.com.ar','hotmail.com.ar','gmail.com.ar','outlook.com.ar',
+  'msn.com','me.com','mail.com','inbox.com','aol.com',
+])
+
+function getNivelConfianza(email: string): 'corporativo' | 'personal' | 'vacio' {
+  if (!email.trim()) return 'vacio'
+  const domain = email.split('@')[1]?.toLowerCase() ?? ''
+  if (!domain || !email.includes('@')) return 'vacio'
+  return DOMINIOS_PERSONALES.has(domain) ? 'personal' : 'corporativo'
+}
+
+function EmailTrustBadge({ email }: { email: string }) {
+  const nivel = getNivelConfianza(email)
+  if (nivel === 'vacio') return null
+  const domain = email.split('@')[1]?.toLowerCase() ?? ''
+  if (nivel === 'corporativo') {
+    return (
+      <div className="flex items-center gap-1.5 mt-1.5 text-xs font-medium" style={{ color: '#15803d' }}>
+        <ShieldCheck size={12} />
+        Email corporativo ({domain}) — mayor credibilidad en la credencial
+      </div>
+    )
+  }
+  return (
+    <div className="flex items-center gap-1.5 mt-1.5 text-xs font-medium" style={{ color: '#d97706' }}>
+      <ShieldAlert size={12} />
+      Email personal — se mostrará con menor peso en la credencial
+    </div>
+  )
+}
 
 const OPCIONES = [
   {
@@ -45,6 +78,10 @@ export default function ValidarForm({ token, objetivoTitulo, personaNombre }: { 
     e.preventDefault()
     if (!nombre.trim() || !calificacion) {
       setError('Completá tu nombre y elegí una calificación.')
+      return
+    }
+    if (!email.trim() || !email.includes('@')) {
+      setError('El email es obligatorio para registrar tu identidad como validador.')
       return
     }
     setEnviando(true)
@@ -141,10 +178,12 @@ export default function ValidarForm({ token, objetivoTitulo, personaNombre }: { 
               className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100" />
           </div>
           <div>
-            <label className="text-xs text-gray-400">Email</label>
+            <label className="text-xs text-gray-400">Email profesional *</label>
             <input type="email" value={email} onChange={e => setEmail(e.target.value)}
               placeholder="ricardo@empresa.com"
-              className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100" />
+              className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100"
+              required />
+            <EmailTrustBadge email={email} />
           </div>
           <div>
             <label className="text-xs text-gray-400">Cargo / Rol</label>
@@ -172,10 +211,14 @@ export default function ValidarForm({ token, objetivoTitulo, personaNombre }: { 
         {!enviando && <ChevronRight size={15} />}
       </button>
 
-      <p className="text-xs text-gray-400 text-center leading-relaxed">
-        Tu identidad quedará visible en la credencial pública del profesional.
-        Este link es de uso único y vence a los 7 días.
-      </p>
+      <div className="rounded-xl px-4 py-3 text-xs leading-relaxed space-y-1" style={{ backgroundColor: '#F8FAFC', border: '1px solid #E2E8F0' }}>
+        <p className="font-semibold" style={{ color: '#0F172A' }}>¿Para qué se usa tu email?</p>
+        <p style={{ color: '#64748B' }}>
+          No lo publicamos completo. Solo mostramos el dominio (@empresa.com) en la credencial del profesional
+          para que quien la lea pueda evaluar la credibilidad de la validación.
+          Un email corporativo da mayor peso a tu evaluación.
+        </p>
+      </div>
     </form>
   )
 }
