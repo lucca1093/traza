@@ -1,6 +1,6 @@
 import { createAdminClient } from '@/lib/supabase-server'
 import { calcularIndiceTraza, generarPerfilNarrativo } from '@/lib/traza'
-import { ShieldCheck, TrendingUp, Star, Calendar, CheckCircle2, Clock, Building2, Briefcase, Users, ShieldAlert, Sparkles, ArrowRight } from 'lucide-react'
+import { ShieldCheck, TrendingUp, Star, Calendar, CheckCircle2, Clock, Building2, Briefcase, Users, ShieldAlert } from 'lucide-react'
 import type { Objetivo } from '@/types'
 
 export const dynamic = 'force-dynamic'
@@ -94,7 +94,13 @@ export default async function CredencialTrazaPage({ params }: { params: { trazaI
     .select('*')
     .in('objetivo_id', objsActuales.length > 0 ? objsActuales.map(o => o.id) : ['00000000-0000-0000-0000-000000000000'])
 
-  const indiceActual = calcularIndiceTraza(objsActuales, avancesRaw ?? [])
+  // Validaciones externas (fetched before this point, but need them for score)
+  const { data: validacionesExternasParaScore } = await supabase
+    .from('validaciones_externas')
+    .select('*')
+    .in('objetivo_id', objsActuales.length > 0 ? objsActuales.map(o => o.id) : ['00000000-0000-0000-0000-000000000000'])
+
+  const indiceActual = calcularIndiceTraza(objsActuales, avancesRaw ?? [], validacionesExternasParaScore ?? [])
   const { score, badge, cumplimiento, total, completados, positivos, parciales, negativos, moduloA, moduloB, moduloC } = indiceActual
 
   const scoreDisplay = score  // score principal: TRAZA v3
@@ -596,51 +602,12 @@ Las 3 oraciones deben cubrir: (1) quién es y dónde trabaja hoy, (2) su evoluci
           </div>
         )}
 
-        {/* ── CTA incentivo individual ── */}
-        <div style={{ borderRadius: 16, overflow: 'hidden', background: 'linear-gradient(135deg, #1C2B90 0%, #3350D0 100%)', backgroundColor: '#1C2B90' }}>
-          <div style={{ padding: '20px 20px 12px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-              <Sparkles size={14} style={{ color: '#BBC5F7' }} />
-              <span style={{ fontSize: 12, fontWeight: 600, color: '#BBC5F7' }}>Esta credencial es portátil</span>
-            </div>
-            <p style={{ color: '#ffffff', fontWeight: 700, fontSize: 16, lineHeight: 1.4, marginBottom: 4 }}>
-              Tu historial profesional te pertenece.
-            </p>
-            <p style={{ fontSize: 14, lineHeight: 1.6, marginBottom: 16, color: 'rgba(255,255,255,0.75)' }}>
-              {personaActual.nombre} construyó esta credencial a lo largo de {todasLasPersonas.length > 1 ? `${todasLasPersonas.length} empresas` : 'su trayectoria'}.
-              La lleva consigo independientemente de dónde trabaje — sus datos no son de ninguna empresa, son suyos.
-            </p>
-            <a href="/registro"
-              style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 16px', borderRadius: 12,
-                fontSize: 14, fontWeight: 600, color: '#ffffff',
-                backgroundColor: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.25)',
-                textDecoration: 'none' }}>
-              Creá tu credencial gratis
-              <ArrowRight size={14} />
-            </a>
-          </div>
-          <div style={{ padding: '0 20px 20px' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, textAlign: 'center' }}>
-              {[
-                { n: `${totalObjGlobal}`, label: 'objetivos registrados' },
-                { n: `${completadosGlobal}`, label: 'completados' },
-                { n: `${positivosGlobal}`, label: 'validados ✓' },
-              ].map(({ n, label }) => (
-                <div key={label} style={{ backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 12, padding: '10px 0' }}>
-                  <p style={{ fontSize: 20, fontWeight: 900, color: '#ffffff', margin: 0 }}>{n}</p>
-                  <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.55)', margin: 0 }}>{label}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
         {/* Footer */}
         <div className="py-6 flex flex-col items-center gap-2">
           <div className="flex items-center gap-1.5">
             <ShieldCheck size={12} style={{ color: '#6b7280' }} />
             <p className="text-xs font-medium text-gray-500">
-              Verificado por <span className="font-bold text-gray-700">traza</span> · v2
+              Verificado por <span className="font-bold text-gray-700">traza</span> · Performance Intelligence
             </p>
           </div>
           <p className="text-xs text-gray-400">Actualizada el {ahora}</p>

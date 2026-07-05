@@ -37,7 +37,7 @@ export function cn(...inputs: ClassValue[]) {
 // Score final: A×0.35 + B×0.25 + C×0.20 + D×0.10 + E×0.10 → escala 0–100
 // ============================================================
 
-export function calcularIndiceTraza(objetivos: Objetivo[], avances: any[] = []): IndiceTraza {
+export function calcularIndiceTraza(objetivos: Objetivo[], avances: any[] = [], validacionesExternas: any[] = []): IndiceTraza {
   // Sin objetivos → score 0 (no mostrar valores ficticios)
   if (objetivos.length === 0) {
     return { score: 0, nivel: 'Inicial', badge: 'Sin datos', total: 0, completados: 0, positivos: 0, parciales: 0, negativos: 0, cumplimiento: 0, moduloA: 0, moduloB: 0, moduloC: 0, alineacion: 0, evolucion: 0 }
@@ -55,18 +55,32 @@ export function calcularIndiceTraza(objetivos: Objetivo[], avances: any[] = []):
   const supScore:   Record<string, number> = { 'De acuerdo': 1.0, 'Parcialmente de acuerdo': 0.5, 'En desacuerdo': 0.0 }
   const adminScore: Record<string, number> = { 'De acuerdo': 1.0, 'Parcialmente de acuerdo': 0.5, 'En desacuerdo': 0.0 }
   const autoScore:  Record<string, number> = { 'De acuerdo': 1.0, 'Parcialmente de acuerdo': 0.5, 'En desacuerdo': 0.0, 'Cumplido': 1.0, 'Parcialmente cumplido': 0.5, 'No cumplido': 0.0 }
+  // Peso por nivel de confianza de validación externa (corporativo pesa más)
+  const extPeso:    Record<string, number> = { 'corporativo': 0.4, 'personal': 0.15, 'sin_email': 0.05 }
+  const extScore:   Record<string, number> = { 'De acuerdo': 1.0, 'Parcialmente de acuerdo': 0.5, 'En desacuerdo': 0.0 }
 
   const conValidacion = objetivos.filter(o => o.validacion)
   let moduloA = 50
-  if (conValidacion.length > 0) {
-    const promedios = conValidacion.map(o => {
-      let suma = 0, pesoTotal = 0
-      if (o.validacion)             { suma += supScore[o.validacion] * 1.0; pesoTotal += 1.0 }
-      if ((o as any).validacion_admin) { suma += adminScore[(o as any).validacion_admin] * 1.0; pesoTotal += 1.0 }
-      if ((o as any).autoevaluacion)   { suma += autoScore[(o as any).autoevaluacion] * 0.5; pesoTotal += 0.5 }
-      return pesoTotal > 0 ? suma / pesoTotal : 0.5
+  if (conValidacion.length > 0 || validacionesExternas.length > 0) {
+    let sumaTotal = 0, pesoTotal = 0
+
+    conValidacion.forEach(o => {
+      if (o.validacion)                 { sumaTotal += supScore[o.validacion] * 1.0; pesoTotal += 1.0 }
+      if ((o as any).validacion_admin)  { sumaTotal += adminScore[(o as any).validacion_admin] * 1.0; pesoTotal += 1.0 }
+      if ((o as any).autoevaluacion)    { sumaTotal += autoScore[(o as any).autoevaluacion] * 0.5; pesoTotal += 0.5 }
     })
-    moduloA = Math.round((promedios.reduce((a, b) => a + b, 0) / promedios.length) * 100)
+
+    // Validaciones externas blended con menor peso
+    validacionesExternas.forEach(v => {
+      const calif = v.calificacion ?? v.rating
+      const nivel = v.nivel_confianza ?? 'personal'
+      const peso  = extPeso[nivel] ?? 0.1
+      const val   = extScore[calif] ?? 0.5
+      sumaTotal += val * peso
+      pesoTotal += peso
+    })
+
+    moduloA = pesoTotal > 0 ? Math.min(100, Math.round((sumaTotal / pesoTotal) * 100)) : 50
   }
 
   // ── Módulo B: Cumplimiento (0–100) — peso 25% ─────────────

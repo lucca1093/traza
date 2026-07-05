@@ -141,13 +141,43 @@ export default function PerfilPage() {
 
   if (loading) return <div className="text-gray-400 py-12 text-center">Cargando...</div>
 
-  const indice = calcularIndiceTraza(data.objetivos, data.avances)
   const { persona, objetivos } = data
+  const indice = calcularIndiceTraza(data.objetivos, data.avances)
 
   const scoreColor = indice.score >= 85 ? '#16a34a' : indice.score >= 65 ? '#3350D0' : indice.score >= 40 ? '#d97706' : '#9ca3af'
   const scoreBg    = indice.score >= 85 ? '#dcfce7' : indice.score >= 65 ? '#EDEFFD' : indice.score >= 40 ? '#fef3c7' : '#F1F5F9'
   const ultimasFeedbacks = objetivos.filter(o => o.comentario_supervisor?.trim()).slice(0, 5)
   const logros = objetivos.filter(o => o.estado === 'Completado').slice(0, 5)
+
+  // Usuario sin fila en personas (ej: cuenta creada antes de la migración)
+  if (!persona) {
+    return (
+      <div className="space-y-8">
+        <div className="traza-page-header">
+          <div>
+            <h1 className="traza-page-title">Perfil Profesional</h1>
+            <p className="traza-page-sub">Historial de desempeño basado en objetivos y validaciones.</p>
+          </div>
+        </div>
+        <div style={{ borderRadius: 16, border: '1px solid #E2E8F0', background: '#F8FAFC', padding: '48px 32px', textAlign: 'center' }}>
+          <div style={{ width: 48, height: 48, borderRadius: 14, background: '#EDEFFD', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+            <span style={{ fontSize: 22, fontWeight: 800, color: '#3350D0' }}>
+              {(profile?.nombre?.[0] ?? '?')}{(profile?.apellido?.[0] ?? '')}
+            </span>
+          </div>
+          <p style={{ fontWeight: 700, color: '#0F172A', fontSize: 16, marginBottom: 8 }}>
+            {profile?.nombre ?? ''} {profile?.apellido ?? ''}
+          </p>
+          <p style={{ color: '#64748B', fontSize: 14, maxWidth: 360, margin: '0 auto 24px', lineHeight: 1.6 }}>
+            Tu perfil profesional se construye a medida que cargás objetivos. Empezá desde <strong>Mi Trabajo</strong>.
+          </p>
+          <a href="/mi-trabajo" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'linear-gradient(135deg,#1C2B90,#3350D0)', color: '#fff', borderRadius: 12, padding: '10px 20px', fontWeight: 600, fontSize: 14, textDecoration: 'none' }}>
+            Ir a Mi Trabajo
+          </a>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-8">
