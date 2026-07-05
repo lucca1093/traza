@@ -127,10 +127,14 @@ export default function OnboardingPage() {
       <nav className="bg-white border-b sticky top-0 z-10">
         <div className="max-w-2xl mx-auto px-5 h-14 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-xl flex items-center justify-center" style={{ backgroundColor: '#0F4C81' }}>
-              <span className="text-white font-black text-xs">T</span>
+            <div className="w-7 h-7 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: 'linear-gradient(135deg, #1C2B90, #3350D0)' }}>
+              <svg width="14" height="14" viewBox="0 0 36 36" fill="none">
+                <rect x="9" y="10" width="18" height="3" rx="1.5" fill="white"/>
+                <path d="M 25 13 L 11 23" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
+                <rect x="9" y="23" width="18" height="3" rx="1.5" fill="white"/>
+              </svg>
             </div>
-            <span className="font-black text-gray-900 tracking-tight">TRAZA</span>
+            <span className="font-extrabold tracking-tight" style={{ color: '#1C2B90', fontFamily: "'Plus Jakarta Sans', system-ui", fontSize: '1.05rem', letterSpacing: '-0.02em' }}>traza</span>
           </div>
           <button onClick={irAlDashboard}
             className="text-sm font-medium px-4 py-1.5 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">
@@ -145,7 +149,7 @@ export default function OnboardingPage() {
         <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
           <div className="flex items-start gap-4">
             <div className="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 text-white font-black text-xl"
-              style={{ background: 'linear-gradient(135deg, #0F4C81, #1e6fb5)' }}>
+              style={{ background: 'linear-gradient(135deg, #1C2B90, #3350D0)' }}>
               {inicialEmpresa}
             </div>
             <div className="flex-1">
@@ -157,7 +161,7 @@ export default function OnboardingPage() {
                 Hola{adminNombre ? `, ${adminNombre}` : ''} 👋
               </h1>
               <p className="text-sm text-gray-500 mt-1">
-                <strong>{empresaNombre}</strong> ya está en TRAZA. Completá los primeros pasos para activar al máximo el equipo.
+                <strong>{empresaNombre}</strong> ya está en traza. Completá los primeros pasos para activar al máximo el equipo.
               </p>
             </div>
           </div>
@@ -166,11 +170,11 @@ export default function OnboardingPage() {
           <div className="mt-5">
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs font-semibold text-gray-500">Configuración inicial</span>
-              <span className="text-xs font-black" style={{ color: '#0F4C81' }}>1 de 3 pasos</span>
+              <span className="text-xs font-black" style={{ color: '#3350D0' }}>1 de 3 pasos</span>
             </div>
             <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
               <div className="h-full rounded-full transition-all duration-700"
-                style={{ width: '33%', background: 'linear-gradient(90deg, #0F4C81, #1e6fb5)' }} />
+                style={{ width: '33%', background: 'linear-gradient(90deg, #3350D0, #8899EE)' }} />
             </div>
           </div>
         </div>
@@ -187,7 +191,7 @@ export default function OnboardingPage() {
                 <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-600 font-medium">✓ Listo</span>
               </div>
               <p className="text-sm text-gray-400 mt-0.5">
-                <strong className="text-gray-600">{empresaNombre}</strong> ya está registrada en TRAZA. Tu cuenta de administrador está activa.
+                <strong className="text-gray-600">{empresaNombre}</strong> ya está registrada en traza. Tu cuenta de administrador está activa.
               </p>
             </div>
           </div>
@@ -197,7 +201,7 @@ export default function OnboardingPage() {
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
           <div className="flex items-start gap-3">
             <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 text-white"
-              style={{ backgroundColor: '#0F4C81' }}>
+              style={{ backgroundColor: '#3350D0' }}>
               <Users size={18} />
             </div>
             <div className="flex-1">
@@ -213,7 +217,7 @@ export default function OnboardingPage() {
                       <p className="flex-1 text-xs font-mono text-blue-700 truncate">{inviteUrl}</p>
                       <button onClick={copiarLink}
                         className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex-shrink-0"
-                        style={{ backgroundColor: copiado ? '#16a34a' : '#0F4C81', color: 'white' }}>
+                        style={{ backgroundColor: copiado ? '#16a34a' : '#3350D0', color: 'white' }}>
                         {copiado ? <><CheckCheck size={11} /> Copiado</> : <><Copy size={11} /> Copiar</>}
                       </button>
                     </div>
@@ -234,7 +238,7 @@ export default function OnboardingPage() {
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
           <div className="flex items-start gap-3">
             <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 text-white"
-              style={{ backgroundColor: '#0F4C81' }}>
+              style={{ backgroundColor: '#3350D0' }}>
               <Target size={18} />
             </div>
             <div className="flex-1">
@@ -254,7 +258,7 @@ export default function OnboardingPage() {
         {/* CTA */}
         <button onClick={irAlDashboard}
           className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl font-bold text-white text-sm"
-          style={{ backgroundColor: '#0F4C81' }}>
+          style={{ backgroundColor: '#3350D0' }}>
           Ir al dashboard
           <ArrowRight size={15} />
         </button>

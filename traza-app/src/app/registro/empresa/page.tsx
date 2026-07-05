@@ -43,7 +43,7 @@ function ProgressBar({ step }: { step: number }) {
             <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-black transition-all duration-300 ${
               i < step ? 'bg-green-500 text-white' :
               i === step ? 'text-white' : 'bg-gray-200 text-gray-400'
-            }`} style={i === step ? { backgroundColor: '#0F4C81' } : {}}>
+            }`} style={i === step ? { backgroundColor: '#3350D0' } : {}}>
               {i < step ? <Check size={12} /> : i + 1}
             </div>
             <span className={`text-xs font-medium transition-colors duration-300 ${
@@ -54,7 +54,7 @@ function ProgressBar({ step }: { step: number }) {
       </div>
       <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
         <div className="h-full rounded-full transition-all duration-500"
-          style={{ width: `${(step / 2) * 100}%`, backgroundColor: '#0F4C81' }} />
+          style={{ width: `${(step / 2) * 100}%`, backgroundColor: '#3350D0' }} />
       </div>
     </div>
   )
@@ -186,7 +186,7 @@ export default function RegistroEmpresaPage() {
       <nav className="border-b bg-white sticky top-0 z-10">
         <div className="max-w-xl mx-auto px-5 h-14 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-xl flex items-center justify-center" style={{ backgroundColor: '#0F4C81' }}>
+            <div className="w-7 h-7 rounded-xl flex items-center justify-center" style={{ backgroundColor: '#3350D0' }}>
               <span className="text-white font-black text-xs">T</span>
             </div>
             <span className="font-black text-gray-900 tracking-tight">TRAZA</span>
@@ -210,7 +210,7 @@ export default function RegistroEmpresaPage() {
                 {/* Preview de empresa */}
                 <div className="flex items-center gap-3 mb-6">
                   <div className="w-12 h-12 rounded-xl flex items-center justify-center font-black text-lg text-white transition-all"
-                    style={{ background: 'linear-gradient(135deg, #0F4C81, #1e6fb5)' }}>
+                    style={{ background: 'linear-gradient(135deg, #1C2B90, #3350D0)' }}>
                     {iniciales}
                   </div>
                   <div>
@@ -283,7 +283,7 @@ export default function RegistroEmpresaPage() {
 
                 <button type="submit"
                   className="mt-5 w-full flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-white text-sm"
-                  style={{ backgroundColor: '#0F4C81' }}>
+                  style={{ backgroundColor: '#3350D0' }}>
                   Siguiente
                   <ChevronRight size={15} />
                 </button>
@@ -299,7 +299,7 @@ export default function RegistroEmpresaPage() {
                 <div className="mb-5">
                   <p className="font-black text-gray-900 text-base">Creá tu cuenta de admin</p>
                   <p className="text-sm text-gray-400 mt-0.5 leading-relaxed">
-                    Esta cuenta administrará <strong className="text-gray-700">{empresaNombre}</strong> en TRAZA.
+                    Esta cuenta administrará <strong className="text-gray-700">{empresaNombre}</strong> en traza.
                   </p>
                 </div>
 
@@ -357,14 +357,14 @@ export default function RegistroEmpresaPage() {
                   </button>
                   <button type="submit" disabled={loading}
                     className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-white text-sm disabled:opacity-50 transition-all"
-                    style={{ backgroundColor: '#0F4C81' }}>
+                    style={{ backgroundColor: '#3350D0' }}>
                     {loading ? 'Creando empresa...' : 'Crear empresa'}
                     {!loading && <ChevronRight size={15} />}
                   </button>
                 </div>
 
                 <p className="text-xs text-gray-400 text-center mt-4 leading-relaxed">
-                  Al registrarte aceptás que tus datos se usen para gestionar el rendimiento de tu equipo en TRAZA.
+                  Al registrarte aceptás que tus datos se usen para gestionar el rendimiento de tu equipo en traza.
                 </p>
               </div>
             </form>
@@ -377,7 +377,7 @@ export default function RegistroEmpresaPage() {
               {/* Éxito */}
               <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 text-center">
                 <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4"
-                  style={{ background: 'linear-gradient(135deg, #0F4C81, #1e6fb5)' }}>
+                  style={{ background: 'linear-gradient(135deg, #1C2B90, #3350D0)' }}>
                   <Sparkles size={22} className="text-white" />
                 </div>
                 <h2 className="text-xl font-black text-gray-900 mb-1">
@@ -403,7 +403,7 @@ export default function RegistroEmpresaPage() {
                   <p className="flex-1 text-xs font-mono text-blue-700 truncate">{inviteUrl}</p>
                   <button onClick={copiarLink}
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
-                    style={{ backgroundColor: copiado ? '#16a34a' : '#0F4C81', color: 'white' }}>
+                    style={{ backgroundColor: copiado ? '#16a34a' : '#3350D0', color: 'white' }}>
                     {copiado ? <><CheckCheck size={12} /> Copiado</> : <><Copy size={12} /> Copiar</>}
                   </button>
                 </div>
@@ -417,7 +417,7 @@ export default function RegistroEmpresaPage() {
               {/* CTA principal */}
               <button onClick={irAlOnboarding}
                 className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl font-bold text-white text-sm transition-all"
-                style={{ backgroundColor: '#0F4C81' }}>
+                style={{ backgroundColor: '#3350D0' }}>
                 Ir a mi panel
                 <ArrowRight size={15} />
               </button>

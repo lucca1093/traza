@@ -101,7 +101,7 @@ export default function RegistroPage() {
         <div className="w-full max-w-sm">
           <div className="bg-white rounded-2xl p-8 text-center shadow-sm border border-gray-100">
             <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-5"
-              style={{ backgroundColor: '#dbeafe' }}>
+              style={{ backgroundColor: '#EDEFFD' }}>
               <ShieldCheck size={26} className="text-blue-600" />
             </div>
             <h2 className="text-xl font-black text-gray-900 mb-2">¡Tu cuenta está lista!</h2>
@@ -115,7 +115,7 @@ export default function RegistroPage() {
             </div>
             <button onClick={() => router.push('/dashboard')}
               className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-white text-sm"
-              style={{ backgroundColor: '#0F4C81' }}>
+              style={{ backgroundColor: '#3350D0' }}>
               Ir a mi espacio
               <ChevronRight size={15} />
             </button>
@@ -131,7 +131,7 @@ export default function RegistroPage() {
 
         {/* Logo */}
         <div className="flex items-center gap-2 justify-center mb-8">
-          <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ backgroundColor: '#0F4C81' }}>
+          <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ backgroundColor: '#3350D0' }}>
             <span className="text-white font-black text-sm">T</span>
           </div>
           <span className="font-black text-gray-900 tracking-tight text-lg">TRAZA</span>
@@ -194,7 +194,7 @@ export default function RegistroPage() {
 
             <button type="submit" disabled={loading}
               className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-white text-sm transition-all disabled:opacity-50 mt-2"
-              style={{ backgroundColor: '#0F4C81' }}>
+              style={{ backgroundColor: '#3350D0' }}>
               {loading ? 'Creando cuenta...' : 'Crear mi cuenta TRAZA'}
               {!loading && <ChevronRight size={15} />}
             </button>

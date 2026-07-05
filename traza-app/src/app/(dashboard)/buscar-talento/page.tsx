@@ -12,7 +12,7 @@ type NivelFiltro = 'todos' | 'elite' | 'avanzado' | 'profesional' | 'inicial'
 const NIVEL_TABS: { key: NivelFiltro; label: string; color: string; min: number; max: number }[] = [
   { key: 'todos',       label: 'Todos',         color: '#6b7280', min: 0,  max: 100 },
   { key: 'elite',       label: 'Elite  85+',    color: '#d97706', min: 85, max: 100 },
-  { key: 'avanzado',    label: 'Avanzado 65+',  color: '#2563eb', min: 65, max: 84  },
+  { key: 'avanzado',    label: 'Avanzado 65+',  color: '#3350D0', min: 65, max: 84  },
   { key: 'profesional', label: 'Profesional',   color: '#16a34a', min: 40, max: 64  },
   { key: 'inicial',     label: 'En desarrollo', color: '#9ca3af', min: 0,  max: 39  },
 ]
@@ -128,9 +128,11 @@ export default function BuscarTalentoPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Buscar Talento</h1>
-        <p className="text-gray-500 mt-1">Explorá el equipo filtrado por score, área y nivel de desempeño.</p>
+      <div className="traza-page-header">
+        <div>
+          <h1 className="traza-page-title">Buscar Talento</h1>
+          <p className="traza-page-sub">Explorá el equipo filtrado por score, área y nivel de desempeño.</p>
+        </div>
       </div>
 
       {/* Tabs de nivel */}
@@ -200,7 +202,7 @@ export default function BuscarTalentoPage() {
 
                 {/* Avatar */}
                 <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 text-sm font-bold"
-                  style={{ backgroundColor: '#243B6A', color: '#93C5FD' }}>
+                  style={{ backgroundColor: '#1C2B90', color: '#8899EE' }}>
                   {iniciales}
                 </div>
 
@@ -214,7 +216,7 @@ export default function BuscarTalentoPage() {
                   <div className="mt-2 space-y-1">
                     <div className="flex items-center gap-2">
                       <span className="text-xs text-gray-400 w-20 flex-shrink-0">Resultados</span>
-                      <MiniBar val={indice.moduloA} color="#2563eb" />
+                      <MiniBar val={indice.moduloA} color="#3350D0" />
                       <span className="text-xs font-semibold text-gray-600 w-6 text-right">{indice.moduloA}</span>
                     </div>
                     <div className="flex items-center gap-2">

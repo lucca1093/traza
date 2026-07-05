@@ -72,10 +72,10 @@ export default function TalentCardPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-start justify-between flex-wrap gap-4">
+      <div className="traza-page-header">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Talent Card</h1>
-          <p className="text-gray-500 mt-1">Credencial profesional basada en desempeño verificable.</p>
+          <h1 className="traza-page-title">Talent Card</h1>
+          <p className="traza-page-sub">Credencial profesional basada en desempeño verificable.</p>
         </div>
         {profile?.rol !== 'empleado' && personas.length > 0 && (
           <select
@@ -97,7 +97,7 @@ export default function TalentCardPage() {
             {/* Header con fondo */}
             <div className="bg-gradient-to-br from-traza-700 to-traza-800 px-8 py-8">
               <p className="text-traza-300 text-xs font-semibold uppercase tracking-widest mb-4">
-                TALENT CARD · TRAZA
+                TALENT CARD · traza
               </p>
               <div className="flex items-end justify-between gap-4 flex-wrap">
                 <div>
@@ -124,9 +124,9 @@ export default function TalentCardPage() {
                   <span className="text-sm text-gray-400">{indice.score}/100 · score verificado</span>
                 </div>
                 {[
-                  { label: 'Resultados',   pct: '35%', val: indice.moduloA,    color: '#0F4C81' },
-                  { label: 'Cumplimiento', pct: '25%', val: indice.moduloB,    color: '#0F4C81' },
-                  { label: 'Proactividad', pct: '20%', val: indice.moduloC,    color: '#0F4C81' },
+                  { label: 'Resultados',   pct: '35%', val: indice.moduloA,    color: '#3350D0' },
+                  { label: 'Cumplimiento', pct: '25%', val: indice.moduloB,    color: '#3350D0' },
+                  { label: 'Proactividad', pct: '20%', val: indice.moduloC,    color: '#3350D0' },
                   { label: 'Alineación',   pct: '10%', val: indice.alineacion, color: '#0891b2' },
                   { label: 'Evolución',    pct: '10%', val: indice.evolucion,  color: '#d97706' },
                 ].map(m => (
@@ -143,22 +143,22 @@ export default function TalentCardPage() {
               </div>
 
               {/* Métricas */}
-              <div className="grid grid-cols-2 gap-4 pt-2">
-                <div className="bg-gray-50 rounded-xl p-4">
-                  <p className="text-2xl font-bold text-gray-900">{indice.total}</p>
-                  <p className="text-sm text-gray-500">Objetivos totales</p>
+              <div className="grid grid-cols-2 gap-3 pt-2">
+                <div className="rounded-xl p-4" style={{ backgroundColor: '#F8FAFC', border: '1px solid #E2E8F0' }}>
+                  <p className="text-2xl font-bold" style={{ color: '#0F172A', fontFamily: "'Plus Jakarta Sans', system-ui", letterSpacing: '-0.03em' }}>{indice.total}</p>
+                  <p className="text-sm mt-0.5" style={{ color: '#94A3B8' }}>Objetivos totales</p>
                 </div>
-                <div className="bg-green-50 rounded-xl p-4">
-                  <p className="text-2xl font-bold text-green-700">{indice.completados}</p>
-                  <p className="text-sm text-green-600">Completados</p>
+                <div className="rounded-xl p-4" style={{ backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0' }}>
+                  <p className="text-2xl font-bold" style={{ color: '#15803d', fontFamily: "'Plus Jakarta Sans', system-ui", letterSpacing: '-0.03em' }}>{indice.completados}</p>
+                  <p className="text-sm mt-0.5" style={{ color: '#16a34a' }}>Completados</p>
                 </div>
-                <div className="bg-blue-50 rounded-xl p-4">
-                  <p className="text-2xl font-bold text-blue-700">{indice.positivos}</p>
-                  <p className="text-sm text-blue-600">Validaciones ✓</p>
+                <div className="rounded-xl p-4" style={{ backgroundColor: '#EDEFFD', border: '1px solid #BBC5F7' }}>
+                  <p className="text-2xl font-bold" style={{ color: '#1C2B90', fontFamily: "'Plus Jakarta Sans', system-ui", letterSpacing: '-0.03em' }}>{indice.positivos}</p>
+                  <p className="text-sm mt-0.5" style={{ color: '#3350D0' }}>Validaciones ✓</p>
                 </div>
-                <div className="bg-yellow-50 rounded-xl p-4">
-                  <p className="text-2xl font-bold text-yellow-700">{indice.cumplimiento}%</p>
-                  <p className="text-sm text-yellow-600">Cumplimiento</p>
+                <div className="rounded-xl p-4" style={{ backgroundColor: '#fffbeb', border: '1px solid #fde68a' }}>
+                  <p className="text-2xl font-bold" style={{ color: '#b45309', fontFamily: "'Plus Jakarta Sans', system-ui", letterSpacing: '-0.03em' }}>{indice.cumplimiento}%</p>
+                  <p className="text-sm mt-0.5" style={{ color: '#d97706' }}>Cumplimiento</p>
                 </div>
               </div>
 
@@ -181,20 +181,20 @@ export default function TalentCardPage() {
               )}
 
               {/* Resumen */}
-              <div className="bg-gray-50 rounded-xl p-4">
-                <p className="text-sm text-gray-600">
-                  <strong>{persona.nombre} {persona.apellido}</strong> se desempeña
+              <div className="rounded-xl p-4" style={{ backgroundColor: '#F8FAFC', border: '1px solid #E2E8F0' }}>
+                <p className="text-sm leading-relaxed" style={{ color: '#475569' }}>
+                  <strong style={{ color: '#0F172A' }}>{persona.nombre} {persona.apellido}</strong> se desempeña
                   {persona.area ? ` en el área de ${persona.area}` : ''}
                   {persona.cargo ? ` como ${persona.cargo}` : ''}.
-                  {' '}Posee un Índice TRAZA de <strong>{indice.score}/100</strong>,
-                  nivel <strong>{indice.nivel}</strong>, con un cumplimiento
-                  de objetivos del <strong>{indice.cumplimiento}%</strong>.
+                  {' '}Posee un Índice Traza de <strong style={{ color: '#1C2B90' }}>{indice.score}/100</strong>,
+                  nivel <strong style={{ color: '#0F172A' }}>{indice.nivel}</strong>, con un cumplimiento
+                  de objetivos del <strong style={{ color: '#0F172A' }}>{indice.cumplimiento}%</strong>.
                 </p>
               </div>
 
               {/* Footer */}
-              <div className="flex items-center justify-between text-xs text-gray-400 pt-2 border-t border-gray-100">
-                <span>TRAZA Performance Intelligence Platform</span>
+              <div className="flex items-center justify-between text-xs pt-3" style={{ color: '#CBD5E1', borderTop: '1px solid #F1F5F9' }}>
+                <span style={{ color: '#94A3B8', fontWeight: 600, letterSpacing: '-0.01em' }}>traza</span>
                 <span>{new Date().toLocaleDateString('es-AR')}</span>
               </div>
             </div>

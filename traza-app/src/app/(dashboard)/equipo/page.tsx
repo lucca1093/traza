@@ -124,29 +124,36 @@ export default function EquipoPage() {
   })
 
   if (loading) {
-    return <div className="text-gray-400 py-12 text-center">Cargando equipo...</div>
+    return <div className="py-16 text-center text-sm" style={{ color: '#94A3B8' }}>Cargando equipo...</div>
   }
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-start justify-between">
+      <div className="traza-page-header">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Mi Equipo</h1>
-          <p className="text-gray-500 mt-1 text-sm">
+          <h1 className="traza-page-title">Mi Equipo</h1>
+          <p className="traza-page-sub">
             {miembros.length} colaborador{miembros.length !== 1 ? 'es' : ''} · visión consolidada del equipo
           </p>
         </div>
 
         {/* Ordenar */}
-        <div className="flex gap-1 bg-gray-100 p-0.5 rounded-lg">
+        <div className="flex gap-0.5 p-0.5 rounded-lg" style={{ backgroundColor: '#F1F5F9', border: '1px solid #E2E8F0' }}>
           {([
             { key: 'score',     label: 'Por score'    },
             { key: 'actividad', label: 'Por actividad' },
             { key: 'nombre',    label: 'Por nombre'   },
           ] as const).map(({ key, label }) => (
-            <button key={key} onClick={() => setOrdenPor(key)}
-              className={`text-xs px-2.5 py-1 rounded-md font-medium transition-all ${ordenPor === key ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
+            <button
+              key={key}
+              onClick={() => setOrdenPor(key)}
+              className="text-xs px-2.5 py-1.5 rounded-md font-semibold transition-all"
+              style={ordenPor === key
+                ? { backgroundColor: 'white', color: '#0F172A', boxShadow: '0 1px 2px rgba(15,23,42,0.06)' }
+                : { color: '#64748B' }
+              }
+            >
               {label}
             </button>
           ))}
@@ -165,18 +172,18 @@ export default function EquipoPage() {
         )
 
         return (
-          <div className="grid grid-cols-3 gap-3">
-            <div className="traza-card p-4 text-center">
-              <p className="text-2xl font-bold" style={{ color: scoreColor(promedioScore) }}>{promedioScore}</p>
-              <p className="text-xs text-gray-500 mt-0.5">Score promedio del equipo</p>
+          <div className="grid grid-cols-3 gap-4">
+            <div className="traza-card p-5 text-center">
+              <p className="text-3xl font-bold" style={{ color: scoreColor(promedioScore), fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", letterSpacing: '-0.04em' }}>{promedioScore}</p>
+              <p className="text-xs mt-1 font-medium" style={{ color: '#94A3B8' }}>Score promedio del equipo</p>
             </div>
-            <div className="traza-card p-4 text-center">
-              <p className={`text-2xl font-bold ${sinActividad > 0 ? 'text-amber-600' : 'text-gray-400'}`}>{sinActividad}</p>
-              <p className="text-xs text-gray-500 mt-0.5">Sin actividad +14 días</p>
+            <div className="traza-card p-5 text-center">
+              <p className="text-3xl font-bold" style={{ color: sinActividad > 0 ? '#D97706' : '#CBD5E1', fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", letterSpacing: '-0.04em' }}>{sinActividad}</p>
+              <p className="text-xs mt-1 font-medium" style={{ color: '#94A3B8' }}>Sin actividad +14 días</p>
             </div>
-            <div className="traza-card p-4 text-center">
-              <p className="text-2xl font-bold text-gray-900">{conCierre}/{miembros.length}</p>
-              <p className="text-xs text-gray-500 mt-0.5">Cierre semanal esta semana</p>
+            <div className="traza-card p-5 text-center">
+              <p className="text-3xl font-bold" style={{ color: '#0F172A', fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", letterSpacing: '-0.04em' }}>{conCierre}/{miembros.length}</p>
+              <p className="text-xs mt-1 font-medium" style={{ color: '#94A3B8' }}>Cierre semanal esta semana</p>
             </div>
           </div>
         )
@@ -185,7 +192,7 @@ export default function EquipoPage() {
       {/* Tabla del equipo */}
       <div className="traza-card overflow-hidden">
         {/* Header columnas */}
-        <div className="grid grid-cols-12 gap-2 px-5 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wide border-b border-gray-100 bg-gray-50">
+        <div className="grid grid-cols-12 gap-2 px-5 py-3 text-xs font-semibold uppercase tracking-wider" style={{ color: '#94A3B8', backgroundColor: '#F8FAFC', borderBottom: '1px solid #E2E8F0' }}>
           <div className="col-span-3">Colaborador</div>
           <div className="col-span-2 text-center">Índice Traza</div>
           <div className="col-span-2 text-center">Objetivos</div>
@@ -210,7 +217,10 @@ export default function EquipoPage() {
                 <Link
                   key={persona.id}
                   href={`/objetivos?persona=${persona.id}`}
-                  className="grid grid-cols-12 gap-2 items-center px-5 py-4 hover:bg-gray-50 transition-colors group"
+                  className="grid grid-cols-12 gap-2 items-center px-5 py-4 transition-colors group"
+                  style={{ borderBottom: '1px solid #F8FAFC' }}
+                  onMouseEnter={e => (e.currentTarget as HTMLAnchorElement).style.backgroundColor = '#F8FAFC'}
+                  onMouseLeave={e => (e.currentTarget as HTMLAnchorElement).style.backgroundColor = 'transparent'}
                 >
                   {/* Colaborador */}
                   <div className="col-span-3 flex items-center gap-3 min-w-0">

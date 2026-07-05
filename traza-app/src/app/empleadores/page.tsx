@@ -143,7 +143,7 @@ export default async function EmpleadoresPage() {
       <nav className="sticky top-0 z-20 border-b" style={{ backgroundColor: 'rgba(10,22,40,0.97)', borderColor: 'rgba(255,255,255,0.07)', backdropFilter: 'blur(12px)' }}>
         <div className="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#0F4C81' }}>
+            <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#3350D0' }}>
               <span className="text-white text-xs font-black">T</span>
             </div>
             <span className="text-white font-black tracking-tight text-sm">TRAZA</span>
@@ -155,7 +155,7 @@ export default async function EmpleadoresPage() {
           <div className="flex items-center gap-2">
             <Link href="/registro/empresa"
               className="text-sm font-bold px-4 py-2 rounded-xl transition-all text-white"
-              style={{ backgroundColor: '#0F4C81', border: '1px solid rgba(255,255,255,0.15)' }}>
+              style={{ backgroundColor: '#3350D0', border: '1px solid rgba(255,255,255,0.15)' }}>
               Registrar empresa
             </Link>
             <Link href="/login"
@@ -168,7 +168,7 @@ export default async function EmpleadoresPage() {
       </nav>
 
       {/* ── HERO ─────────────────────────────────────────────── */}
-      <div style={{ background: 'linear-gradient(145deg, #060f1f 0%, #0d2a4a 45%, #0F4C81 100%)' }}>
+      <div style={{ background: 'linear-gradient(145deg, #060D2E 0%, #0D1850 45%, #3350D0 100%)' }}>
         <div className="max-w-6xl mx-auto px-6 pt-20 pb-16">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             {/* Copy */}
@@ -181,7 +181,7 @@ export default async function EmpleadoresPage() {
 
               <h1 className="text-5xl font-black text-white leading-tight mb-5" style={{ letterSpacing: '-0.025em' }}>
                 Contratá talento<br />
-                <span style={{ color: '#60A5FA' }}>verificado,</span><br />
+                <span style={{ color: '#8899EE' }}>verificado,</span><br />
                 <span style={{ color: 'rgba(255,255,255,0.5)' }}>no declarado.</span>
               </h1>
 
@@ -208,7 +208,7 @@ export default async function EmpleadoresPage() {
               <div className="flex flex-col sm:flex-row gap-3">
                 <Link href="/registro/empresa"
                   className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl font-bold text-white text-sm transition-all hover:opacity-90"
-                  style={{ background: 'linear-gradient(135deg, #0F4C81, #1e6fb5)', boxShadow: '0 4px 24px rgba(15,76,129,0.5)' }}>
+                  style={{ background: 'linear-gradient(135deg, #1C2B90, #3350D0)', boxShadow: '0 4px 24px rgba(28,43,144,0.35)' }}>
                   <Sparkles size={15} />
                   Registrar mi empresa gratis
                   <ArrowRight size={15} />
@@ -231,7 +231,7 @@ export default async function EmpleadoresPage() {
                 </div>
                 <div className="flex items-center gap-3 mb-4">
                   <div className="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold"
-                    style={{ backgroundColor: 'rgba(255,255,255,0.1)', color: '#93C5FD' }}>ML</div>
+                    style={{ backgroundColor: 'rgba(255,255,255,0.1)', color: '#8899EE' }}>ML</div>
                   <div>
                     <p className="text-white font-bold text-sm">María L.</p>
                     <p className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>Product Manager · Tech</p>
@@ -242,7 +242,7 @@ export default async function EmpleadoresPage() {
                   </div>
                 </div>
                 {[
-                  { label: 'Resultados validados', val: 94, color: '#2563eb' },
+                  { label: 'Resultados validados', val: 94, color: '#3350D0' },
                   { label: 'Cumplimiento',          val: 100, color: '#16a34a' },
                   { label: 'Proactividad',           val: 78, color: '#7c3aed' },
                   { label: 'Alineación',             val: 90, color: '#0891b2' },
@@ -308,7 +308,7 @@ export default async function EmpleadoresPage() {
             </div>
             <div className="h-6 w-px bg-gray-200 hidden sm:block" />
             <div>
-              <span className="text-2xl font-black" style={{ color: '#2563eb' }}>{pctAltoDesempeno}%</span>
+              <span className="text-2xl font-black" style={{ color: '#3350D0' }}>{pctAltoDesempeno}%</span>
               <span className="text-sm text-gray-400 ml-2">con score Avanzado o Elite</span>
             </div>
             <div className="ml-auto hidden lg:flex items-center gap-1.5 text-xs text-gray-400">
@@ -336,7 +336,7 @@ export default async function EmpleadoresPage() {
       </div>
 
       {/* ── CTA EMPRESAS ─────────────────────────────────────── */}
-      <div style={{ backgroundColor: '#060f1f' }}>
+      <div style={{ backgroundColor: '#060D2E' }}>
         <div className="max-w-6xl mx-auto px-6 py-20">
           <div className="max-w-2xl">
             <p className="text-xs font-semibold uppercase tracking-widest mb-4" style={{ color: 'rgba(255,255,255,0.3)' }}>Para empresas</p>
@@ -349,7 +349,7 @@ export default async function EmpleadoresPage() {
             <div className="flex gap-3 flex-wrap">
               <Link href="/login"
                 className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-white text-sm transition-all"
-                style={{ backgroundColor: '#0F4C81' }}>
+                style={{ backgroundColor: '#3350D0' }}>
                 Empezar con mi equipo
                 <ArrowRight size={15} />
               </Link>

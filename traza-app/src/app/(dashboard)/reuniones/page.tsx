@@ -146,16 +146,18 @@ export default function ReunionesPage() {
 
   const esAdmin = ['admin', 'super_admin', 'supervisor'].includes(rol)
 
-  if (loading) return <div className="text-gray-400 py-12 text-center">Cargando...</div>
+  if (loading) return (
+    <div className="py-16 text-center text-sm" style={{ color: '#94A3B8' }}>Cargando...</div>
+  )
 
   return (
     <div className="space-y-6">
 
       {/* Header */}
-      <div className="flex items-start justify-between flex-wrap gap-4">
+      <div className="traza-page-header">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Reuniones 1:1</h1>
-          <p className="text-gray-500 mt-1 text-sm">
+          <h1 className="traza-page-title">Reuniones 1:1</h1>
+          <p className="traza-page-sub">
             {esAdmin
               ? 'Registrá notas de reuniones con tu equipo. El empleado puede ver su historial.'
               : 'Historial de conversaciones con tu supervisor.'}
@@ -165,7 +167,9 @@ export default function ReunionesPage() {
           <button
             onClick={() => setShowForm(true)}
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white transition-colors"
-            style={{ backgroundColor: '#0F4C81' }}
+            style={{ backgroundColor: '#3350D0' }}
+            onMouseEnter={e => (e.currentTarget as HTMLElement).style.backgroundColor = '#2438B0'}
+            onMouseLeave={e => (e.currentTarget as HTMLElement).style.backgroundColor = '#3350D0'}
           >
             <Plus size={16} />
             Nueva reunión
@@ -194,10 +198,13 @@ export default function ReunionesPage() {
       {showForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0,0,0,0.4)' }}>
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-              <h2 className="font-bold text-gray-900">Nueva reunión 1:1</h2>
-              <button onClick={() => setShowForm(false)} className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors">
-                <X size={18} className="text-gray-500" />
+            <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: '1px solid #F1F5F9' }}>
+              <h2 className="font-bold" style={{ color: '#0F172A', fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}>Nueva reunión 1:1</h2>
+              <button onClick={() => setShowForm(false)} className="p-1.5 rounded-lg transition-colors" style={{ color: '#64748B' }}
+                onMouseEnter={e => (e.currentTarget as HTMLElement).style.backgroundColor = '#F1F5F9'}
+                onMouseLeave={e => (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent'}
+              >
+                <X size={18} />
               </button>
             </div>
 
@@ -300,15 +307,20 @@ export default function ReunionesPage() {
                 <button
                   type="submit"
                   disabled={saving || !form.empleadoId}
-                  className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-50"
-                  style={{ backgroundColor: '#0F4C81' }}
+                  className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-50 transition-colors"
+                  style={{ backgroundColor: '#3350D0' }}
+                  onMouseEnter={e => { if (!saving) (e.currentTarget as HTMLElement).style.backgroundColor = '#2438B0' }}
+                  onMouseLeave={e => (e.currentTarget as HTMLElement).style.backgroundColor = '#3350D0'}
                 >
                   {saving ? 'Guardando...' : 'Guardar reunión'}
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowForm(false)}
-                  className="px-4 py-2.5 rounded-xl text-sm font-medium text-gray-600 border border-gray-200 hover:bg-gray-50 transition-colors"
+                  className="px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors"
+                  style={{ border: '1px solid #E2E8F0', color: '#475569', backgroundColor: 'white' }}
+                  onMouseEnter={e => (e.currentTarget as HTMLElement).style.backgroundColor = '#F8FAFC'}
+                  onMouseLeave={e => (e.currentTarget as HTMLElement).style.backgroundColor = 'white'}
                 >
                   Cancelar
                 </button>
@@ -338,12 +350,16 @@ export default function ReunionesPage() {
               <div key={empleado?.id} className="traza-card overflow-hidden">
                 {/* Header del grupo */}
                 <div
-                  className="px-6 py-4 flex items-center justify-between cursor-pointer hover:bg-gray-50 transition-colors"
+                  className="px-6 py-4 flex items-center justify-between cursor-pointer transition-colors"
+                  onMouseEnter={e => (e.currentTarget as HTMLElement).style.backgroundColor = '#F8FAFC'}
+                  onMouseLeave={e => (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent'}
                   onClick={() => toggleExpanded(empleado?.id)}
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-white flex-shrink-0"
-                      style={{ backgroundColor: '#0F4C81' }}>
+                    <div
+                      className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-white flex-shrink-0"
+                      style={{ background: 'linear-gradient(135deg, #1C2B90 0%, #3350D0 100%)' }}
+                    >
                       {empleado?.nombre?.[0]}{empleado?.apellido?.[0]}
                     </div>
                     <div>
@@ -365,7 +381,7 @@ export default function ReunionesPage() {
                     {/* Próxima reunión */}
                     {proximaReunion && (
                       <span className="text-xs px-2 py-0.5 rounded-full font-medium"
-                        style={{ backgroundColor: '#eff6ff', color: '#1d4ed8' }}>
+                        style={{ backgroundColor: '#EDEFFD', color: '#1C2B90' }}>
                         <Clock size={10} className="inline mr-1" />
                         Próxima: {formatFecha(proximaReunion)}
                       </span>
@@ -392,7 +408,7 @@ export default function ReunionesPage() {
                               </div>
                               {r.objetivo && (
                                 <span className="flex items-center gap-1 text-xs px-2 py-0.5 rounded-full font-medium"
-                                  style={{ backgroundColor: '#eff6ff', color: '#1d4ed8' }}>
+                                  style={{ backgroundColor: '#EDEFFD', color: '#1C2B90' }}>
                                   <Target size={10} />
                                   {r.objetivo.titulo}
                                 </span>

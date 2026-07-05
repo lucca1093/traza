@@ -18,14 +18,14 @@ function formatHora(dt: string) {
 function Iniciales({ nombre, apellido }: { nombre: string; apellido: string }) {
   return (
     <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 font-black text-sm text-white"
-      style={{ background: 'linear-gradient(135deg, #0F4C81 0%, #1e6fb5 100%)' }}>
+      style={{ background: 'linear-gradient(135deg, #1C2B90 0%, #3350D0 100%)' }}>
       {nombre[0]}{apellido[0]}
     </div>
   )
 }
 
 const CATEGORIA_COLORS: Record<string, { bg: string; text: string; label: string }> = {
-  Resultado:    { bg: '#dbeafe', text: '#1d4ed8', label: 'Resultado' },
+  Resultado:    { bg: '#EDEFFD', text: '#3350D0', label: 'Resultado' },
   Eficiencia:   { bg: '#dcfce7', text: '#15803d', label: 'Eficiencia' },
   Aprendizaje:  { bg: '#fef9c3', text: '#a16207', label: 'Aprendizaje' },
   Hábito:       { bg: '#f3e8ff', text: '#7e22ce', label: 'Hábito' },
@@ -91,10 +91,10 @@ export default async function ValidarTokenPage({ params }: { params: { token: st
       {/* Nav */}
       <nav className="sticky top-0 z-10 border-b" style={{ backgroundColor: 'rgba(10,22,40,0.97)', borderColor: 'rgba(255,255,255,0.07)' }}>
         <div className="max-w-2xl mx-auto px-5 flex items-center gap-3 py-3">
-          <div className="w-6 h-6 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#0F4C81' }}>
+          <div className="w-6 h-6 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#3350D0' }}>
             <span className="text-white text-xs font-black">T</span>
           </div>
-          <span className="text-white font-black tracking-tight text-sm">TRAZA</span>
+          <span className="text-white font-black tracking-tight text-sm">traza</span>
           <span className="text-xs px-2 py-0.5 rounded-full ml-1"
             style={{ backgroundColor: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.45)' }}>
             Validación profesional
@@ -136,11 +136,11 @@ export default async function ValidarTokenPage({ params }: { params: { token: st
           <div className="px-5 pb-5 border-t border-gray-50 pt-4">
             <p className="text-sm text-gray-600 leading-relaxed">
               Te está pidiendo que valides el cumplimiento de uno de sus objetivos de trabajo.
-              Tu evaluación quedará registrada en su credencial TRAZA con tu nombre y cargo.
+              Tu evaluación quedará registrada en su credencial traza con tu nombre y cargo.
             </p>
             <p className="text-xs text-gray-400 mt-2 flex items-center gap-1.5">
               <ShieldCheck size={11} />
-              No necesitás tener cuenta en TRAZA para validar.
+              No necesitás tener cuenta en traza para validar.
             </p>
           </div>
         </div>
@@ -330,7 +330,7 @@ function PaginaError({ mensaje }: { mensaje: string }) {
         </div>
         <p className="font-bold text-gray-700 mb-2">Link no disponible</p>
         <p className="text-sm text-gray-400 leading-relaxed">{mensaje}</p>
-        <p className="text-xs text-gray-300 mt-8 font-mono">TRAZA · Performance Intelligence</p>
+        <p className="text-xs text-gray-300 mt-8 font-mono">traza · Performance Intelligence</p>
       </div>
     </div>
   )

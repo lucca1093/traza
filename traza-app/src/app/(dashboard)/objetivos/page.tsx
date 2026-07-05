@@ -303,9 +303,11 @@ export default function ObjetivosPage() {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Gestión de Objetivos</h1>
-        <p className="text-gray-500 mt-1">Creá y administrá los objetivos del equipo.</p>
+      <div className="traza-page-header">
+        <div>
+          <h1 className="traza-page-title">Gestión de Objetivos</h1>
+          <p className="traza-page-sub">Creá y administrá los objetivos del equipo.</p>
+        </div>
       </div>
 
       {/* Formulario */}
@@ -313,7 +315,7 @@ export default function ObjetivosPage() {
         <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
           <h2 className="font-semibold text-gray-900">{editId ? 'Editar objetivo' : 'Nuevo objetivo'}</h2>
           {!editId && (
-            <div className="flex gap-1 bg-gray-100 p-1 rounded-xl text-sm">
+            <div className="traza-tabs">
               {(['individual', 'equipo', 'area', 'externo'] as const).map(m => {
                 const labels = { individual: 'Individual', equipo: 'Equipo', area: 'Por área', externo: 'Con externos' }
                 return (
@@ -321,7 +323,7 @@ export default function ObjetivosPage() {
                     key={m}
                     type="button"
                     onClick={() => { setModo(m); setPersonasGrupo([]); setBuscarPersona(''); setAreaSeleccionada(''); setExternos([]) }}
-                    className={`px-3 py-1 rounded-lg font-medium transition-all ${modo === m ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                    className={`traza-tab ${modo === m ? 'active' : ''}`}
                   >
                     {labels[m]}
                   </button>
@@ -583,20 +585,20 @@ export default function ObjetivosPage() {
 
       {/* Lista agrupada por persona */}
       <div className="traza-card overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-4 flex-wrap">
+        <div className="px-6 py-4 flex items-center gap-4 flex-wrap" style={{ borderBottom: '1px solid #E2E8F0' }}>
           {/* Pestañas */}
-          <div className="flex gap-1 bg-gray-100 p-1 rounded-xl">
+          <div className="traza-tabs">
             <button
               onClick={() => setTabObj('activos')}
-              className={`px-3 py-1 rounded-lg text-sm font-medium transition-all ${tabObj === 'activos' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+              className={`traza-tab ${tabObj === 'activos' ? 'active' : ''}`}
             >
-              Activos <span className="text-xs text-gray-400">({totalActivos})</span>
+              Activos <span className="text-xs" style={{ color: '#94A3B8' }}>({totalActivos})</span>
             </button>
             <button
               onClick={() => setTabObj('completados')}
-              className={`px-3 py-1 rounded-lg text-sm font-medium transition-all ${tabObj === 'completados' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+              className={`traza-tab ${tabObj === 'completados' ? 'active' : ''}`}
             >
-              Completados <span className="text-xs text-gray-400">({totalCompletados})</span>
+              Completados <span className="text-xs" style={{ color: '#94A3B8' }}>({totalCompletados})</span>
             </button>
           </div>
           <div className="mr-auto" />
@@ -735,7 +737,7 @@ export default function ObjetivosPage() {
 // Estado visual de revisión de avance
 const REVISION_STYLES: Record<string, { bg: string; border: string; label: string; labelColor: string }> = {
   sin_revisar: { bg: '#f9fafb', border: '#f3f4f6', label: 'Sin revisar', labelColor: '#9ca3af' },
-  visto:       { bg: '#eff6ff', border: '#bfdbfe', label: 'Visto',       labelColor: '#2563eb' },
+  visto:       { bg: '#EDEFFD', border: '#BBC5F7', label: 'Visto',       labelColor: '#3350D0' },
   aprobado:    { bg: '#f0fdf4', border: '#bbf7d0', label: 'Aprobado',    labelColor: '#16a34a' },
 }
 
@@ -924,7 +926,7 @@ function ObjetivoRow({ obj, autoExpand, onEdit, onDelete, onRefresh }: {
                     onClick={() => enviarRespuesta(a.id)}
                     disabled={respondiendo === a.id || !textoResp[a.id]?.trim()}
                     className="text-xs px-3 py-1.5 rounded-lg font-medium transition-colors disabled:opacity-40"
-                    style={{ backgroundColor: '#0F4C81', color: 'white' }}
+                    style={{ backgroundColor: '#3350D0', color: 'white' }}
                   >
                     {respondiendo === a.id ? '...' : 'Enviar'}
                   </button>
@@ -1267,7 +1269,7 @@ function GrupoRow({ grupo: g, onRefresh }: { grupo: any; onRefresh: () => void }
                   />
                   <button onClick={() => enviarRespuesta(a.id)} disabled={respondiendo === a.id || !textoResp[a.id]?.trim()}
                     className="text-xs px-3 py-1.5 rounded-lg font-medium disabled:opacity-40 text-white"
-                    style={{ backgroundColor: '#0F4C81' }}>
+                    style={{ backgroundColor: '#3350D0' }}>
                     {respondiendo === a.id ? '...' : 'Enviar'}
                   </button>
                 </div>

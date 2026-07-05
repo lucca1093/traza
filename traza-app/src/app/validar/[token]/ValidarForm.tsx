@@ -167,7 +167,7 @@ export default function ValidarForm({ token, objetivoTitulo, personaNombre }: { 
 
       <button type="submit" disabled={enviando || !calificacion || !nombre.trim()}
         className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-white text-sm transition-all disabled:opacity-50"
-        style={{ backgroundColor: '#0F4C81' }}>
+        style={{ backgroundColor: '#3350D0' }}>
         {enviando ? 'Enviando...' : 'Enviar validación'}
         {!enviando && <ChevronRight size={15} />}
       </button>

@@ -141,17 +141,17 @@ export default function PerfilPage() {
   const indice = calcularIndiceTraza(data.objetivos, data.avances)
   const { persona, objetivos } = data
 
-  const scoreColor = indice.score >= 85 ? '#16a34a' : indice.score >= 65 ? '#0F4C81' : indice.score >= 40 ? '#d97706' : '#9ca3af'
-  const scoreBg    = indice.score >= 85 ? '#dcfce7' : indice.score >= 65 ? '#dbeafe' : indice.score >= 40 ? '#fef3c7' : '#f3f4f6'
+  const scoreColor = indice.score >= 85 ? '#16a34a' : indice.score >= 65 ? '#3350D0' : indice.score >= 40 ? '#d97706' : '#9ca3af'
+  const scoreBg    = indice.score >= 85 ? '#dcfce7' : indice.score >= 65 ? '#EDEFFD' : indice.score >= 40 ? '#fef3c7' : '#F1F5F9'
   const ultimasFeedbacks = objetivos.filter(o => o.comentario_supervisor?.trim()).slice(0, 5)
   const logros = objetivos.filter(o => o.estado === 'Completado').slice(0, 5)
 
   return (
     <div className="space-y-8">
-      <div className="flex items-start justify-between flex-wrap gap-4">
+      <div className="traza-page-header">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Perfil Profesional</h1>
-          <p className="text-gray-500 mt-1">Historial de desempeño basado en objetivos y validaciones.</p>
+          <h1 className="traza-page-title">Perfil Profesional</h1>
+          <p className="traza-page-sub">Historial de desempeño basado en objetivos y validaciones.</p>
         </div>
         {profile?.rol !== 'empleado' && personas.length > 0 && (
           <select
@@ -194,7 +194,7 @@ export default function PerfilPage() {
                       rel="noopener noreferrer"
                       className="text-xs text-gray-400 hover:text-traza-700 transition-colors"
                     >
-                      Ver Credencial TRAZA →
+                      Ver credencial traza →
                     </a>
                     <a
                       href="/talent-card"
@@ -271,9 +271,9 @@ export default function PerfilPage() {
             {/* Barras */}
             <div className="space-y-3">
               {[
-                { label: 'Resultados',   pct: '35%', val: indice.moduloA,   color: '#0F4C81' },
-                { label: 'Cumplimiento', pct: '25%', val: indice.moduloB,   color: '#0F4C81' },
-                { label: 'Proactividad', pct: '20%', val: indice.moduloC,   color: '#0F4C81' },
+                { label: 'Resultados',   pct: '35%', val: indice.moduloA,   color: '#3350D0' },
+                { label: 'Cumplimiento', pct: '25%', val: indice.moduloB,   color: '#3350D0' },
+                { label: 'Proactividad', pct: '20%', val: indice.moduloC,   color: '#3350D0' },
                 { label: 'Alineación',   pct: '10%', val: indice.alineacion, color: '#0891b2' },
                 { label: 'Evolución',    pct: '10%', val: indice.evolucion,  color: '#d97706' },
               ].map(m => (
@@ -403,7 +403,7 @@ export default function PerfilPage() {
                     </div>
                     <div>
                       <p className="font-semibold text-gray-900 text-sm">
-                        Aparecer en TRAZA Empleadores
+                        Aparecer en traza Empleadores
                         {!credencialPublica && <span className="ml-2 text-xs font-normal text-gray-400">(requiere credencial activa)</span>}
                       </p>
                       <p className="text-xs text-gray-500 mt-0.5 max-w-sm">
@@ -456,7 +456,7 @@ export default function PerfilPage() {
               ].map(d => (
                 <div key={d.letra} className="flex gap-3">
                   <div className="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0 text-xs font-bold text-white"
-                    style={{ backgroundColor: '#0F4C81' }}>
+                    style={{ backgroundColor: '#3350D0' }}>
                     {d.letra}
                   </div>
                   <div>

@@ -1,127 +1,261 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800;1,14..32,400&display=swap');
+/* ── Google Fonts ─────────────────────────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800;1,14..32,400&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* ── Design Tokens ────────────────────────────────────────────────────────── */
 :root {
-  --traza-primary:   #0F4C81;
-  --traza-bg:        #F5F4F0;
-  --traza-border:    #E8E6E1;
-  --sidebar-bg:      #0D1B2A;
-  --sidebar-hover:   #1A2E42;
-  --sidebar-active:  #1E3A54;
+  /* Brand */
+  --traza-brand:       #1C2B90;   /* logo / brand */
+  --traza-primary:     #3350D0;   /* interactive / CTA */
+  --traza-primary-h:   #2438B0;   /* hover */
+
+  /* App surfaces */
+  --traza-bg:          #F8FAFC;   /* fondo app — slate-100 cool */
+  --traza-bg-raised:   #F1F5F9;   /* hover sutil */
+  --traza-card:        #FFFFFF;
+  --traza-border:      #E2E8F0;   /* border sutil */
+  --traza-border-h:    #CBD5E1;   /* border hover */
+
+  /* Typography */
+  --ink-primary:       #0F172A;
+  --ink-secondary:     #64748B;
+  --ink-muted:         #94A3B8;
+
+  /* Sidebar */
+  --sidebar-bg:        #0F172A;
+  --sidebar-hover:     #1E293B;
+  --sidebar-active:    #1C2B90;
+  --sidebar-text:      #64748B;
+  --sidebar-bright:    #E2E8F0;
+
+  /* Shadows */
+  --shadow-xs:    0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-sm:    0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-md:    0 4px 8px rgba(15, 23, 42, 0.06), 0 2px 4px rgba(15, 23, 42, 0.04);
+  --shadow-focus: 0 0 0 3px rgba(51, 80, 208, 0.20);
+
+  /* Radius */
+  --radius-sm: 0.375rem;   /*  6px */
+  --radius-md: 0.5rem;     /*  8px */
+  --radius-lg: 0.75rem;    /* 12px */
+  --radius-xl: 1rem;       /* 16px */
+  --radius-2xl: 1.25rem;   /* 20px */
 }
 
-* {
+/* ── Reset & base ─────────────────────────────────────────────────────────── */
+*, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
 
 html, body {
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
   background-color: var(--traza-bg);
-  color: #111827;
+  color: var(--ink-primary);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  line-height: 1.5;
 }
 
-/* Scrollbar sutil */
-::-webkit-scrollbar { width: 5px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #D1C9BC; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #A09485; }
+/* Tipografía display — headings */
+h1, h2, h3, h4 {
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  letter-spacing: -0.02em;
+}
 
+/* ── Scrollbar premium ────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
+
+/* ── Selection ────────────────────────────────────────────────────────────── */
+::selection {
+  background: rgba(51, 80, 208, 0.12);
+  color: var(--ink-primary);
+}
+
+/* ── Focus visible ────────────────────────────────────────────────────────── */
+:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+/* ── Animaciones base ─────────────────────────────────────────────────────── */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Utilities personalizadas ─────────────────────────────────────────────── */
 @layer utilities {
-  /* ── Cards ─────────────────────────────────────────── */
+
+  /* ── Cards ─────────────────────────────────────────────────────── */
   .traza-card {
-    @apply bg-white rounded-2xl shadow-sm;
-    border: 1px solid #EDEAE4;
+    @apply bg-white rounded-2xl;
+    border: 1px solid var(--traza-border);
+    box-shadow: var(--shadow-sm);
   }
 
-  /* ── Inputs ─────────────────────────────────────────── */
+  .traza-card-flat {
+    @apply bg-white rounded-2xl;
+    border: 1px solid var(--traza-border);
+  }
+
+  /* ── Inputs ─────────────────────────────────────────────────────── */
   .traza-input {
     @apply w-full px-4 py-2.5 rounded-xl text-sm
-           focus:outline-none transition-colors placeholder-gray-400 bg-white;
-    border: 1px solid #DDD9D3;
-    color: #111827;
+           transition-all placeholder-slate-500 bg-white;
+    border: 1px solid var(--traza-border);
+    color: var(--ink-primary);
+    outline: none;
+  }
+  .traza-input:hover {
+    border-color: var(--traza-border-h);
   }
   .traza-input:focus {
-    border-color: #0F4C81;
-    box-shadow: 0 0 0 3px rgba(15, 76, 129, 0.08);
+    border-color: var(--traza-primary);
+    box-shadow: var(--shadow-focus);
   }
   .traza-input:disabled {
-    opacity: 0.4;
-    background-color: #F5F4F0;
+    opacity: 0.45;
+    background-color: var(--traza-bg-raised);
+    cursor: not-allowed;
+  }
+  .traza-input::placeholder {
+    color: var(--ink-muted);
   }
 
-  /* ── Labels ─────────────────────────────────────────── */
+  /* ── Select ─────────────────────────────────────────────────────── */
+  .traza-select {
+    @apply w-full px-4 py-2.5 rounded-xl text-sm
+           transition-all bg-white appearance-none cursor-pointer;
+    border: 1px solid var(--traza-border);
+    color: var(--ink-primary);
+    outline: none;
+  }
+  .traza-select:hover  { border-color: var(--traza-border-h); }
+  .traza-select:focus  { border-color: var(--traza-primary); box-shadow: var(--shadow-focus); }
+
+  /* ── Textarea ───────────────────────────────────────────────────── */
+  .traza-textarea {
+    @apply w-full px-4 py-3 rounded-xl text-sm
+           transition-all bg-white resize-none;
+    border: 1px solid var(--traza-border);
+    color: var(--ink-primary);
+    outline: none;
+  }
+  .traza-textarea:hover { border-color: var(--traza-border-h); }
+  .traza-textarea:focus { border-color: var(--traza-primary); box-shadow: var(--shadow-focus); }
+  .traza-textarea::placeholder { color: var(--ink-muted); }
+
+  /* ── Labels ─────────────────────────────────────────────────────── */
   .traza-label {
-    @apply block text-xs font-semibold uppercase tracking-wide mb-1.5;
-    color: #6B7280;
-    letter-spacing: 0.05em;
+    @apply block text-xs font-semibold uppercase tracking-wider mb-1.5;
+    color: var(--ink-secondary);
   }
 
-  /* ── Page headers ───────────────────────────────────── */
+  /* ── Page headers ───────────────────────────────────────────────── */
+  .traza-page-header {
+    @apply flex items-start justify-between gap-4 pb-6 mb-6;
+    border-bottom: 1px solid var(--traza-border);
+  }
+
   .traza-page-title {
     @apply text-2xl font-bold tracking-tight;
-    color: #111827;
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    color: var(--ink-primary);
   }
+
   .traza-page-sub {
     @apply text-sm mt-1;
-    color: #6B7280;
+    color: var(--ink-secondary);
   }
 
-  /* ── Badges de estado (sobrescriben los anteriores) ─── */
-  .badge-completado  { background: #DCFCE7; color: #15803D; }
-  .badge-progreso    { background: #FEF9C3; color: #A16207; }
-  .badge-pendiente   { background: #FEE2E2; color: #B91C1C; }
-
-  /* ── Dividers ───────────────────────────────────────── */
-  .traza-divider {
-    border-color: #EDEAE4;
-  }
-
-  /* ── Tabs ───────────────────────────────────────────── */
+  /* ── Tabs ───────────────────────────────────────────────────────── */
   .traza-tabs {
     @apply flex gap-1 p-1 rounded-xl;
-    background: #EDEAE4;
+    background: #F1F5F9;
+    border: 1px solid var(--traza-border);
   }
   .traza-tab {
     @apply flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-all text-center cursor-pointer;
-    color: #6B7280;
+    color: var(--ink-secondary);
   }
   .traza-tab:hover {
-    color: #374151;
-    background: rgba(255,255,255,0.6);
+    color: var(--ink-primary);
+    background: rgba(255, 255, 255, 0.7);
   }
   .traza-tab.active {
     @apply bg-white shadow-sm;
-    color: #111827;
+    color: var(--ink-primary);
+    font-weight: 600;
   }
 
-  /* ── Empty state ────────────────────────────────────── */
+  /* ── Dividers ───────────────────────────────────────────────────── */
+  .traza-divider {
+    border-color: var(--traza-border);
+  }
+
+  /* ── Empty state ────────────────────────────────────────────────── */
   .traza-empty {
     @apply flex flex-col items-center justify-center py-12 text-center;
   }
   .traza-empty-icon {
     @apply w-12 h-12 rounded-2xl flex items-center justify-center mb-4;
-    background: #F0EFEB;
+    background: #F1F5F9;
   }
   .traza-empty p {
-    color: #9CA3AF;
+    color: var(--ink-muted);
     font-size: 0.875rem;
   }
 
-  /* ── Page header ────────────────────────────────────── */
-  .traza-page-header {
-    @apply flex items-start justify-between gap-4 pb-6;
-    border-bottom: 1px solid #EDEAE4;
+  /* ── Badges de estado ───────────────────────────────────────────── */
+  .badge-completado {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold;
+    background: #DCFCE7; color: #15803D;
+  }
+  .badge-progreso {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold;
+    background: #DBEAFE; color: #1D4ED8;
+  }
+  .badge-pendiente {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold;
+    background: #F1F5F9; color: #475569;
+  }
+  .badge-rechazado {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold;
+    background: #FEE2E2; color: #B91C1C;
   }
 
-  /* ── Scroll fade ────────────────────────────────────── */
+  /* ── Scroll fade ────────────────────────────────────────────────── */
   .traza-scroll-fade {
     mask-image: linear-gradient(to bottom, black 85%, transparent 100%);
+  }
+
+  /* ── Animate utilities ──────────────────────────────────────────── */
+  .animate-fade-in  { animation: fadeIn 200ms cubic-bezier(0, 0, 0.2, 1); }
+  .animate-slide-up { animation: slideUp 200ms cubic-bezier(0, 0, 0.2, 1); }
+  .animate-scale-in { animation: scaleIn 150ms cubic-bezier(0.34, 1.56, 0.64, 1); }
+
+  /* ── Font display helper ────────────────────────────────────────── */
+  .font-display {
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
   }
 }

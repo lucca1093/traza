@@ -29,7 +29,7 @@ export default function AnalyticsPage() {
         <button
           onClick={() => setOpenInfo(open ? null : id)}
           className="w-5 h-5 rounded-full flex items-center justify-center text-xs font-semibold transition-colors"
-          style={{ backgroundColor: open ? '#0F4C81' : '#e5e7eb', color: open ? 'white' : '#9ca3af' }}
+          style={{ backgroundColor: open ? '#3350D0' : '#e5e7eb', color: open ? 'white' : '#9ca3af' }}
         >
           i
         </button>
@@ -239,10 +239,10 @@ export default function AnalyticsPage() {
 
   return (
     <div className="space-y-8">
-      <div className="flex items-start justify-between flex-wrap gap-4">
+      <div className="traza-page-header">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Analytics</h1>
-          <p className="text-gray-500 mt-1">Indicadores consolidados de desempeño organizacional.</p>
+          <h1 className="traza-page-title">Analytics</h1>
+          <p className="traza-page-sub">Indicadores consolidados de desempeño organizacional.</p>
         </div>
         <div className="flex items-center gap-3">
           {isSuperAdmin && (
@@ -259,7 +259,7 @@ export default function AnalyticsPage() {
             onClick={handleAnalisisIA}
             disabled={loadingIA}
             className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all disabled:opacity-50"
-            style={{ backgroundColor: '#0F4C81', color: 'white' }}
+            style={{ backgroundColor: '#3350D0', color: 'white' }}
           >
             <Sparkles size={14} />
             {loadingIA ? 'Analizando...' : 'Analizar con IA'}
@@ -269,18 +269,21 @@ export default function AnalyticsPage() {
 
       {/* Panel análisis IA */}
       {analisisIA && (
-        <div className="rounded-2xl border p-5 relative" style={{ backgroundColor: '#f0f6ff', borderColor: '#bfdbfe' }}>
+        <div className="rounded-2xl border p-5 relative" style={{ backgroundColor: '#EDEFFD', borderColor: '#BBC5F7' }}>
           <button
             onClick={() => setAnalisisIA(null)}
-            className="absolute top-3 right-3 text-gray-400 hover:text-gray-600"
+            className="absolute top-3 right-3 transition-colors"
+            style={{ color: '#94A3B8' }}
+            onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = '#475569'}
+            onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = '#94A3B8'}
           >
             <X size={14} />
           </button>
           <div className="flex items-center gap-2 mb-3">
-            <Sparkles size={13} style={{ color: '#0F4C81' }} />
-            <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: '#0F4C81' }}>Análisis IA del equipo</p>
+            <Sparkles size={13} style={{ color: '#3350D0' }} />
+            <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: '#1C2B90' }}>Análisis IA del equipo</p>
           </div>
-          <p className="text-sm text-gray-700 leading-relaxed">{analisisIA}</p>
+          <p className="text-sm leading-relaxed" style={{ color: '#334155' }}>{analisisIA}</p>
         </div>
       )}
 
@@ -297,7 +300,7 @@ export default function AnalyticsPage() {
       {/* Top performer + Estado */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Top performer */}
-        <div className="traza-card p-6 rounded-2xl" style={{ backgroundColor: '#0F4C81' }}>
+        <div className="traza-card p-6 rounded-2xl" style={{ backgroundColor: '#3350D0' }}>
           <p className="text-xs font-semibold uppercase mb-3" style={{ color: '#85AADF' }}>Top Performer</p>
           {topPerformer ? (
             <>
@@ -459,7 +462,7 @@ export default function AnalyticsPage() {
           )}
           {ranking.map((item, i) => {
             const s          = item.indice.score
-            const scoreColor = s >= 85 ? '#16a34a' : s >= 65 ? '#0F4C81' : s >= 40 ? '#d97706' : '#9ca3af'
+            const scoreColor = s >= 85 ? '#16a34a' : s >= 65 ? '#3350D0' : s >= 40 ? '#d97706' : '#9ca3af'
             return (
               <div key={item.persona.id} className="px-6 py-4 flex items-center gap-4">
                 <span className="text-sm font-bold text-gray-300 w-6 text-center">{i + 1}</span>
@@ -569,7 +572,7 @@ export default function AnalyticsPage() {
                     {(['Excelente','Bueno','Regular','Mejorable'] as const).map(cal => {
                       const count = evalSupervisor.filter(e => e.calificacion === cal).length
                       if (count === 0) return null
-                      const colMap: Record<string, string> = { Excelente: '#16a34a', Bueno: '#2563eb', Regular: '#d97706', Mejorable: '#dc2626' }
+                      const colMap: Record<string, string> = { Excelente: '#16a34a', Bueno: '#3350D0', Regular: '#d97706', Mejorable: '#dc2626' }
                       return (
                         <span key={cal} className="text-xs px-2.5 py-1 rounded-full bg-white border font-medium" style={{ color: colMap[cal], borderColor: '#e2e8f0' }}>
                           {cal}: {count}
@@ -631,7 +634,7 @@ export default function AnalyticsPage() {
           <div className="space-y-3">
             {(stats.porCategoria ?? []).filter((c: any) => c.total > 0).map((c: any) => {
               const catColors: Record<string, { bg: string; color: string }> = {
-                Resultado:   { bg: '#dbeafe', color: '#1d4ed8' },
+                Resultado:   { bg: '#EDEFFD', color: '#3350D0' },
                 Eficiencia:  { bg: '#d1fae5', color: '#065f46' },
                 Aprendizaje: { bg: '#ede9fe', color: '#5b21b6' },
                 Hábito:      { bg: '#fef3c7', color: '#92400e' },

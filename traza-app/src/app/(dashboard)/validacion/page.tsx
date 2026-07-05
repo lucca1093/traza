@@ -228,9 +228,11 @@ export default function ValidacionPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Validación</h1>
-        <p className="text-gray-500 mt-1">Revisá y validá los objetivos completados del equipo.</p>
+      <div className="traza-page-header">
+        <div>
+          <h1 className="traza-page-title">Validación</h1>
+          <p className="traza-page-sub">Revisá y validá los objetivos completados del equipo.</p>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -238,10 +240,11 @@ export default function ValidacionPage() {
         {/* Panel izquierdo */}
         <div className="traza-card overflow-hidden">
           {/* Pestañas */}
-          <div className="flex border-b border-gray-100">
+          <div className="flex" style={{ borderBottom: '1px solid #E2E8F0' }}>
             <button
               onClick={() => { setTab('pendientes'); setSelected('') }}
-              className={`flex-1 py-3 text-sm font-medium transition-colors ${tab === 'pendientes' ? 'text-traza-700 border-b-2 border-traza-700' : 'text-gray-400 hover:text-gray-600'}`}
+              className={`flex-1 py-3 text-sm font-medium transition-colors ${tab === 'pendientes' ? 'border-b-2 border-traza-500' : ''}`}
+              style={{ color: tab === 'pendientes' ? '#3350D0' : '#94A3B8' }}
             >
               Por validar
               {pendientes.length > 0 && (
@@ -252,11 +255,12 @@ export default function ValidacionPage() {
             </button>
             <button
               onClick={() => { setTab('validados'); setSelected('') }}
-              className={`flex-1 py-3 text-sm font-medium transition-colors ${tab === 'validados' ? 'text-traza-700 border-b-2 border-traza-700' : 'text-gray-400 hover:text-gray-600'}`}
+              className={`flex-1 py-3 text-sm font-medium transition-colors ${tab === 'validados' ? 'border-b-2 border-traza-500' : ''}`}
+              style={{ color: tab === 'validados' ? '#3350D0' : '#94A3B8' }}
             >
               Validados
               {validados.length > 0 && (
-                <span className="ml-1.5 border border-gray-200 text-gray-400 bg-white text-xs font-semibold px-1.5 py-0.5 rounded-md">
+                <span className="ml-1.5 text-xs font-semibold px-1.5 py-0.5 rounded-md" style={{ backgroundColor: '#F1F5F9', color: '#64748B', border: '1px solid #E2E8F0' }}>
                   {validados.length}
                 </span>
               )}
@@ -424,7 +428,7 @@ export default function ValidacionPage() {
 
                       const estadoConfig: Record<string, { bg: string; border: string; label: string; color: string }> = {
                         sin_revisar: { bg: '#f9fafb', border: '#e5e7eb', label: 'Sin revisar', color: '#9ca3af' },
-                        visto:       { bg: '#eff6ff', border: '#bfdbfe', label: 'Visto',       color: '#2563eb' },
+                        visto:       { bg: '#EDEFFD', border: '#BBC5F7', label: 'Visto',       color: '#3350D0' },
                         aprobado:    { bg: '#f0fdf4', border: '#bbf7d0', label: 'Aprobado',    color: '#16a34a' },
                         a_revisar:   { bg: '#fff1f2', border: '#fecaca', label: 'A revisar',   color: '#dc2626' },
                       }
@@ -474,7 +478,7 @@ export default function ValidacionPage() {
                                   onClick={() => handleGuardarComentario(a.id)}
                                   disabled={savingRespuesta === a.id}
                                   className="text-xs font-medium text-white px-3 py-1.5 rounded-lg disabled:opacity-40"
-                                  style={{ backgroundColor: '#0F4C81' }}>
+                                  style={{ backgroundColor: '#3350D0' }}>
                                   {savingRespuesta === a.id ? 'Guardando...' : 'Guardar comentario'}
                                 </button>
                                 <button
@@ -494,7 +498,7 @@ export default function ValidacionPage() {
                                 {([
                                   { key: 'aprobado',  label: 'Aprobado',  activeColor: '#16a34a', activeBg: '#dcfce7' },
                                   { key: 'a_revisar', label: 'A revisar', activeColor: '#dc2626', activeBg: '#fee2e2' },
-                                  { key: 'visto',     label: 'Visto',     activeColor: '#2563eb', activeBg: '#dbeafe' },
+                                  { key: 'visto',     label: 'Visto',     activeColor: '#3350D0', activeBg: '#EDEFFD' },
                                 ] as const).map(({ key, label, activeColor, activeBg }) => (
                                   <button key={key}
                                     onClick={() => handleCambiarEstado(a.id, key)}
@@ -515,7 +519,7 @@ export default function ValidacionPage() {
                                   setReplyOpen(prev => ({ ...prev, [a.id]: !prev[a.id] }))
                                 }}
                                 className="text-xs font-medium transition-colors"
-                                style={{ color: isReplying ? '#0F4C81' : '#9ca3af' }}>
+                                style={{ color: isReplying ? '#3350D0' : '#9ca3af' }}>
                                 {a.respuesta_supervisor ? 'Editar comentario' : 'Comentar'}
                               </button>
                             </div>

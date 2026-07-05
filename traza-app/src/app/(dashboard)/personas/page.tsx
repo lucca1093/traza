@@ -142,10 +142,10 @@ export default function PersonasPage() {
 
   return (
     <div className="space-y-8">
-      <div className="flex items-start justify-between flex-wrap gap-4">
+      <div className="traza-page-header">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Personas</h1>
-          <p className="text-gray-500 mt-1">Administrá los colaboradores de cada empresa.</p>
+          <h1 className="traza-page-title">Personas</h1>
+          <p className="traza-page-sub">Administrá los colaboradores de cada empresa.</p>
         </div>
         <Button onClick={() => setShowInvite(!showInvite)}>
           <Mail size={15} strokeWidth={1.75} className="mr-2" />

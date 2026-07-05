@@ -160,9 +160,9 @@ export default function ReportesPage() {
       const i = calcularIndiceTraza(obs)
       const nombre = persona ? `${persona.nombre} ${persona.apellido}` : 'Sin asignar'
       const or = obs.map((o: any) => `<tr><td style="padding:6px 10px;border-bottom:1px solid #f0f0f0">${o.titulo}</td><td style="padding:6px 10px;border-bottom:1px solid #f0f0f0;text-align:center">${o.prioridad}</td><td style="padding:6px 10px;border-bottom:1px solid #f0f0f0;text-align:center">${o.estado}</td><td style="padding:6px 10px;border-bottom:1px solid #f0f0f0;text-align:center">${o.validacion??'—'}</td><td style="padding:6px 10px;border-bottom:1px solid #f0f0f0;font-size:11px;color:#666">${o.comentario_supervisor??'—'}</td></tr>`).join('')
-      return `<div style="margin-bottom:32px;break-inside:avoid"><div style="display:flex;justify-content:space-between;align-items:center;background:#0F4C81;color:white;padding:10px 14px;border-radius:8px 8px 0 0"><div><strong style="font-size:14px">${nombre}</strong><span style="font-size:12px;margin-left:10px;opacity:.8">${persona?.cargo??''}${persona?.area?` · ${persona.area}`:''}</span></div><div style="text-align:right"><span style="font-size:20px;font-weight:bold">${i.score}</span><span style="font-size:11px;opacity:.8">/100</span><div style="font-size:11px;opacity:.7">${i.completados}/${i.total} completados</div></div></div><table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="background:#f8f9fa"><th style="padding:7px 10px;text-align:left;font-weight:600;color:#555">Objetivo</th><th style="padding:7px 10px;text-align:center;font-weight:600;color:#555">Prioridad</th><th style="padding:7px 10px;text-align:center;font-weight:600;color:#555">Estado</th><th style="padding:7px 10px;text-align:center;font-weight:600;color:#555">Validación</th><th style="padding:7px 10px;text-align:left;font-weight:600;color:#555">Comentario</th></tr></thead><tbody>${or}</tbody></table></div>`
+      return `<div style="margin-bottom:32px;break-inside:avoid"><div style="display:flex;justify-content:space-between;align-items:center;background:#3350D0;color:white;padding:10px 14px;border-radius:8px 8px 0 0"><div><strong style="font-size:14px">${nombre}</strong><span style="font-size:12px;margin-left:10px;opacity:.8">${persona?.cargo??''}${persona?.area?` · ${persona.area}`:''}</span></div><div style="text-align:right"><span style="font-size:20px;font-weight:bold">${i.score}</span><span style="font-size:11px;opacity:.8">/100</span><div style="font-size:11px;opacity:.7">${i.completados}/${i.total} completados</div></div></div><table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="background:#f8f9fa"><th style="padding:7px 10px;text-align:left;font-weight:600;color:#555">Objetivo</th><th style="padding:7px 10px;text-align:center;font-weight:600;color:#555">Prioridad</th><th style="padding:7px 10px;text-align:center;font-weight:600;color:#555">Estado</th><th style="padding:7px 10px;text-align:center;font-weight:600;color:#555">Validación</th><th style="padding:7px 10px;text-align:left;font-weight:600;color:#555">Comentario</th></tr></thead><tbody>${or}</tbody></table></div>`
     }).join('')
-    pw.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Reporte Traza — ${fecha}</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,Arial,sans-serif;color:#1a1a1a;padding:40px}@media print{body{padding:20px}}</style></head><body><div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:32px;padding-bottom:16px;border-bottom:2px solid #0F4C81"><div><div style="font-size:22px;font-weight:800;color:#0F4C81">TRAZA</div><div style="font-size:16px;font-weight:600;margin-top:4px">Reporte de Performance</div></div><div style="text-align:right;font-size:12px;color:#666"><div>${fecha}</div></div></div>${rows}</body></html>`)
+    pw.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Reporte traza — ${fecha}</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;color:#0F172A;padding:40px;background:#fff}h1,h2,h3{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;letter-spacing:-0.02em}@media print{body{padding:20px}}</style></head><body><div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:32px;padding-bottom:16px;border-bottom:2px solid #E2E8F0"><div style="display:flex;align-items:center;gap:12px"><div style="width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#1C2B90,#3350D0);display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 36 36" fill="none"><rect x="9" y="10" width="18" height="3" rx="1.5" fill="white"/><path d="M 25 13 L 11 23" stroke="white" stroke-width="2.5" stroke-linecap="round"/><rect x="9" y="23" width="18" height="3" rx="1.5" fill="white"/></svg></div><div><div style="font-size:20px;font-weight:800;color:#1C2B90;letter-spacing:-0.03em">traza</div><div style="font-size:13px;font-weight:500;color:#64748B;margin-top:1px">Reporte de Performance</div></div></div><div style="text-align:right;font-size:12px;color:#94A3B8"><div>${fecha}</div></div></div>${rows}</body></html>`)
     pw.document.close(); setTimeout(() => pw.print(), 400)
   }
 
@@ -213,19 +213,20 @@ export default function ReportesPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Reportes</h1>
-        <p className="text-gray-500 mt-1 text-sm">Exportá datos de performance y gestioná los ciclos de evaluación.</p>
+      <div className="traza-page-header">
+        <div>
+          <h1 className="traza-page-title">Reportes</h1>
+          <p className="traza-page-sub">Exportá datos de performance y gestioná los ciclos de evaluación.</p>
+        </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 bg-gray-100 p-1 rounded-xl w-fit">
+      <div className="traza-tabs">
         {([
           { key: 'reportes', label: 'Reporte general' },
           { key: 'periodos', label: 'Períodos de evaluación' },
         ] as const).map(({ key, label }) => (
-          <button key={key} onClick={() => setTab(key)}
-            className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${tab === key ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
+          <button key={key} onClick={() => setTab(key)} className={`traza-tab ${tab === key ? 'active' : ''}`}>
             {label}
           </button>
         ))}
@@ -265,56 +266,63 @@ export default function ReportesPage() {
           </div>
 
           <div className="traza-card overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-              <h2 className="font-semibold text-gray-900">
+            <div className="px-6 py-4 flex items-center justify-between" style={{ borderBottom: '1px solid #E2E8F0' }}>
+              <h2 className="font-semibold" style={{ color: '#0F172A' }}>
                 {grupos.length} colaborador{grupos.length !== 1 ? 'es' : ''} · {datos.length} objetivo{datos.length !== 1 ? 's' : ''}
               </h2>
               <button onClick={() => { const ids = grupos.map(g => g.persona?.id ?? 'sin'); const allOpen = ids.every(id => expanded.has(id)); setExpanded(allOpen ? new Set() : new Set(ids)) }}
-                className="text-xs text-gray-400 hover:text-gray-600 transition-colors">
+                className="text-xs transition-colors" style={{ color: '#94A3B8' }}
+                onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = '#64748B'}
+                onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = '#94A3B8'}>
                 {grupos.every(g => expanded.has(g.persona?.id ?? 'sin')) ? 'Cerrar todo' : 'Expandir todo'}
               </button>
             </div>
 
             {loading ? (
-              <div className="p-12 text-center text-gray-400">Cargando...</div>
+              <div className="p-12 text-center text-sm" style={{ color: '#94A3B8' }}>Cargando...</div>
             ) : grupos.length === 0 ? (
-              <div className="p-12 text-center text-gray-400">No hay datos para mostrar.</div>
+              <div className="p-12 text-center text-sm" style={{ color: '#94A3B8' }}>No hay datos para mostrar.</div>
             ) : (
-              <div className="divide-y divide-gray-100">
+              <div>
                 {grupos.map(({ persona, objetivos: obs }) => {
                   const pid    = persona?.id ?? 'sin'
                   const isOpen = expanded.has(pid)
                   const comp   = obs.filter((o: any) => o.estado === 'Completado').length
                   return (
-                    <div key={pid}>
+                    <div key={pid} style={{ borderBottom: '1px solid #F1F5F9' }}>
                       <button onClick={() => togglePersona(pid)}
-                        className="w-full flex items-center gap-4 px-6 py-4 hover:bg-gray-50 transition-colors text-left">
-                        <span className="text-gray-300 flex-shrink-0">{isOpen ? <ChevronDown size={15} /> : <ChevronRight size={15} />}</span>
-                        <div className="w-9 h-9 rounded-full bg-traza-100 flex items-center justify-center flex-shrink-0">
-                          <span className="text-traza-700 text-xs font-bold">{persona?.nombre?.[0]}{persona?.apellido?.[0]}</span>
+                        className="w-full flex items-center gap-4 px-6 py-4 transition-colors text-left"
+                        onMouseEnter={e => (e.currentTarget as HTMLElement).style.backgroundColor = '#F8FAFC'}
+                        onMouseLeave={e => (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent'}>
+                        <span className="flex-shrink-0" style={{ color: '#CBD5E1' }}>{isOpen ? <ChevronDown size={15} /> : <ChevronRight size={15} />}</span>
+                        <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(51,80,208,0.08)' }}>
+                          <span className="text-xs font-bold" style={{ color: '#3350D0' }}>{persona?.nombre?.[0]}{persona?.apellido?.[0]}</span>
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="font-semibold text-gray-900">{persona ? `${persona.nombre} ${persona.apellido}` : 'Sin asignar'}</p>
-                          <p className="text-xs text-gray-400">{persona?.cargo ?? ''}{persona?.area ? ` · ${persona.area}` : ''}</p>
+                          <p className="font-semibold" style={{ color: '#0F172A' }}>{persona ? `${persona.nombre} ${persona.apellido}` : 'Sin asignar'}</p>
+                          <p className="text-xs" style={{ color: '#94A3B8' }}>{persona?.cargo ?? ''}{persona?.area ? ` · ${persona.area}` : ''}</p>
                         </div>
-                        <div className="flex-shrink-0 text-sm text-gray-400">{comp}/{obs.length} completados</div>
+                        <div className="flex-shrink-0 text-sm" style={{ color: '#94A3B8' }}>{comp}/{obs.length} completados</div>
                       </button>
 
                       {isOpen && (
-                        <div className="bg-gray-50">
-                          <div className="grid grid-cols-12 gap-2 px-16 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wide border-b border-gray-100">
+                        <div style={{ backgroundColor: '#F8FAFC', borderTop: '1px solid #F1F5F9' }}>
+                          <div className="grid grid-cols-12 gap-2 px-16 py-2 text-xs font-semibold uppercase tracking-wide" style={{ color: '#94A3B8', borderBottom: '1px solid #E2E8F0' }}>
                             <div className="col-span-4">Objetivo</div><div className="col-span-2">Prioridad</div>
                             <div className="col-span-2">Estado</div><div className="col-span-2">Validación</div>
                             <div className="col-span-1">Vence</div><div className="col-span-1 text-center">Evidencia</div>
                           </div>
                           {obs.map((obj: any) => (
-                            <div key={obj.id} className="grid grid-cols-12 gap-2 items-center px-16 py-3 border-b border-gray-100 last:border-0 hover:bg-white transition-colors">
-                              <div className="col-span-4"><p className="text-sm font-medium text-gray-900 truncate">{obj.titulo}</p>{obj.descripcion && <p className="text-xs text-gray-400 truncate mt-0.5">{obj.descripcion}</p>}</div>
+                            <div key={obj.id} className="grid grid-cols-12 gap-2 items-center px-16 py-3 transition-colors"
+                              style={{ borderBottom: '1px solid #F1F5F9' }}
+                              onMouseEnter={e => (e.currentTarget as HTMLElement).style.backgroundColor = 'white'}
+                              onMouseLeave={e => (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent'}>
+                              <div className="col-span-4"><p className="text-sm font-medium truncate" style={{ color: '#0F172A' }}>{obj.titulo}</p>{obj.descripcion && <p className="text-xs truncate mt-0.5" style={{ color: '#94A3B8' }}>{obj.descripcion}</p>}</div>
                               <div className="col-span-2"><span className={`text-xs px-2 py-0.5 rounded-md font-medium ${getPrioridadClasses(obj.prioridad)}`}>{obj.prioridad}</span></div>
                               <div className="col-span-2"><span className={`text-xs px-2 py-0.5 rounded-md font-medium ${getEstadoClasses(obj.estado)}`}>{obj.estado}</span></div>
                               <div className="col-span-2"><span className="text-xs px-2 py-0.5 rounded-md font-medium" style={getValidacionStyle(obj.validacion)}>{obj.validacion ?? 'Sin validar'}</span></div>
-                              <div className="col-span-1 text-xs text-gray-400">{formatFecha(obj.fecha_limite)}</div>
-                              <div className="col-span-1 flex justify-center">{obj.evidencia_url ? <a href={obj.evidencia_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-xs text-traza-700 hover:underline"><Paperclip size={12} strokeWidth={1.75} />Ver</a> : <span className="text-gray-300 text-xs">—</span>}</div>
+                              <div className="col-span-1 text-xs" style={{ color: '#94A3B8' }}>{formatFecha(obj.fecha_limite)}</div>
+                              <div className="col-span-1 flex justify-center">{obj.evidencia_url ? <a href={obj.evidencia_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-xs hover:underline" style={{ color: '#3350D0' }}><Paperclip size={12} strokeWidth={1.75} />Ver</a> : <span className="text-xs" style={{ color: '#CBD5E1' }}>—</span>}</div>
                             </div>
                           ))}
                         </div>
@@ -378,7 +386,7 @@ export default function ReportesPage() {
             <>
               {abiertos.length > 0 && (
                 <div className="space-y-3">
-                  <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Período activo</h2>
+                  <h2 className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#94A3B8' }}>Período activo</h2>
                   {abiertos.map(p => (
                     <div key={p.id} className="traza-card overflow-hidden">
                       <div className="flex items-center justify-between px-6 py-4">
@@ -414,7 +422,7 @@ export default function ReportesPage() {
 
               {cerrados.length > 0 && (
                 <div className="space-y-3">
-                  <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Historial</h2>
+                  <h2 className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#94A3B8' }}>Historial de períodos</h2>
                   {cerrados.map(p => {
                     const isOpen = expandedPer.has(p.id)
                     const ress   = resumenes[p.id] ?? []
@@ -422,23 +430,31 @@ export default function ReportesPage() {
                     return (
                       <div key={p.id} className="traza-card overflow-hidden">
                         <button onClick={() => togglePer(p.id)}
-                          className="w-full flex items-center gap-4 px-6 py-4 hover:bg-gray-50 transition-colors text-left">
-                          <span className="text-gray-300 flex-shrink-0">{isOpen ? <ChevronDown size={15} /> : <ChevronRight size={15} />}</span>
-                          <Lock size={13} className="text-gray-300 flex-shrink-0" />
+                          className="w-full flex items-center gap-4 px-6 py-4 transition-colors text-left"
+                          onMouseEnter={e => (e.currentTarget as HTMLElement).style.backgroundColor = '#F8FAFC'}
+                          onMouseLeave={e => (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent'}>
+                          <span className="flex-shrink-0" style={{ color: '#CBD5E1' }}>{isOpen ? <ChevronDown size={15} /> : <ChevronRight size={15} />}</span>
+                          <Lock size={13} className="flex-shrink-0" style={{ color: '#CBD5E1' } as React.CSSProperties} />
                           <div className="flex-1 min-w-0">
-                            <p className="font-semibold text-gray-900">{p.nombre}</p>
-                            <p className="text-xs text-gray-400 mt-0.5">
+                            <p className="font-semibold" style={{ color: '#0F172A' }}>{p.nombre}</p>
+                            <p className="text-xs mt-0.5" style={{ color: '#94A3B8' }}>
                               {new Date(p.fecha_inicio+'T12:00:00').toLocaleDateString('es-AR',{day:'numeric',month:'long'})} → {new Date(p.fecha_fin+'T12:00:00').toLocaleDateString('es-AR',{day:'numeric',month:'long',year:'numeric'})} · {p.tipo}
                             </p>
                           </div>
                           <div className="flex items-center gap-6 flex-shrink-0">
-                            <div className="text-right"><p className="text-sm font-bold" style={{ color: scoreColor(prom) }}>{prom}</p><p className="text-xs text-gray-400">score prom.</p></div>
-                            <div className="text-right"><p className="text-sm font-semibold text-gray-900">{ress.length}</p><p className="text-xs text-gray-400">colaboradores</p></div>
+                            <div className="text-right">
+                              <p className="text-sm font-bold" style={{ color: scoreColor(prom), fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}>{prom}</p>
+                              <p className="text-xs" style={{ color: '#94A3B8' }}>score prom.</p>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-sm font-semibold" style={{ color: '#0F172A' }}>{ress.length}</p>
+                              <p className="text-xs" style={{ color: '#94A3B8' }}>colaboradores</p>
+                            </div>
                           </div>
                         </button>
                         {isOpen && (
-                          <div className="border-t border-gray-100">
-                            <div className="grid grid-cols-12 gap-2 px-6 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wide bg-gray-50 border-b border-gray-100">
+                          <div style={{ borderTop: '1px solid #E2E8F0' }}>
+                            <div className="grid grid-cols-12 gap-2 px-6 py-2.5 text-xs font-semibold uppercase tracking-wider" style={{ color: '#94A3B8', backgroundColor: '#F8FAFC', borderBottom: '1px solid #E2E8F0' }}>
                               <div className="col-span-4">Colaborador</div><div className="col-span-2 text-center">Score</div>
                               <div className="col-span-2 text-center">Objetivos</div><div className="col-span-2 text-center">Completados</div>
                               <div className="col-span-2 text-center">Estado</div>
@@ -446,19 +462,23 @@ export default function ReportesPage() {
                             {ress.sort((a: any, b: any) => b.score - a.score).map((r: any) => {
                               const per = personasPer.find(p => p.id === r.persona_id)
                               return (
-                                <div key={r.id} className="grid grid-cols-12 gap-2 items-center px-6 py-3 border-b border-gray-50 last:border-0">
+                                <div key={r.id} className="grid grid-cols-12 gap-2 items-center px-6 py-3" style={{ borderBottom: '1px solid #F8FAFC' }}>
                                   <div className="col-span-4 flex items-center gap-2.5">
-                                    <div className="w-7 h-7 rounded-full bg-traza-100 flex items-center justify-center flex-shrink-0">
-                                      <span className="text-traza-700 text-[10px] font-bold">{per?.nombre?.[0]}{per?.apellido?.[0]}</span>
+                                    <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(51,80,208,0.08)' }}>
+                                      <span className="text-[10px] font-bold" style={{ color: '#3350D0' }}>{per?.nombre?.[0]}{per?.apellido?.[0]}</span>
                                     </div>
                                     <div className="min-w-0">
-                                      <p className="text-sm font-medium text-gray-900 truncate">{per ? `${per.nombre} ${per.apellido}` : 'Desconocido'}</p>
-                                      <p className="text-xs text-gray-400 truncate">{per?.cargo}</p>
+                                      <p className="text-sm font-medium truncate" style={{ color: '#0F172A' }}>{per ? `${per.nombre} ${per.apellido}` : 'Desconocido'}</p>
+                                      <p className="text-xs truncate" style={{ color: '#94A3B8' }}>{per?.cargo}</p>
                                     </div>
                                   </div>
-                                  <div className="col-span-2 text-center"><span className="text-base font-bold" style={{ color: scoreColor(r.score) }}>{r.score}</span></div>
-                                  <div className="col-span-2 text-center text-sm text-gray-700">{r.total_objetivos}</div>
-                                  <div className="col-span-2 text-center text-sm text-gray-700">{r.completados} <span className="text-xs text-gray-400">({r.cumplimiento}%)</span></div>
+                                  <div className="col-span-2 text-center">
+                                    <span className="text-base font-bold" style={{ color: scoreColor(r.score), fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}>{r.score}</span>
+                                  </div>
+                                  <div className="col-span-2 text-center text-sm" style={{ color: '#334155' }}>{r.total_objetivos}</div>
+                                  <div className="col-span-2 text-center text-sm" style={{ color: '#334155' }}>
+                                    {r.completados} <span className="text-xs" style={{ color: '#94A3B8' }}>({r.cumplimiento}%)</span>
+                                  </div>
                                   <div className="col-span-2 flex justify-center"><span className={`text-xs px-2 py-0.5 rounded-md font-medium ${estadoBadge(r.estado_general)}`}>{r.estado_general}</span></div>
                                 </div>
                               )

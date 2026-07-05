@@ -2,14 +2,20 @@ import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'TRAZA - Performance Intelligence Platform',
-  description: 'Desempeño profesional verificable.',
-  icons: { icon: '/favicon.ico' },
+  title: {
+    default: 'traza — Performance Intelligence',
+    template: '%s · traza',
+  },
+  description: 'Desempeño profesional verificable. Registrá objetivos, validá resultados y construí un historial basado en evidencia real.',
+  icons: {
+    icon: '/favicon.ico',
+  },
+  themeColor: '#1C2B90',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="es">
+    <html lang="es" suppressHydrationWarning>
       <body>{children}</body>
     </html>
   )

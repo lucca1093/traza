@@ -112,7 +112,7 @@ export default function ColaborarPage({ params }: { params: { token: string } })
       {/* Header */}
       <div className="bg-white border-b border-gray-100 px-4 py-3.5">
         <div className="max-w-2xl mx-auto flex items-center gap-3">
-          <div className="w-7 h-7 rounded-lg flex items-center justify-center text-white font-bold text-sm" style={{ backgroundColor: '#0F4C81' }}>T</div>
+          <div className="w-7 h-7 rounded-lg flex items-center justify-center text-white font-bold text-sm" style={{ backgroundColor: '#3350D0' }}>T</div>
           <p className="text-xs text-gray-400 font-medium">Objetivo compartido · TRAZA</p>
         </div>
       </div>
@@ -127,7 +127,7 @@ export default function ColaborarPage({ params }: { params: { token: string } })
               <h1 className="text-xl font-bold text-gray-900">{grupo?.titulo}</h1>
               {grupo?.descripcion && <p className="text-sm text-gray-500 mt-2 leading-relaxed">{grupo.descripcion}</p>}
             </div>
-            <span className="flex-shrink-0 text-xs px-2 py-1 rounded-full font-medium" style={{ backgroundColor: '#f0f6ff', color: '#0F4C81' }}>
+            <span className="flex-shrink-0 text-xs px-2 py-1 rounded-full font-medium" style={{ backgroundColor: '#f0f6ff', color: '#3350D0' }}>
               {grupo?.prioridad}
             </span>
           </div>
@@ -253,7 +253,7 @@ export default function ColaborarPage({ params }: { params: { token: string } })
             <p className="text-xs text-gray-400">Ctrl+Enter para enviar</p>
             <button onClick={handleEnviar} disabled={!contenido.trim() || enviando}
               className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-white disabled:opacity-40 transition-colors"
-              style={{ backgroundColor: '#0F4C81' }}>
+              style={{ backgroundColor: '#3350D0' }}>
               {enviado ? <><CheckCircle size={14} />Enviado</> : <><Send size={14} />{enviando ? 'Enviando...' : 'Enviar'}</>}
             </button>
           </div>

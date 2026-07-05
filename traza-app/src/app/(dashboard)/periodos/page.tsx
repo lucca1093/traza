@@ -159,10 +159,10 @@ export default function PeriodosPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-start justify-between">
+      <div className="traza-page-header">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Períodos de Evaluación</h1>
-          <p className="text-gray-500 mt-1 text-sm">Ciclos formales de review con resumen de performance por colaborador.</p>
+          <h1 className="traza-page-title">Períodos de Evaluación</h1>
+          <p className="traza-page-sub">Ciclos formales de review con resumen de performance por colaborador.</p>
         </div>
         <Button onClick={() => setShowForm(!showForm)}>
           <Plus size={14} className="mr-1" /> Nuevo período

@@ -38,9 +38,11 @@ export default function EmpresasPage() {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Empresas</h1>
-        <p className="text-gray-500 mt-1">Gestioná las organizaciones en la plataforma.</p>
+      <div className="traza-page-header">
+        <div>
+          <h1 className="traza-page-title">Empresas</h1>
+          <p className="traza-page-sub">Gestioná las organizaciones en la plataforma.</p>
+        </div>
       </div>
 
       {/* Formulario */}

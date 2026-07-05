@@ -158,7 +158,7 @@ export default function UnirseForm({
 
       <button type="submit" disabled={loading}
         className="mt-5 w-full flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-white text-sm disabled:opacity-50 transition-all"
-        style={{ backgroundColor: '#0F4C81' }}>
+        style={{ backgroundColor: '#3350D0' }}>
         {loading ? 'Creando cuenta...' : `Unirme a ${empresaNombre}`}
         {!loading && <ChevronRight size={15} />}
       </button>

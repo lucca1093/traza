@@ -8,11 +8,11 @@ import { detectarDiscrepancia, isVencido, formatFecha, cn } from '@/lib/traza'
 import { AlertTriangle, ArrowLeft, MessageSquare, Link2, Paperclip, Plus, CheckCircle2, Star, Share2, Copy, Check, ChevronDown, ChevronUp } from 'lucide-react'
 import type { Objetivo, Persona, CategoriaObjetivo } from '@/types'
 
-// Indicador de prioridad como borde lateral
+// Indicador de prioridad como borde lateral — Sapphire Indigo system
 function prioridadBorde(prioridad: string): string {
-  if (prioridad === 'Alta')  return '#111827' // casi negro
-  if (prioridad === 'Media') return '#9ca3af' // gris medio
-  return '#e5e7eb'                            // gris claro
+  if (prioridad === 'Alta')  return '#1C2B90' // traza-700 brand
+  if (prioridad === 'Media') return '#8899EE' // traza-300 soft
+  return '#E2E8F0'                            // slate-300 muted
 }
 
 export default function MiTrabajoPage() {
@@ -125,7 +125,9 @@ export default function MiTrabajoPage() {
     setObjetivos(prev => prev.filter(o => o.id !== id))
   }
 
-  if (loading) return <div className="text-gray-400 py-12 text-center">Cargando...</div>
+  if (loading) return (
+    <div className="py-16 text-center text-sm" style={{ color: '#94A3B8' }}>Cargando...</div>
+  )
 
   const activos     = objetivos.filter(o => o.estado !== 'Completado')
   const completados = objetivos.filter(o => o.estado === 'Completado')
@@ -166,12 +168,12 @@ export default function MiTrabajoPage() {
       )}
 
       {/* Header */}
-      <div className="flex items-start justify-between">
+      <div className="traza-page-header">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Mi Trabajo</h1>
-          <p className="text-gray-500 mt-1 text-sm">Tus objetivos y avances.</p>
+          <h1 className="traza-page-title">Mi Trabajo</h1>
+          <p className="traza-page-sub">Tus objetivos y avances.</p>
         </div>
-        <Button onClick={() => setShowForm(!showForm)}>
+        <Button onClick={() => setShowForm(!showForm)} variant={showForm ? 'secondary' : 'primary'}>
           {showForm ? 'Cancelar' : '+ Objetivo personal'}
         </Button>
       </div>
@@ -182,23 +184,23 @@ export default function MiTrabajoPage() {
       {/* Stats */}
       <div className="grid grid-cols-3 gap-3">
         <div className="traza-card p-4 text-center">
-          <p className="text-2xl font-bold text-gray-900">{activos.length}</p>
-          <p className="text-sm text-gray-500">Activos</p>
+          <p className="text-2xl font-bold" style={{ color: '#0F172A', fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", letterSpacing: '-0.03em' }}>{activos.length}</p>
+          <p className="text-sm mt-0.5" style={{ color: '#64748B' }}>Activos</p>
         </div>
         <div className="traza-card p-4 text-center">
-          <p className="text-2xl font-bold text-gray-700">{completados.length}</p>
-          <p className="text-sm text-gray-500">Completados</p>
+          <p className="text-2xl font-bold" style={{ color: '#0F172A', fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", letterSpacing: '-0.03em' }}>{completados.length}</p>
+          <p className="text-sm mt-0.5" style={{ color: '#64748B' }}>Completados</p>
         </div>
         <div className="traza-card p-4 text-center">
-          <p className={`text-2xl font-bold ${vencidosN > 0 ? 'text-red-500' : 'text-gray-400'}`}>{vencidosN}</p>
-          <p className="text-sm text-gray-500">Vencidos</p>
+          <p className="text-2xl font-bold" style={{ color: vencidosN > 0 ? '#EF4444' : '#CBD5E1', fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", letterSpacing: '-0.03em' }}>{vencidosN}</p>
+          <p className="text-sm mt-0.5" style={{ color: '#64748B' }}>Vencidos</p>
         </div>
       </div>
 
       {/* Formulario nuevo objetivo */}
       {showForm && (
         <div className="traza-card p-6">
-          <h2 className="font-semibold text-gray-900 mb-4">Nuevo objetivo personal</h2>
+          <h2 className="font-semibold mb-5" style={{ color: '#0F172A', fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", letterSpacing: '-0.01em' }}>Nuevo objetivo personal</h2>
           <form onSubmit={handleCreatePersonal} className="space-y-4">
             <div>
               <label className="traza-label">Título *</label>
@@ -249,13 +251,19 @@ export default function MiTrabajoPage() {
               </div>
               <div>
                 <label className="traza-label">Tipo de objetivo</label>
-                <label className={`flex items-start gap-3 mt-1 px-3 py-3 rounded-xl border cursor-pointer transition-colors ${form.con_externo ? 'border-traza-700 bg-traza-50' : 'border-gray-200 hover:bg-gray-50'}`}>
+                <label
+                  className="flex items-start gap-3 mt-1 px-3 py-3 rounded-xl border cursor-pointer transition-colors"
+                  style={{
+                    borderColor: form.con_externo ? '#3350D0' : '#E2E8F0',
+                    backgroundColor: form.con_externo ? '#EDEFFD' : 'transparent',
+                  }}
+                >
                   <input type="checkbox" checked={form.con_externo}
                     onChange={e => setForm(f => ({ ...f, con_externo: e.target.checked }))}
-                    className="w-4 h-4 rounded accent-traza-700 mt-0.5 flex-shrink-0" />
+                    className="w-4 h-4 rounded accent-traza-500 mt-0.5 flex-shrink-0" />
                   <div>
-                    <p className="text-sm font-medium text-gray-800">Con colaborador externo</p>
-                    <p className="text-xs text-gray-500 mt-0.5">Incluye a alguien de afuera de la empresa. Podrás compartirles un link después de crear el objetivo.</p>
+                    <p className="text-sm font-semibold" style={{ color: '#0F172A' }}>Con colaborador externo</p>
+                    <p className="text-xs mt-0.5" style={{ color: '#64748B' }}>Incluye a alguien de afuera de la empresa. Podrás compartirles un link después de crear el objetivo.</p>
                   </div>
                 </label>
               </div>
@@ -267,14 +275,12 @@ export default function MiTrabajoPage() {
       )}
 
       {/* Tabs */}
-      <div className="flex gap-1 bg-gray-100 p-1 rounded-xl w-fit">
-        <button onClick={() => setTab('activos')}
-          className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${tab === 'activos' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
-          Activos {activos.length > 0 && <span className="ml-1 text-xs text-gray-400">({activos.length})</span>}
+      <div className="traza-tabs w-fit">
+        <button onClick={() => setTab('activos')} className={`traza-tab ${tab === 'activos' ? 'active' : ''}`}>
+          Activos {activos.length > 0 && <span className="ml-1 text-xs" style={{ color: '#94A3B8' }}>({activos.length})</span>}
         </button>
-        <button onClick={() => setTab('historial')}
-          className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${tab === 'historial' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
-          Historial {completados.length > 0 && <span className="ml-1 text-xs text-gray-400">({completados.length})</span>}
+        <button onClick={() => setTab('historial')} className={`traza-tab ${tab === 'historial' ? 'active' : ''}`}>
+          Historial {completados.length > 0 && <span className="ml-1 text-xs" style={{ color: '#94A3B8' }}>({completados.length})</span>}
         </button>
       </div>
 
@@ -285,20 +291,26 @@ export default function MiTrabajoPage() {
           <div className="flex items-center gap-2 flex-wrap">
 
             {/* Ordenar */}
-            <div className="flex gap-1 bg-gray-100 p-0.5 rounded-lg">
+            <div className="flex gap-0.5 p-0.5 rounded-lg" style={{ backgroundColor: '#F1F5F9', border: '1px solid #E2E8F0' }}>
               {(['prioridad', 'fecha'] as const).map(v => (
                 <button key={v} onClick={() => setOrdenPor(v)}
-                  className={`text-xs px-2.5 py-1 rounded-md font-medium transition-all capitalize ${ordenPor === v ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
+                  className="text-xs px-2.5 py-1.5 rounded-md font-semibold transition-all capitalize"
+                  style={ordenPor === v
+                    ? { backgroundColor: 'white', color: '#0F172A', boxShadow: '0 1px 2px rgba(15,23,42,0.06)' }
+                    : { color: '#64748B' }
+                  }
+                >
                   {v === 'prioridad' ? 'Por prioridad' : 'Por fecha'}
                 </button>
               ))}
             </div>
 
-            <div className="w-px h-4 bg-gray-200" />
+            <div className="w-px h-4" style={{ backgroundColor: '#E2E8F0' }} />
 
             {/* Estado */}
             <select value={filtroEstado} onChange={e => setFiltroEstado(e.target.value)}
-              className="text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 text-gray-600 bg-white font-medium focus:outline-none focus:border-gray-400">
+              className="text-xs rounded-lg px-2.5 py-1.5 font-semibold bg-white focus:outline-none"
+              style={{ border: '1px solid #E2E8F0', color: '#475569' }}>
               <option value="Todos">Estado</option>
               <option>Pendiente</option>
               <option>En progreso</option>
@@ -306,7 +318,8 @@ export default function MiTrabajoPage() {
 
             {/* Prioridad */}
             <select value={filtroPrioridad} onChange={e => setFiltroPrioridad(e.target.value)}
-              className="text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 text-gray-600 bg-white font-medium focus:outline-none focus:border-gray-400">
+              className="text-xs rounded-lg px-2.5 py-1.5 font-semibold bg-white focus:outline-none"
+              style={{ border: '1px solid #E2E8F0', color: '#475569' }}>
               <option value="Todas">Prioridad</option>
               <option>Alta</option>
               <option>Media</option>
@@ -315,7 +328,8 @@ export default function MiTrabajoPage() {
 
             {/* Tipo */}
             <select value={filtroCategoria} onChange={e => setFiltroCategoria(e.target.value)}
-              className="text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 text-gray-600 bg-white font-medium focus:outline-none focus:border-gray-400">
+              className="text-xs rounded-lg px-2.5 py-1.5 font-semibold bg-white focus:outline-none"
+              style={{ border: '1px solid #E2E8F0', color: '#475569' }}>
               <option value="Todas">Tipo</option>
               <option>Resultado</option>
               <option>Eficiencia</option>
@@ -324,13 +338,20 @@ export default function MiTrabajoPage() {
             </select>
 
             {hayFiltrosActivos && (
-              <button onClick={() => { setFiltroPrioridad('Todas'); setFiltroCategoria('Todas'); setFiltroEstado('Todos') }}
-                className="text-xs text-gray-400 hover:text-gray-600 transition-colors">
+              <button
+                onClick={() => { setFiltroPrioridad('Todas'); setFiltroCategoria('Todas'); setFiltroEstado('Todos') }}
+                className="text-xs font-medium transition-colors"
+                style={{ color: '#94A3B8' }}
+                onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = '#64748B'}
+                onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = '#94A3B8'}
+              >
                 Limpiar
               </button>
             )}
 
-            <span className="text-xs text-gray-400 ml-auto">{activosOrdenados.length} objetivo{activosOrdenados.length !== 1 ? 's' : ''}</span>
+            <span className="text-xs ml-auto" style={{ color: '#94A3B8' }}>
+              {activosOrdenados.length} objetivo{activosOrdenados.length !== 1 ? 's' : ''}
+            </span>
           </div>
 
           {activosOrdenados.length === 0 ? (
@@ -657,8 +678,15 @@ function ObjetivoCard({ obj, saving, onUpdate, onUpdateAuto, onDelete, autoExpan
   const estadoLabel = vencido ? 'Vencido' : estado === 'En progreso' ? 'En progreso' : ''
 
   return (
-    <div id={`obj-${obj.id}`} className={cn('bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden transition-all', autoExpand && 'ring-2 ring-traza-300')}
-      style={{ borderLeft: `3px solid ${borde}` }}>
+    <div
+      id={`obj-${obj.id}`}
+      className={cn('bg-white rounded-2xl overflow-hidden transition-all', autoExpand && 'ring-2 ring-traza-300')}
+      style={{
+        border: '1px solid #E2E8F0',
+        borderLeft: `3px solid ${borde}`,
+        boxShadow: '0 1px 3px rgba(15,23,42,0.05)',
+      }}
+    >
       {/* Header */}
       <div className="flex items-center justify-between px-5 py-4 cursor-pointer hover:bg-gray-50 transition-colors" onClick={() => setExpanded(!expanded)}>
         <div className="flex-1 min-w-0">
@@ -773,7 +801,7 @@ function ObjetivoCard({ obj, saving, onUpdate, onUpdateAuto, onDelete, autoExpan
                   const rev = a.estado_revision ?? 'sin_revisar'
                   const revStyle: Record<string, { bg: string; border: string; dot: string; label: string }> = {
                     sin_revisar: { bg: '#f9fafb', border: '#f3f4f6', dot: '#d1d5db', label: 'Sin revisar' },
-                    visto:       { bg: '#eff6ff', border: '#bfdbfe', dot: '#2563eb', label: 'Visto'       },
+                    visto:       { bg: '#EDEFFD', border: '#BBC5F7', dot: '#3350D0', label: 'Visto'       },
                     aprobado:    { bg: '#f0fdf4', border: '#bbf7d0', dot: '#16a34a', label: 'Aprobado'    },
                     a_revisar:   { bg: '#fff1f2', border: '#fecaca', dot: '#dc2626', label: 'A revisar'   },
                   }
@@ -820,7 +848,7 @@ function ObjetivoCard({ obj, saving, onUpdate, onUpdateAuto, onDelete, autoExpan
                   <button key={type} onClick={() => { setAddingType(type); setAddingContent('') }}
                     className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-lg font-medium transition-all"
                     style={addingType === type
-                      ? { backgroundColor: '#0F4C81', color: 'white' }
+                      ? { backgroundColor: '#3350D0', color: 'white' }
                       : { backgroundColor: '#f3f4f6', color: '#6b7280' }}>
                     {icon}{label}
                   </button>
@@ -842,7 +870,7 @@ function ObjetivoCard({ obj, saving, onUpdate, onUpdateAuto, onDelete, autoExpan
                       <button onClick={() => { setAddingType(null); setAddingContent('') }} className="text-xs text-gray-400 hover:text-gray-600 px-3 py-1.5">Cancelar</button>
                       <button onClick={addAvance} disabled={!addingContent.trim() || savingAvance}
                         className="text-xs font-semibold px-3 py-1.5 rounded-lg text-white disabled:opacity-40 transition-all"
-                        style={{ backgroundColor: '#0F4C81' }}>
+                        style={{ backgroundColor: '#3350D0' }}>
                         {savingAvance ? 'Enviando...' : 'Registrar avance'}
                       </button>
                     </div>
@@ -861,7 +889,7 @@ function ObjetivoCard({ obj, saving, onUpdate, onUpdateAuto, onDelete, autoExpan
                     <button onClick={() => { setAddingType(null); setAddingContent('') }} className="text-xs text-gray-400 hover:text-gray-600 px-3 py-1.5">Cancelar</button>
                     <button onClick={addAvance} disabled={!addingContent.trim() || savingAvance}
                       className="text-xs font-semibold px-3 py-1.5 rounded-lg text-white disabled:opacity-40"
-                      style={{ backgroundColor: '#0F4C81' }}>
+                      style={{ backgroundColor: '#3350D0' }}>
                       {savingAvance ? 'Enviando...' : 'Agregar'}
                     </button>
                   </div>
@@ -909,17 +937,17 @@ function ObjetivoCard({ obj, saving, onUpdate, onUpdateAuto, onDelete, autoExpan
                 {tokenError && <p className="text-xs text-red-500 bg-red-50 px-2 py-1 rounded-lg">{tokenError}</p>}
               </div>
             ) : (
-              <div className="rounded-xl border border-blue-100 bg-blue-50 p-3">
-                <p className="text-xs font-semibold text-blue-700 mb-1.5">Link listo — mandáselo al evaluador</p>
+              <div className="rounded-xl p-3" style={{ backgroundColor: '#EDEFFD', border: '1px solid #BBC5F7' }}>
+                <p className="text-xs font-semibold mb-1.5" style={{ color: '#1C2B90' }}>Link listo — mandáselo al evaluador</p>
                 <div className="flex items-center gap-2">
-                  <p className="text-xs text-blue-600 truncate flex-1 font-mono">{tokenUrl}</p>
+                  <p className="text-xs truncate flex-1 font-mono" style={{ color: '#3350D0' }}>{tokenUrl}</p>
                   <button onClick={copiarUrl}
                     className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1.5 rounded-lg transition-all flex-shrink-0"
-                    style={{ backgroundColor: copiado ? '#16a34a' : '#0F4C81', color: 'white' }}>
+                    style={{ backgroundColor: copiado ? '#16a34a' : '#3350D0', color: 'white' }}>
                     {copiado ? <><Check size={11} /> Copiado</> : <><Copy size={11} /> Copiar</>}
                   </button>
                 </div>
-                <p className="text-xs text-blue-400 mt-1.5">Vence en 7 días · Un solo uso</p>
+                <p className="text-xs mt-1.5" style={{ color: '#8899EE' }}>Vence en 7 días · Un solo uso</p>
               </div>
             )}
           </div>

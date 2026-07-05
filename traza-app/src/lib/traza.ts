@@ -193,9 +193,9 @@ function getBadge(nivel: NivelTraza): string {
 export function getNivelClasses(nivel: NivelTraza): string {
   const map: Record<NivelTraza, string> = {
     Elite:       'bg-yellow-50 text-yellow-700 border-yellow-200',
-    Avanzado:    'bg-blue-50 text-blue-700 border-blue-200',
+    Avanzado:    'bg-traza-50 text-traza-700 border-traza-100',
     Profesional: 'bg-green-50 text-green-700 border-green-200',
-    Inicial:     'bg-gray-50 text-gray-600 border-gray-200',
+    Inicial:     'bg-slate-50 text-slate-500 border-slate-200',
   }
   return map[nivel]
 }
@@ -203,19 +203,19 @@ export function getNivelClasses(nivel: NivelTraza): string {
 export function getEstadoClasses(estado: string): string {
   const map: Record<string, string> = {
     'Completado':  'border border-green-200 text-green-700 bg-green-50',
-    'En progreso': 'border border-blue-200 text-blue-700 bg-blue-50',
-    'Pendiente':   'border border-gray-200 text-gray-500 bg-white',
+    'En progreso': 'border border-traza-100 text-traza-700 bg-traza-50',
+    'Pendiente':   'border border-slate-200 text-slate-500 bg-white',
   }
-  return map[estado] ?? 'border border-gray-200 text-gray-500 bg-white'
+  return map[estado] ?? 'border border-slate-200 text-slate-500 bg-white'
 }
 
 export function getPrioridadClasses(prioridad: string): string {
   const map: Record<string, string> = {
-    'Alta':  'border border-gray-700 text-gray-800 bg-white',
+    'Alta':  'border border-traza-700 text-traza-700 bg-traza-50',
     'Media': 'border border-amber-300 text-amber-700 bg-amber-50',
-    'Baja':  'border border-gray-200 text-gray-400 bg-white',
+    'Baja':  'border border-slate-200 text-slate-400 bg-white',
   }
-  return map[prioridad] ?? 'border border-gray-200 text-gray-400 bg-white'
+  return map[prioridad] ?? 'border border-slate-200 text-slate-400 bg-white'
 }
 
 export function getValidacionClasses(validacion: string | null): string {
@@ -224,7 +224,7 @@ export function getValidacionClasses(validacion: string | null): string {
 
 export function getCategoriaStyle(categoria: string): { backgroundColor: string; color: string; label: string } {
   // Todos en el mismo tono neutro del sistema de diseño
-  const neutro = { backgroundColor: '#f3f4f6', color: '#374151' }
+  const neutro = { backgroundColor: '#F1F5F9', color: '#475569' }
   const map: Record<string, { backgroundColor: string; color: string; label: string }> = {
     'Resultado':    { ...neutro, label: 'Resultado'   },
     'Eficiencia':   { ...neutro, label: 'Eficiencia'  },

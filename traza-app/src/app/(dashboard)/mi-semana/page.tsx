@@ -249,10 +249,10 @@ export default function MiSemanaPage() {
     <div className="space-y-5">
 
       {/* ── Header ─────────────────────────────────────────── */}
-      <div className="flex items-start justify-between flex-wrap gap-4">
+      <div className="traza-page-header">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Mi Semana</h1>
-          <p className="text-gray-500 mt-0.5 text-sm">
+          <h1 className="traza-page-title">Mi Semana</h1>
+          <p className="traza-page-sub">
             {getSaludo(nombre)} · {DIAS_LARGO[hoy.getDay() === 0 ? 6 : hoy.getDay()-1]} {hoy.getDate()} de {MESES[hoy.getMonth()]}
           </p>
         </div>
@@ -264,10 +264,10 @@ export default function MiSemanaPage() {
               {personas.map(p => <option key={p.id} value={p.id}>{p.nombre} {p.apellido}</option>)}
             </select>
           )}
-          <div className="flex gap-1 bg-gray-100 p-1 rounded-xl">
+          <div className="traza-tabs">
             {(['semana','mes'] as const).map(v => (
               <button key={v} onClick={() => { setVista(v); setSelectedDay(null) }}
-                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all capitalize ${vista===v ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
+                className={`traza-tab ${vista === v ? 'active' : ''}`}>
                 {v.charAt(0).toUpperCase()+v.slice(1)}
               </button>
             ))}
@@ -344,7 +344,7 @@ export default function MiSemanaPage() {
               <button
                 onClick={() => setShowEvalForm(true)}
                 className="flex-shrink-0 text-xs font-semibold px-4 py-2 rounded-xl text-white transition-colors"
-                style={{ backgroundColor: '#0F4C81' }}
+                style={{ backgroundColor: '#3350D0' }}
               >
                 Evaluar ahora
               </button>
@@ -362,7 +362,7 @@ export default function MiSemanaPage() {
                 <div className="grid grid-cols-4 gap-2">
                   {([
                     { val: 'Excelente', color: '#16a34a', bg: '#f0fdf4', border: '#bbf7d0' },
-                    { val: 'Bueno',     color: '#2563eb', bg: '#eff6ff', border: '#bfdbfe' },
+                    { val: 'Bueno',     color: '#3350D0', bg: '#EDEFFD', border: '#BBC5F7' },
                     { val: 'Regular',   color: '#d97706', bg: '#fffbeb', border: '#fde68a' },
                     { val: 'Mejorable', color: '#dc2626', bg: '#fef2f2', border: '#fecaca' },
                   ] as const).map(({ val, color, bg, border }) => (
@@ -393,9 +393,9 @@ export default function MiSemanaPage() {
                         key={a} type="button" onClick={() => toggleAspecto(a)}
                         className="text-xs px-3 py-1.5 rounded-full border font-medium transition-all"
                         style={{
-                          backgroundColor: sel ? '#eff6ff' : '#f9fafb',
-                          borderColor:     sel ? '#bfdbfe' : '#e5e7eb',
-                          color:           sel ? '#1d4ed8' : '#6b7280',
+                          backgroundColor: sel ? '#EDEFFD' : '#f9fafb',
+                          borderColor:     sel ? '#BBC5F7' : '#e5e7eb',
+                          color:           sel ? '#3350D0' : '#6b7280',
                         }}
                       >
                         {sel ? '✓ ' : ''}{a}
@@ -421,7 +421,7 @@ export default function MiSemanaPage() {
                 type="submit"
                 disabled={!evalForm.calificacion || savingEval}
                 className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-50 transition-all"
-                style={{ backgroundColor: '#0F4C81' }}
+                style={{ backgroundColor: '#3350D0' }}
               >
                 <Send size={14} />
                 {savingEval ? 'Enviando...' : 'Enviar evaluación'}
@@ -684,7 +684,7 @@ export default function MiSemanaPage() {
               <button
                 onClick={() => setShowEvalForm(true)}
                 className="flex-shrink-0 text-xs font-semibold px-4 py-2 rounded-xl text-white transition-colors"
-                style={{ backgroundColor: '#0F4C81' }}
+                style={{ backgroundColor: '#3350D0' }}
               >
                 Evaluar ahora
               </button>
@@ -700,7 +700,7 @@ export default function MiSemanaPage() {
                 <div className="grid grid-cols-4 gap-2">
                   {([
                     { val: 'Excelente', color: '#16a34a', bg: '#f0fdf4', border: '#bbf7d0' },
-                    { val: 'Bueno',     color: '#2563eb', bg: '#eff6ff', border: '#bfdbfe' },
+                    { val: 'Bueno',     color: '#3350D0', bg: '#EDEFFD', border: '#BBC5F7' },
                     { val: 'Regular',   color: '#d97706', bg: '#fffbeb', border: '#fde68a' },
                     { val: 'Mejorable', color: '#dc2626', bg: '#fef2f2', border: '#fecaca' },
                   ] as const).map(({ val, color, bg, border }) => (
@@ -726,9 +726,9 @@ export default function MiSemanaPage() {
                       <button key={a} type="button" onClick={() => toggleAspecto(a)}
                         className="text-xs px-3 py-1.5 rounded-full border font-medium transition-all"
                         style={{
-                          backgroundColor: sel ? '#eff6ff' : '#f9fafb',
-                          borderColor:     sel ? '#bfdbfe' : '#e5e7eb',
-                          color:           sel ? '#1d4ed8' : '#6b7280',
+                          backgroundColor: sel ? '#EDEFFD' : '#f9fafb',
+                          borderColor:     sel ? '#BBC5F7' : '#e5e7eb',
+                          color:           sel ? '#3350D0' : '#6b7280',
                         }}>{sel ? '✓ ' : ''}{a}</button>
                     )
                   })}
@@ -745,7 +745,7 @@ export default function MiSemanaPage() {
               </div>
               <button type="submit" disabled={!evalForm.calificacion || savingEval}
                 className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-50"
-                style={{ backgroundColor: '#0F4C81' }}>
+                style={{ backgroundColor: '#3350D0' }}>
                 <Send size={14} />
                 {savingEval ? 'Enviando...' : 'Enviar evaluación'}
               </button>

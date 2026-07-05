@@ -1,14 +1,49 @@
 import { createClient } from '@/lib/supabase-server'
 import MetricCard from '@/components/ui/MetricCard'
-import { calcularIndiceTraza, getEstadoClasses, getValidacionStyle, formatFecha, detectarDiscrepancia } from '@/lib/traza'
-import { AlertTriangle, Clock, MessageSquare, Link2, Paperclip, CheckCircle2, TrendingUp } from 'lucide-react'
+import { calcularIndiceTraza, getEstadoClasses, formatFecha, detectarDiscrepancia } from '@/lib/traza'
+import { AlertTriangle, Clock, MessageSquare, Link2, Paperclip, CheckCircle2, TrendingUp, Zap } from 'lucide-react'
 import type { Objetivo } from '@/types'
 import Link from 'next/link'
 
+const DISPLAY = "'Plus Jakarta Sans', system-ui, sans-serif"
+
 function diasRestantes(fecha: string) {
-  const hoy  = new Date(); hoy.setHours(0,0,0,0)
-  const fin  = new Date(fecha); fin.setHours(0,0,0,0)
+  const hoy = new Date(); hoy.setHours(0, 0, 0, 0)
+  const fin  = new Date(fecha); fin.setHours(0, 0, 0, 0)
   return Math.ceil((fin.getTime() - hoy.getTime()) / (1000 * 60 * 60 * 24))
+}
+
+function ScoreColor(score: number) {
+  if (score >= 75) return '#16a34a'
+  if (score >= 50) return '#d97706'
+  return '#dc2626'
+}
+
+function BarColors(val: number) {
+  if (val >= 75) return { bg: '#dcfce7', fill: '#22c55e' }
+  if (val >= 50) return { bg: '#fef3c7', fill: '#f59e0b' }
+  return { bg: '#fee2e2', fill: '#ef4444' }
+}
+
+/* ── Sección header reutilizable ── */
+function CardHeader({ title, sub, right }: { title: string; sub?: string; right?: React.ReactNode }) {
+  return (
+    <div
+      className="flex items-center justify-between px-6 py-4"
+      style={{ borderBottom: '1px solid #F1F5F9' }}
+    >
+      <div>
+        <h2
+          className="text-base font-semibold"
+          style={{ color: '#0F172A', fontFamily: DISPLAY, letterSpacing: '-0.01em' }}
+        >
+          {title}
+        </h2>
+        {sub && <p className="text-xs mt-0.5" style={{ color: '#94A3B8' }}>{sub}</p>}
+      </div>
+      {right}
+    </div>
+  )
 }
 
 export default async function DashboardPage() {
@@ -17,10 +52,12 @@ export default async function DashboardPage() {
   const { data: profile }  = await supabase.from('profiles').select('*').eq('id', user!.id).single()
   if (!profile) return null
 
-  const esAdmin = ['admin', 'super_admin', 'supervisor'].includes(profile.rol)
+  const esAdmin  = ['admin', 'super_admin', 'supervisor'].includes(profile.rol)
   const empresaId = profile.empresa_id
 
-  /* ── ADMIN / SUPERVISOR ── */
+  /* ════════════════════════════════════════
+     VISTA ADMIN / SUPERVISOR
+  ════════════════════════════════════════ */
   if (esAdmin) {
     const { count: totalPersonas } = await supabase
       .from('personas').select('*', { count: 'exact', head: true })
@@ -30,23 +67,21 @@ export default async function DashboardPage() {
     const { data: objetivos } = await supabase
       .from('objetivos').select('*')
       .eq('empresa_id', empresaId)
+
     const objs        = (objetivos ?? []) as Objetivo[]
     const totalObjs   = objs.length
     const completados = objs.filter(o => o.estado === 'Completado').length
     const cumplimiento = totalObjs > 0 ? Math.round(completados / totalObjs * 100) : 0
     const pendValidar  = objs.filter(o => o.estado === 'Completado' && !o.validacion).length
 
-    // Discrepancias y calificaciones bajas para alertas del manager
     const objsConDiscrepancia = objs.filter(o => {
       if (!o.autoevaluacion || !o.validacion) return false
-      const disc = detectarDiscrepancia(o.autoevaluacion, o.validacion)
-      return disc === 'alta'
+      return detectarDiscrepancia(o.autoevaluacion, o.validacion) === 'alta'
     })
     const objsCalBaja = objs.filter(o =>
       o.validacion === 'En desacuerdo' && !objsConDiscrepancia.find(d => d.id === o.id)
     )
 
-    // Avances recientes del equipo (filtrado por empresa via join en objetivos)
     const { data: avancesEquipo } = await supabase
       .from('objetivo_avances')
       .select('*, objetivo:objetivos!inner(id, titulo, estado, validacion, empresa_id), persona:personas(nombre, apellido)')
@@ -54,7 +89,6 @@ export default async function DashboardPage() {
       .order('creado_en', { ascending: false })
       .limit(8)
 
-    // Cierres semanales de esta semana
     const lunes = (() => {
       const d = new Date()
       const day = d.getDay()
@@ -62,6 +96,7 @@ export default async function DashboardPage() {
       d.setDate(diff)
       return d.toISOString().split('T')[0]
     })()
+
     const { data: cierres } = await supabase
       .from('cierres_semanales')
       .select('*, persona:personas!inner(nombre, apellido, empresa_id)')
@@ -70,40 +105,49 @@ export default async function DashboardPage() {
       .order('creado_en', { ascending: false })
 
     return (
-      <div className="space-y-8">
-        {/* Page header */}
+      <div className="space-y-7">
+
+        {/* ── Page header ───────────────────────────────── */}
         <div className="traza-page-header">
           <div>
-            <h1 className="traza-page-title">Buen día, {profile.nombre}</h1>
+            <h1 className="traza-page-title">
+              Buen día, {profile.nombre}
+            </h1>
             <p className="traza-page-sub capitalize">
               {new Date().toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' })}
             </p>
           </div>
         </div>
 
+        {/* ── Métricas ───────────────────────────────────── */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <MetricCard icon="Users"       label="Colaboradores"     value={totalPersonas ?? 0} />
-          <MetricCard icon="Target"      label="Objetivos activos" value={totalObjs - completados} />
-          <MetricCard icon="CheckSquare" label="Completados"       value={completados} />
-          <MetricCard icon="TrendingUp"  label="Cumplimiento"      value={`${cumplimiento}%`} highlight />
+          <MetricCard icon="Users"       label="Colaboradores activos" value={totalPersonas ?? 0} />
+          <MetricCard icon="Target"      label="Objetivos activos"     value={totalObjs - completados} />
+          <MetricCard icon="CheckSquare" label="Completados"           value={completados} />
+          <MetricCard icon="TrendingUp"  label="Cumplimiento"          value={`${cumplimiento}%`} highlight />
         </div>
 
+        {/* ── Alerta: pendientes de validar ─────────────── */}
         {pendValidar > 0 && (
           <div
             className="flex items-center justify-between gap-4 rounded-2xl px-5 py-4"
             style={{ backgroundColor: '#FFFBEB', border: '1px solid #FDE68A' }}
           >
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#FEF3C7' }}>
+              <div
+                className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
+                style={{ backgroundColor: '#FEF3C7' }}
+              >
                 <AlertTriangle size={15} strokeWidth={1.75} style={{ color: '#D97706' }} />
               </div>
               <p className="text-sm" style={{ color: '#92400E' }}>
-                <span className="font-semibold">{pendValidar} objetivo{pendValidar > 1 ? 's' : ''}</span> completado{pendValidar > 1 ? 's' : ''} esperan validación.
+                <span className="font-semibold">{pendValidar} objetivo{pendValidar > 1 ? 's' : ''}</span>{' '}
+                completado{pendValidar > 1 ? 's' : ''} esperan validación.
               </p>
             </div>
             <Link
               href="/validacion"
-              className="flex-shrink-0 text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors"
+              className="flex-shrink-0 text-xs font-bold px-3.5 py-2 rounded-lg transition-colors"
               style={{ backgroundColor: '#FDE68A', color: '#92400E' }}
             >
               Validar →
@@ -111,41 +155,69 @@ export default async function DashboardPage() {
           </div>
         )}
 
-        {/* Alertas de discrepancia y calificaciones bajas */}
+        {/* ── Alertas de discrepancia ───────────────────── */}
         {(objsConDiscrepancia.length > 0 || objsCalBaja.length > 0) && (
           <div className="traza-card overflow-hidden">
-            <div className="px-6 py-4 border-b border-red-50 flex items-center gap-2" style={{ backgroundColor: '#FFF5F5' }}>
+            <div
+              className="px-6 py-3 flex items-center gap-2.5"
+              style={{ backgroundColor: '#FFF5F5', borderBottom: '1px solid #FEE2E2' }}
+            >
               <AlertTriangle size={15} strokeWidth={1.75} style={{ color: '#DC2626' }} />
-              <h2 className="text-base font-semibold" style={{ color: '#DC2626' }}>Alertas que requieren atención</h2>
+              <h2
+                className="text-sm font-semibold"
+                style={{ color: '#DC2626', fontFamily: DISPLAY }}
+              >
+                Alertas que requieren atención
+              </h2>
             </div>
-            <div className="divide-y divide-gray-50">
+            <div>
               {objsConDiscrepancia.map((obj: any) => (
-                <div key={obj.id} className="px-6 py-4 flex items-start gap-4">
-                  <div className="w-2 h-2 rounded-full mt-1.5 flex-shrink-0" style={{ backgroundColor: '#DC2626' }} />
+                <div
+                  key={obj.id}
+                  className="px-6 py-4 flex items-start gap-4"
+                  style={{ borderBottom: '1px solid #F8FAFC' }}
+                >
+                  <div
+                    className="w-1.5 h-1.5 rounded-full mt-2 flex-shrink-0"
+                    style={{ backgroundColor: '#DC2626' }}
+                  />
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-gray-900">{obj.titulo}</p>
-                    <p className="text-xs text-gray-500 mt-0.5">
-                      {obj.persona
-                        ? `${(obj as any).persona?.nombre ?? ''} ${(obj as any).persona?.apellido ?? ''} · `.trim()
-                        : ''}
-                      Alta discrepancia entre autoevaluación ({obj.autoevaluacion}) y validación ({obj.validacion})
+                    <p className="text-sm font-semibold" style={{ color: '#0F172A' }}>{obj.titulo}</p>
+                    <p className="text-xs mt-0.5" style={{ color: '#64748B' }}>
+                      {obj.persona ? `${obj.persona?.nombre ?? ''} ${obj.persona?.apellido ?? ''} · ` : ''}
+                      Alta discrepancia — autoevaluación ({obj.autoevaluacion}) vs validación ({obj.validacion})
                     </p>
                   </div>
-                  <Link href="/validacion" className="flex-shrink-0 text-xs font-medium text-red-600 hover:underline">
+                  <Link
+                    href="/validacion"
+                    className="flex-shrink-0 text-xs font-semibold hover:underline"
+                    style={{ color: '#DC2626' }}
+                  >
                     Revisar →
                   </Link>
                 </div>
               ))}
               {objsCalBaja.map((obj: any) => (
-                <div key={obj.id} className="px-6 py-4 flex items-start gap-4">
-                  <div className="w-2 h-2 rounded-full mt-1.5 flex-shrink-0" style={{ backgroundColor: '#D97706' }} />
+                <div
+                  key={obj.id}
+                  className="px-6 py-4 flex items-start gap-4"
+                  style={{ borderBottom: '1px solid #F8FAFC' }}
+                >
+                  <div
+                    className="w-1.5 h-1.5 rounded-full mt-2 flex-shrink-0"
+                    style={{ backgroundColor: '#D97706' }}
+                  />
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-gray-900">{obj.titulo}</p>
-                    <p className="text-xs text-gray-500 mt-0.5">
+                    <p className="text-sm font-semibold" style={{ color: '#0F172A' }}>{obj.titulo}</p>
+                    <p className="text-xs mt-0.5" style={{ color: '#64748B' }}>
                       Calificación baja — supervisor marcó "En desacuerdo"
                     </p>
                   </div>
-                  <Link href="/validacion" className="flex-shrink-0 text-xs font-medium text-amber-600 hover:underline">
+                  <Link
+                    href="/validacion"
+                    className="flex-shrink-0 text-xs font-semibold hover:underline"
+                    style={{ color: '#D97706' }}
+                  >
                     Revisar →
                   </Link>
                 </div>
@@ -154,34 +226,58 @@ export default async function DashboardPage() {
           </div>
         )}
 
-        {/* Cierres semanales del equipo */}
+        {/* ── Cierres semanales ─────────────────────────── */}
         {cierres && cierres.length > 0 && (
           <div className="traza-card overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-100">
-              <h2 className="text-base font-semibold text-gray-900">Cierres semanales</h2>
-              <p className="text-xs text-gray-400 mt-0.5">{cierres.length} colaborador{cierres.length > 1 ? 'es' : ''} completaron el cierre de esta semana</p>
-            </div>
-            <div className="divide-y divide-gray-50">
+            <CardHeader
+              title="Cierres semanales"
+              sub={`${cierres.length} colaborador${cierres.length > 1 ? 'es' : ''} completaron el cierre de esta semana`}
+            />
+            <div>
               {(cierres as any[]).map((c: any) => (
-                <div key={c.id} className="px-6 py-4">
-                  <p className="text-sm font-semibold text-gray-900 mb-3">{c.persona?.nombre} {c.persona?.apellido}</p>
-                  <div className="grid grid-cols-3 gap-4">
+                <div
+                  key={c.id}
+                  className="px-6 py-5"
+                  style={{ borderBottom: '1px solid #F8FAFC' }}
+                >
+                  <p
+                    className="text-sm font-semibold mb-3"
+                    style={{ color: '#0F172A', fontFamily: DISPLAY }}
+                  >
+                    {c.persona?.nombre} {c.persona?.apellido}
+                  </p>
+                  <div className="grid grid-cols-3 gap-6">
                     {c.que_avance && (
                       <div>
-                        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Avanzó</p>
-                        <p className="text-sm text-gray-700">{c.que_avance}</p>
+                        <p
+                          className="text-xs font-semibold uppercase tracking-wider mb-1.5"
+                          style={{ color: '#94A3B8' }}
+                        >
+                          Avanzó
+                        </p>
+                        <p className="text-sm" style={{ color: '#334155' }}>{c.que_avance}</p>
                       </div>
                     )}
                     {c.que_obstaculos && (
                       <div>
-                        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Obstáculos</p>
-                        <p className="text-sm text-gray-700">{c.que_obstaculos}</p>
+                        <p
+                          className="text-xs font-semibold uppercase tracking-wider mb-1.5"
+                          style={{ color: '#94A3B8' }}
+                        >
+                          Obstáculos
+                        </p>
+                        <p className="text-sm" style={{ color: '#334155' }}>{c.que_obstaculos}</p>
                       </div>
                     )}
                     {c.que_necesito && (
                       <div>
-                        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Necesita</p>
-                        <p className="text-sm text-gray-700">{c.que_necesito}</p>
+                        <p
+                          className="text-xs font-semibold uppercase tracking-wider mb-1.5"
+                          style={{ color: '#94A3B8' }}
+                        >
+                          Necesita
+                        </p>
+                        <p className="text-sm" style={{ color: '#334155' }}>{c.que_necesito}</p>
                       </div>
                     )}
                   </div>
@@ -191,62 +287,80 @@ export default async function DashboardPage() {
           </div>
         )}
 
-        {/* Feed unificado de actividad */}
+        {/* ── Feed de actividad ─────────────────────────── */}
         <div className="traza-card overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-100">
-            <h2 className="text-base font-semibold text-gray-900">Actividad del equipo</h2>
-            <p className="text-xs text-gray-400 mt-0.5">Avances registrados por colaboradores, del más reciente al más antiguo</p>
-          </div>
+          <CardHeader
+            title="Actividad del equipo"
+            sub="Avances registrados por colaboradores, del más reciente al más antiguo"
+          />
           {avancesEquipo && avancesEquipo.length > 0 ? (
-            <div className="divide-y divide-gray-50">
+            <div>
               {avancesEquipo.map((a: any) => (
-                <div key={a.id} className="px-6 py-4 flex gap-3">
-                  {/* Ícono tipo */}
+                <div
+                  key={a.id}
+                  className="px-6 py-4 flex gap-3"
+                  style={{ borderBottom: '1px solid #F8FAFC' }}
+                >
                   <div className="flex-shrink-0 mt-1">
-                    {a.tipo === 'comentario' && <MessageSquare size={15} className="text-gray-400" strokeWidth={1.75} />}
-                    {a.tipo === 'link'       && <Link2 size={15} className="text-traza-500" strokeWidth={1.75} />}
-                    {a.tipo === 'archivo'    && <Paperclip size={15} className="text-orange-400" strokeWidth={1.75} />}
+                    {a.tipo === 'comentario' && (
+                      <MessageSquare size={15} strokeWidth={1.75} style={{ color: '#94A3B8' }} />
+                    )}
+                    {a.tipo === 'link' && (
+                      <Link2 size={15} strokeWidth={1.75} style={{ color: '#3350D0' }} />
+                    )}
+                    {a.tipo === 'archivo' && (
+                      <Paperclip size={15} strokeWidth={1.75} style={{ color: '#F97316' }} />
+                    )}
                   </div>
 
                   <div className="flex-1 min-w-0">
-                    {/* Quién + cuándo */}
                     <div className="flex items-center gap-2 flex-wrap mb-1">
-                      <p className="text-sm font-semibold text-gray-900">
+                      <p className="text-sm font-semibold" style={{ color: '#0F172A' }}>
                         {a.persona?.nombre} {a.persona?.apellido}
                       </p>
-                      <span className="text-gray-300">·</span>
-                      <p className="text-xs text-gray-400">
-                        {new Date(a.creado_en).toLocaleString('es-AR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                      <span style={{ color: '#CBD5E1' }}>·</span>
+                      <p className="text-xs" style={{ color: '#94A3B8' }}>
+                        {new Date(a.creado_en).toLocaleString('es-AR', {
+                          day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit',
+                        })}
                       </p>
                     </div>
 
-                    {/* Objetivo al que pertenece */}
                     <div className="flex items-center gap-2 mb-1.5">
-                      <span className="text-xs text-gray-400">en</span>
+                      <span className="text-xs" style={{ color: '#94A3B8' }}>en</span>
                       <Link
                         href={`/objetivos?objetivo=${a.objetivo?.id}`}
-                        className="text-xs font-medium text-traza-700 hover:underline truncate"
+                        className="text-xs font-semibold hover:underline truncate"
+                        style={{ color: '#3350D0' }}
                       >
                         {a.objetivo?.titulo}
                       </Link>
-                      <span className={`flex-shrink-0 text-xs px-2 py-0.5 rounded-md font-medium ${getEstadoClasses(a.objetivo?.estado)}`}>
+                      <span
+                        className={`flex-shrink-0 text-xs px-2 py-0.5 rounded-md font-medium ${getEstadoClasses(a.objetivo?.estado)}`}
+                      >
                         {a.objetivo?.estado}
                       </span>
                     </div>
 
-                    {/* Contenido del avance */}
                     {a.tipo === 'comentario' ? (
-                      <p className="text-sm text-gray-600">{a.contenido}</p>
+                      <p className="text-sm" style={{ color: '#475569' }}>{a.contenido}</p>
                     ) : (
-                      <a href={a.contenido} target="_blank" rel="noopener noreferrer"
-                        className="text-sm text-traza-700 hover:underline break-all">{a.contenido}</a>
+                      <a
+                        href={a.contenido}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm hover:underline break-all"
+                        style={{ color: '#3350D0' }}
+                      >
+                        {a.contenido}
+                      </a>
                     )}
 
-                    {/* Botón validar si el objetivo está completado y sin validar */}
                     {a.objetivo?.estado === 'Completado' && !a.objetivo?.validacion && (
                       <Link
                         href="/validacion"
-                        className="inline-flex items-center mt-2 text-xs font-medium text-amber-700 bg-amber-50 hover:bg-amber-100 px-2.5 py-1 rounded-lg transition-colors"
+                        className="inline-flex items-center mt-2 text-xs font-semibold px-2.5 py-1 rounded-lg transition-colors"
+                        style={{ backgroundColor: '#FEF3C7', color: '#92400E' }}
                       >
                         Pendiente de validación →
                       </Link>
@@ -256,14 +370,18 @@ export default async function DashboardPage() {
               ))}
             </div>
           ) : (
-            <p className="text-gray-400 text-sm px-6 py-8">El equipo aún no registró avances.</p>
+            <p className="text-sm px-6 py-8" style={{ color: '#94A3B8' }}>
+              El equipo aún no registró avances.
+            </p>
           )}
         </div>
       </div>
     )
   }
 
-  /* ── EMPLEADO ── */
+  /* ════════════════════════════════════════
+     VISTA EMPLEADO
+  ════════════════════════════════════════ */
   const { data: persona } = await supabase
     .from('personas').select('id').eq('user_id', user!.id).single()
 
@@ -272,7 +390,6 @@ export default async function DashboardPage() {
 
   const objs = (misObjetivos ?? []) as Objetivo[]
 
-  // Avances completos para calcular el score correctamente
   const { data: todosAvances } = await supabase
     .from('objetivo_avances')
     .select('persona_id, creado_en')
@@ -281,7 +398,6 @@ export default async function DashboardPage() {
 
   const indice = calcularIndiceTraza(objs, todosAvances ?? [])
 
-  // Explicaciones por dimensión
   function explicarDimension(key: 'A' | 'B' | 'C' | 'D' | 'E', val: number): string {
     if (key === 'A') {
       if (objs.filter(o => o.validacion).length === 0) return 'Todavía no tenés objetivos validados por el supervisor'
@@ -315,7 +431,6 @@ export default async function DashboardPage() {
       if (val >= 50) return 'Hay algunas diferencias entre tu autoevaluación y la del supervisor'
       return 'Hay discrepancias importantes entre tu autoevaluación y la del supervisor'
     }
-    // E
     if (val >= 80) return 'Tu desempeño mejoró respecto al período anterior'
     if (val >= 55) return 'Tu desempeño se mantuvo estable'
     if (val <= 35) return 'Tu desempeño bajó respecto al período anterior'
@@ -323,27 +438,24 @@ export default async function DashboardPage() {
   }
 
   const dimensiones = [
-    { key: 'A' as const, label: 'Validaciones',  peso: 35, val: indice.moduloA    },
-    { key: 'B' as const, label: 'Cumplimiento',   peso: 25, val: indice.moduloB    },
-    { key: 'C' as const, label: 'Regularidad',    peso: 20, val: indice.moduloC    },
-    { key: 'D' as const, label: 'Alineación',     peso: 10, val: indice.alineacion },
-    { key: 'E' as const, label: 'Tendencia',      peso: 10, val: indice.evolucion  },
+    { key: 'A' as const, label: 'Validaciones', peso: 35, val: indice.moduloA    },
+    { key: 'B' as const, label: 'Cumplimiento', peso: 25, val: indice.moduloB    },
+    { key: 'C' as const, label: 'Regularidad',  peso: 20, val: indice.moduloC    },
+    { key: 'D' as const, label: 'Alineación',   peso: 10, val: indice.alineacion },
+    { key: 'E' as const, label: 'Tendencia',    peso: 10, val: indice.evolucion  },
   ]
 
-  // Próximos vencimientos (próximos 14 días, no completados)
   const hoy14 = new Date(); hoy14.setDate(hoy14.getDate() + 14)
   const proximos = objs
     .filter(o => o.estado !== 'Completado' && o.fecha_limite)
     .filter(o => new Date(o.fecha_limite!) <= hoy14)
     .sort((a, b) => new Date(a.fecha_limite!).getTime() - new Date(b.fecha_limite!).getTime())
 
-  // Feedback del supervisor (objetivos con validación)
   const conFeedback = objs
     .filter(o => o.validacion)
     .sort((a, b) => new Date(b.created_at ?? '').getTime() - new Date(a.created_at ?? '').getTime())
     .slice(0, 3)
 
-  // Avances recientes propios
   const { data: misAvances } = await supabase
     .from('objetivo_avances')
     .select('*, objetivo:objetivos(titulo)')
@@ -351,8 +463,12 @@ export default async function DashboardPage() {
     .order('creado_en', { ascending: false })
     .limit(4)
 
+  const scoreColor = ScoreColor(indice.score)
+
   return (
-    <div className="space-y-8">
+    <div className="space-y-7">
+
+      {/* ── Page header ─────────────────────────────────── */}
       <div className="traza-page-header">
         <div>
           <h1 className="traza-page-title">Buen día, {profile.nombre}</h1>
@@ -362,150 +478,246 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      {/* Métricas */}
+      {/* ── Métricas ───────────────────────────────────── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <MetricCard icon="Target"      label="Mis objetivos"  value={indice.total} />
-        <MetricCard icon="CheckSquare" label="Completados"    value={indice.completados} />
-        <MetricCard icon="TrendingUp"  label="Cumplimiento"   value={`${indice.cumplimiento}%`} />
-        <MetricCard icon="Trophy"      label="Índice Traza"   value={`${indice.score}/100`} highlight />
+        <MetricCard icon="Target"      label="Mis objetivos" value={indice.total}               />
+        <MetricCard icon="CheckSquare" label="Completados"   value={indice.completados}         />
+        <MetricCard icon="TrendingUp"  label="Cumplimiento"  value={`${indice.cumplimiento}%`}  />
+        <MetricCard icon="Trophy"      label="Índice Traza"  value={`${indice.score}/100`} highlight />
       </div>
 
-      {/* Scoring explicado */}
+      {/* ── Scoring — Índice Traza breakdown ────────────── */}
       <div className="traza-card overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+        <div
+          className="flex items-center justify-between px-6 py-4"
+          style={{ borderBottom: '1px solid #F1F5F9' }}
+        >
           <div>
-            <h2 className="font-semibold text-gray-900">Tu Índice Traza</h2>
-            <p className="text-xs text-gray-400 mt-0.5">Cómo se compone tu puntaje actual</p>
+            <h2
+              className="text-base font-semibold"
+              style={{ color: '#0F172A', fontFamily: DISPLAY, letterSpacing: '-0.01em' }}
+            >
+              Tu Índice Traza
+            </h2>
+            <p className="text-xs mt-0.5" style={{ color: '#94A3B8' }}>
+              Cómo se compone tu puntaje actual
+            </p>
           </div>
           <div className="flex items-baseline gap-1">
-            <span className="text-3xl font-bold" style={{ color: indice.score >= 75 ? '#16a34a' : indice.score >= 50 ? '#d97706' : '#dc2626' }}>
+            <span
+              className="text-3xl font-bold"
+              style={{ color: scoreColor, fontFamily: DISPLAY, letterSpacing: '-0.04em' }}
+            >
               {indice.score}
             </span>
-            <span className="text-sm text-gray-400">/100</span>
+            <span className="text-sm" style={{ color: '#CBD5E1' }}>/100</span>
           </div>
         </div>
-        <div className="divide-y divide-gray-50">
+
+        <div>
           {dimensiones.map(({ key, label, peso, val }) => {
+            const { bg, fill } = BarColors(val)
             const color = val >= 75 ? '#16a34a' : val >= 50 ? '#d97706' : '#dc2626'
-            const bgBar = val >= 75 ? '#dcfce7' : val >= 50 ? '#fef3c7' : '#fee2e2'
-            const fillBar = val >= 75 ? '#16a34a' : val >= 50 ? '#d97706' : '#dc2626'
             return (
-              <div key={key} className="px-6 py-4">
+              <div
+                key={key}
+                className="px-6 py-4"
+                style={{ borderBottom: '1px solid #F8FAFC' }}
+              >
                 <div className="flex items-center gap-4">
-                  {/* Label + peso */}
                   <div className="w-32 flex-shrink-0">
-                    <p className="text-sm font-medium text-gray-900">{label}</p>
-                    <p className="text-xs text-gray-400">{peso}% del score</p>
+                    <p className="text-sm font-semibold" style={{ color: '#0F172A' }}>{label}</p>
+                    <p className="text-xs" style={{ color: '#94A3B8' }}>{peso}% del score</p>
                   </div>
-                  {/* Barra */}
-                  <div className="flex-1 h-2 rounded-full" style={{ backgroundColor: bgBar }}>
-                    <div className="h-2 rounded-full transition-all" style={{ width: `${val}%`, backgroundColor: fillBar }} />
+                  <div className="flex-1 h-2 rounded-full" style={{ backgroundColor: bg }}>
+                    <div
+                      className="h-2 rounded-full transition-all duration-500"
+                      style={{ width: `${val}%`, backgroundColor: fill }}
+                    />
                   </div>
-                  {/* Valor */}
-                  <div className="w-8 text-right flex-shrink-0">
-                    <span className="text-sm font-bold" style={{ color }}>{val}</span>
+                  <div className="w-9 text-right flex-shrink-0">
+                    <span
+                      className="text-sm font-bold tabular-nums"
+                      style={{ color }}
+                    >
+                      {val}
+                    </span>
                   </div>
                 </div>
-                {/* Explicación */}
-                <p className="text-xs text-gray-400 mt-1.5 ml-36">{explicarDimension(key, val)}</p>
+                <p
+                  className="text-xs mt-1.5"
+                  style={{ color: '#94A3B8', paddingLeft: '9rem' }}
+                >
+                  {explicarDimension(key, val)}
+                </p>
               </div>
             )
           })}
         </div>
       </div>
 
+      {/* ── Grid 2 cols ─────────────────────────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
         {/* Próximos vencimientos */}
-        <div className="traza-card p-6">
-          <div className="flex items-center gap-2 mb-4">
-            <Clock size={16} strokeWidth={1.75} className="text-gray-400" />
-            <h2 className="text-base font-semibold text-gray-900">Próximos vencimientos</h2>
-          </div>
-          {proximos.length === 0 ? (
-            <p className="text-sm text-gray-400">No tenés objetivos por vencer en los próximos 14 días.</p>
-          ) : (
-            <div className="space-y-3">
-              {proximos.map(obj => {
-                const dias = diasRestantes(obj.fecha_limite!)
-                const urgente = dias <= 3
-                const medio   = dias <= 7
-                return (
-                  <div key={obj.id} className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 truncate">{obj.titulo}</p>
-                      <div className="flex items-center gap-2 mt-0.5">
-                        {urgente && <AlertTriangle size={11} className="text-red-500" />}
-                        <p className={`text-xs font-medium ${urgente ? 'text-red-500' : medio ? 'text-amber-500' : 'text-gray-400'}`}>
-                          {dias === 0 ? 'Vence hoy' : dias < 0 ? `Venció hace ${Math.abs(dias)}d` : `${dias} día${dias > 1 ? 's' : ''}`}
+        <div className="traza-card overflow-hidden">
+          <CardHeader
+            title="Próximos vencimientos"
+            sub="Objetivos que vencen en los próximos 14 días"
+          />
+          <div className="p-6">
+            {proximos.length === 0 ? (
+              <div className="traza-empty py-8">
+                <div className="traza-empty-icon">
+                  <Clock size={20} strokeWidth={1.75} style={{ color: '#CBD5E1' }} />
+                </div>
+                <p>Sin vencimientos próximos</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {proximos.map(obj => {
+                  const dias    = diasRestantes(obj.fecha_limite!)
+                  const urgente = dias <= 3
+                  const medio   = dias <= 7
+                  return (
+                    <div
+                      key={obj.id}
+                      className="flex items-center justify-between py-2.5"
+                      style={{ borderBottom: '1px solid #F8FAFC' }}
+                    >
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold truncate" style={{ color: '#0F172A' }}>
+                          {obj.titulo}
                         </p>
+                        <div className="flex items-center gap-1.5 mt-0.5">
+                          {urgente && <AlertTriangle size={11} style={{ color: '#DC2626' }} />}
+                          <p
+                            className="text-xs font-medium"
+                            style={{
+                              color: urgente ? '#DC2626' : medio ? '#D97706' : '#94A3B8',
+                            }}
+                          >
+                            {dias === 0
+                              ? 'Vence hoy'
+                              : dias < 0
+                              ? `Venció hace ${Math.abs(dias)}d`
+                              : `${dias} día${dias > 1 ? 's' : ''}`}
+                          </p>
+                        </div>
                       </div>
+                      <span
+                        className={`ml-3 flex-shrink-0 text-xs px-2.5 py-1 rounded-md font-medium ${getEstadoClasses(obj.estado)}`}
+                      >
+                        {obj.estado}
+                      </span>
                     </div>
-                    <span className={`ml-3 flex-shrink-0 text-xs px-2.5 py-1 rounded-md font-medium ${getEstadoClasses(obj.estado)}`}>
-                      {obj.estado}
-                    </span>
-                  </div>
-                )
-              })}
-            </div>
-          )}
+                  )
+                })}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Feedback del supervisor */}
-        <div className="traza-card p-6">
-          <div className="flex items-center gap-2 mb-4">
-            <CheckCircle2 size={16} strokeWidth={1.75} className="text-gray-400" />
-            <h2 className="text-base font-semibold text-gray-900">Feedback del supervisor</h2>
-          </div>
-          {conFeedback.length === 0 ? (
-            <p className="text-sm text-gray-400">Todavía no recibiste feedback de tus objetivos.</p>
-          ) : (
-            <div className="space-y-3">
-              {conFeedback.map(obj => (
-                <div key={obj.id} className="py-2 border-b border-gray-50 last:border-0">
-                  <div className="flex items-start justify-between gap-2">
-                    <p className="text-sm font-medium text-gray-900 truncate flex-1">{obj.titulo}</p>
-                    <span className="flex-shrink-0 text-xs font-medium text-gray-400">
-                      {obj.validacion === 'De acuerdo' ? 'Validado' : obj.validacion === 'Parcialmente de acuerdo' ? 'Parcial' : obj.validacion}
-                    </span>
-                  </div>
-                  {obj.comentario_supervisor?.trim() && (
-                    <p className="text-xs text-gray-500 mt-1 italic">"{obj.comentario_supervisor}"</p>
-                  )}
+        <div className="traza-card overflow-hidden">
+          <CardHeader
+            title="Feedback del supervisor"
+            sub="Últimas validaciones de tus objetivos"
+          />
+          <div className="p-6">
+            {conFeedback.length === 0 ? (
+              <div className="traza-empty py-8">
+                <div className="traza-empty-icon">
+                  <CheckCircle2 size={20} strokeWidth={1.75} style={{ color: '#CBD5E1' }} />
                 </div>
-              ))}
-            </div>
-          )}
+                <p>Todavía no recibiste feedback</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {conFeedback.map(obj => (
+                  <div
+                    key={obj.id}
+                    className="py-2.5"
+                    style={{ borderBottom: '1px solid #F8FAFC' }}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <p
+                        className="text-sm font-semibold truncate flex-1"
+                        style={{ color: '#0F172A' }}
+                      >
+                        {obj.titulo}
+                      </p>
+                      <span className="flex-shrink-0 text-xs font-medium" style={{ color: '#64748B' }}>
+                        {obj.validacion === 'De acuerdo'
+                          ? 'Validado ✓'
+                          : obj.validacion === 'Parcialmente de acuerdo'
+                          ? 'Parcial'
+                          : obj.validacion}
+                      </span>
+                    </div>
+                    {obj.comentario_supervisor?.trim() && (
+                      <p className="text-xs mt-1 italic" style={{ color: '#94A3B8' }}>
+                        "{obj.comentario_supervisor}"
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
       </div>
 
-      {/* Mis avances recientes */}
+      {/* ── Mis avances recientes ────────────────────────── */}
       {misAvances && misAvances.length > 0 && (
-        <div className="traza-card p-6">
-          <h2 className="text-base font-semibold text-gray-900 mb-4">Mis avances recientes</h2>
-          <div className="space-y-3">
-            {misAvances.map((a: any) => (
-              <div key={a.id} className="flex gap-2.5 py-2 border-b border-gray-50 last:border-0">
-                <div className="flex-shrink-0 mt-0.5">
-                  {a.tipo === 'comentario' && <MessageSquare size={14} className="text-gray-400" />}
-                  {a.tipo === 'link'       && <Link2 size={14} className="text-traza-500" />}
-                  {a.tipo === 'archivo'    && <Paperclip size={14} className="text-orange-400" />}
+        <div className="traza-card overflow-hidden">
+          <CardHeader title="Mis avances recientes" />
+          <div className="p-6">
+            <div className="space-y-3">
+              {misAvances.map((a: any) => (
+                <div
+                  key={a.id}
+                  className="flex gap-3 py-3"
+                  style={{ borderBottom: '1px solid #F8FAFC' }}
+                >
+                  <div className="flex-shrink-0 mt-0.5">
+                    {a.tipo === 'comentario' && (
+                      <MessageSquare size={14} strokeWidth={1.75} style={{ color: '#94A3B8' }} />
+                    )}
+                    {a.tipo === 'link' && (
+                      <Link2 size={14} strokeWidth={1.75} style={{ color: '#3350D0' }} />
+                    )}
+                    {a.tipo === 'archivo' && (
+                      <Paperclip size={14} strokeWidth={1.75} style={{ color: '#F97316' }} />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs mb-0.5 font-medium" style={{ color: '#94A3B8' }}>
+                      {a.objetivo?.titulo}
+                    </p>
+                    {a.tipo === 'comentario' ? (
+                      <p className="text-sm" style={{ color: '#334155' }}>{a.contenido}</p>
+                    ) : (
+                      <a
+                        href={a.contenido}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm hover:underline break-all"
+                        style={{ color: '#3350D0' }}
+                      >
+                        {a.contenido}
+                      </a>
+                    )}
+                    <p className="text-xs mt-0.5" style={{ color: '#CBD5E1' }}>
+                      {new Date(a.creado_en).toLocaleString('es-AR', {
+                        day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit',
+                      })}
+                    </p>
+                  </div>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs text-gray-400 mb-0.5">{a.objetivo?.titulo}</p>
-                  {a.tipo === 'comentario' ? (
-                    <p className="text-sm text-gray-700">{a.contenido}</p>
-                  ) : (
-                    <a href={a.contenido} target="_blank" rel="noopener noreferrer"
-                      className="text-sm text-traza-700 hover:underline break-all">{a.contenido}</a>
-                  )}
-                  <p className="text-xs text-gray-300 mt-0.5">
-                    {new Date(a.creado_en).toLocaleString('es-AR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
-                  </p>
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
       )}

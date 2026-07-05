@@ -40,7 +40,7 @@ export default async function UnirseTokenPage({ params }: { params: { token: str
       {/* Nav */}
       <nav className="border-b sticky top-0 z-10" style={{ backgroundColor: 'rgba(10,22,40,0.97)', borderColor: 'rgba(255,255,255,0.07)' }}>
         <div className="max-w-lg mx-auto px-5 h-13 flex items-center gap-3 py-3">
-          <div className="w-6 h-6 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#0F4C81' }}>
+          <div className="w-6 h-6 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#3350D0' }}>
             <span className="text-white text-xs font-black">T</span>
           </div>
           <span className="text-white font-black tracking-tight text-sm">TRAZA</span>
@@ -66,7 +66,7 @@ export default async function UnirseTokenPage({ params }: { params: { token: str
             </div>
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-xl flex items-center justify-center font-black text-lg text-white flex-shrink-0"
-                style={{ background: 'linear-gradient(135deg, #0F4C81, #1e6fb5)' }}>
+                style={{ background: 'linear-gradient(135deg, #1C2B90, #3350D0)' }}>
                 {empresa?.nombre?.[0]?.toUpperCase() ?? '?'}
               </div>
               <div>
@@ -78,7 +78,7 @@ export default async function UnirseTokenPage({ params }: { params: { token: str
             </div>
             <div className="mt-4 pt-4 border-t border-gray-50">
               <p className="text-sm text-gray-600 leading-relaxed">
-                Fuiste invitado a unirte al equipo de <strong>{empresa?.nombre}</strong> en TRAZA.
+                Fuiste invitado a unirte al equipo de <strong>{empresa?.nombre}</strong> en traza.
                 Creá tu cuenta para empezar a registrar tus objetivos y avances.
               </p>
               <p className="text-xs text-gray-400 mt-2 flex items-center gap-1.5">

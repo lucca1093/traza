@@ -30,7 +30,7 @@ export interface CandidatoPublico {
 // ── Helpers ───────────────────────────────────────────────────
 const NIVEL_COLOR: Record<string, { accent: string; bg: string; border: string; text: string }> = {
   Elite:        { accent: '#f59e0b', bg: '#fffbeb', border: '#fde68a', text: '#92400e' },
-  Avanzado:     { accent: '#2563eb', bg: '#eff6ff', border: '#bfdbfe', text: '#1e3a8a' },
+  Avanzado:     { accent: '#3350D0', bg: '#EDEFFD', border: '#BBC5F7', text: '#1C2B90' },
   Profesional:  { accent: '#16a34a', bg: '#f0fdf4', border: '#bbf7d0', text: '#14532d' },
   Inicial:      { accent: '#9ca3af', bg: '#f9fafb', border: '#e5e7eb', text: '#4b5563' },
 }
@@ -135,7 +135,7 @@ function FeaturedCard({ c, rank }: { c: CandidatoPublico; rank: number }) {
           {/* Avatar + rank */}
           <div className="relative">
             <div className="w-12 h-12 rounded-xl flex items-center justify-center text-sm font-bold flex-shrink-0"
-              style={{ backgroundColor: '#16213E', color: '#93C5FD' }}>
+              style={{ backgroundColor: '#0F172A', color: '#8899EE' }}>
               {ini}
             </div>
             {rank <= 3 && (
@@ -174,7 +174,7 @@ function FeaturedCard({ c, rank }: { c: CandidatoPublico; rank: number }) {
 
         {/* Barras */}
         <div className="space-y-2 mb-4">
-          <MiniBar val={c.moduloA} color="#2563eb"  label="Resultados"   />
+          <MiniBar val={c.moduloA} color="#3350D0"  label="Resultados"   />
           <MiniBar val={c.moduloC} color="#7c3aed"  label="Proactividad" />
           <MiniBar val={c.alineacion} color="#0891b2" label="Alineación" />
           {c.totalValidaciones > 0 && (
@@ -234,7 +234,7 @@ function CandidatoCard({ c }: { c: CandidatoPublico }) {
         {/* Header */}
         <div className="flex items-start gap-3">
           <div className="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold flex-shrink-0"
-            style={{ backgroundColor: '#16213E', color: '#93C5FD' }}>
+            style={{ backgroundColor: '#0F172A', color: '#8899EE' }}>
             {ini}
           </div>
           <div className="flex-1 min-w-0">
@@ -266,7 +266,7 @@ function CandidatoCard({ c }: { c: CandidatoPublico }) {
 
         {/* Barras */}
         <div className="space-y-1.5">
-          <MiniBar val={c.moduloA} color="#2563eb"  label="Resultados"   />
+          <MiniBar val={c.moduloA} color="#3350D0"  label="Resultados"   />
           <MiniBar val={c.moduloC} color="#7c3aed"  label="Proactividad" />
           {c.totalValidaciones > 0 && (
             <div className="flex items-center gap-2">
@@ -417,7 +417,7 @@ export default function TalentSearch({ candidatos, areas, rubros }: { candidatos
         <button onClick={() => setMultiEmp(!multiEmp)}
           className="flex items-center gap-2 px-3 py-2.5 rounded-xl border text-sm transition-all"
           style={multiEmp
-            ? { backgroundColor: '#eff6ff', borderColor: '#bfdbfe', color: '#1d4ed8' }
+            ? { backgroundColor: '#EDEFFD', borderColor: '#BBC5F7', color: '#3350D0' }
             : { backgroundColor: 'white', borderColor: '#e5e7eb', color: '#9ca3af' }}>
           <Building2 size={13} />
           Multi-empresa

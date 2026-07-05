@@ -1,0 +1,1445 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TRAZA — Brand Book & Design System v1.0</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --traza-50: #EDEFFD; --traza-100: #DDE2FB; --traza-200: #BBC5F7;
+    --traza-300: #8899EE; --traza-400: #5572E5; --traza-500: #3350D0;
+    --traza-600: #2438B0; --traza-700: #1C2B90; --traza-800: #152070;
+    --traza-900: #0D1850; --traza-950: #060D2E;
+    --slate-50: #FFFFFF; --slate-100: #F8FAFC; --slate-200: #F1F5F9;
+    --slate-300: #E2E8F0; --slate-400: #CBD5E1; --slate-500: #94A3B8;
+    --slate-600: #64748B; --slate-700: #475569; --slate-800: #334155;
+    --slate-900: #1E293B; --slate-950: #0F172A;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: #F8FAFC;
+    color: #1E293B;
+    font-size: 15px;
+    line-height: 1.6;
+  }
+
+  /* ── Layout ─────────────────────────────────────────────────────── */
+  .sidebar {
+    position: fixed; top: 0; left: 0; bottom: 0; width: 240px;
+    background: #0F172A; padding: 28px 16px; overflow-y: auto;
+    border-right: 1px solid #1E293B;
+  }
+  .sidebar-logo {
+    display: flex; align-items: center; gap: 10px;
+    padding-bottom: 24px; margin-bottom: 24px;
+    border-bottom: 1px solid #1E293B;
+  }
+  .sidebar-logo-text {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 18px; font-weight: 800; color: #fff;
+    letter-spacing: -0.02em;
+  }
+  .nav-section { margin-bottom: 24px; }
+  .nav-section-label {
+    font-size: 10px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.08em; color: #475569; margin-bottom: 8px;
+    padding: 0 8px;
+  }
+  .nav-item {
+    display: block; padding: 7px 10px; border-radius: 7px;
+    font-size: 13px; color: #64748B; font-weight: 500;
+    text-decoration: none; transition: all 150ms ease;
+    margin-bottom: 2px;
+  }
+  .nav-item:hover { background: #1E293B; color: #CBD5E1; }
+  .nav-item.active { background: #1C2B90; color: white; }
+
+  .main { margin-left: 240px; padding: 48px 56px; max-width: 1100px; }
+
+  /* ── Cover ──────────────────────────────────────────────────────── */
+  .cover {
+    background: linear-gradient(135deg, #060D2E 0%, #1C2B90 60%, #3350D0 100%);
+    border-radius: 20px; padding: 64px; margin-bottom: 64px;
+    color: white; position: relative; overflow: hidden;
+  }
+  .cover::before {
+    content: ''; position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 80% 50%, rgba(83, 114, 229, 0.3) 0%, transparent 70%);
+  }
+  .cover-content { position: relative; z-index: 1; }
+  .cover-badge {
+    display: inline-block; background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.2); border-radius: 999px;
+    padding: 4px 14px; font-size: 12px; font-weight: 600;
+    letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 24px;
+  }
+  .cover h1 {
+    font-family: 'Plus Jakarta Sans', sans-serif; font-size: 52px;
+    font-weight: 800; letter-spacing: -0.03em; line-height: 1.05;
+    margin-bottom: 16px;
+  }
+  .cover h1 span { color: #8899EE; }
+  .cover p { font-size: 17px; color: rgba(255,255,255,0.65); max-width: 540px; }
+  .cover-meta {
+    display: flex; gap: 32px; margin-top: 40px;
+    padding-top: 32px; border-top: 1px solid rgba(255,255,255,0.12);
+  }
+  .cover-meta-item label {
+    font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em;
+    color: rgba(255,255,255,0.4); display: block; margin-bottom: 4px;
+  }
+  .cover-meta-item span { font-size: 14px; font-weight: 600; color: rgba(255,255,255,0.8); }
+
+  /* ── Sections ───────────────────────────────────────────────────── */
+  .section { margin-bottom: 72px; scroll-margin-top: 32px; }
+  .section-header {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 32px; padding-bottom: 16px;
+    border-bottom: 2px solid #E2E8F0;
+  }
+  .section-number {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 12px; font-weight: 800; color: #3350D0;
+    background: #EDEFFD; border-radius: 6px;
+    padding: 3px 9px; letter-spacing: 0.02em;
+  }
+  .section-title {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 26px; font-weight: 800; letter-spacing: -0.02em; color: #0F172A;
+  }
+
+  /* ── Cards / Panels ─────────────────────────────────────────────── */
+  .panel {
+    background: white; border: 1px solid #E2E8F0; border-radius: 12px;
+    padding: 24px; margin-bottom: 16px;
+    box-shadow: 0 1px 3px rgba(15,23,42,0.04);
+  }
+  .panel-title {
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.07em; color: #94A3B8; margin-bottom: 14px;
+  }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+
+  /* ── Brand Identity Cards ───────────────────────────────────────── */
+  .identity-card {
+    background: white; border: 1px solid #E2E8F0; border-radius: 12px;
+    padding: 20px; transition: box-shadow 200ms ease;
+  }
+  .identity-icon {
+    width: 36px; height: 36px; border-radius: 9px;
+    background: #EDEFFD; display: flex; align-items: center;
+    justify-content: center; font-size: 18px; margin-bottom: 12px;
+  }
+  .identity-label {
+    font-size: 10px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.07em; color: #94A3B8; margin-bottom: 6px;
+  }
+  .identity-value {
+    font-size: 14px; font-weight: 600; color: #1E293B; line-height: 1.4;
+  }
+  .identity-desc {
+    font-size: 13px; color: #64748B; margin-top: 6px; line-height: 1.5;
+  }
+
+  /* ── Colors ─────────────────────────────────────────────────────── */
+  .palette-row {
+    display: flex; border-radius: 10px; overflow: hidden;
+    margin-bottom: 12px; height: 56px;
+  }
+  .palette-swatch {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; justify-content: flex-end;
+    padding-bottom: 4px;
+  }
+  .palette-swatch span {
+    font-size: 9px; font-weight: 700; opacity: 0;
+    transition: opacity 150ms; color: inherit;
+  }
+  .palette-swatch:hover span { opacity: 0.7; }
+  .swatch-label {
+    font-size: 11px; font-weight: 600; color: #64748B; margin-top: 6px;
+    text-align: center;
+  }
+  .swatch-hex { font-size: 10px; color: #94A3B8; }
+
+  .color-grid {
+    display: grid; grid-template-columns: repeat(11, 1fr); gap: 6px;
+    margin-bottom: 16px;
+  }
+  .color-cell { border-radius: 8px; overflow: hidden; }
+  .color-cell-top { height: 44px; }
+  .color-cell-label { padding: 4px 2px; text-align: center; }
+  .color-cell-name { font-size: 9px; font-weight: 600; color: #64748B; }
+  .color-cell-hex { font-size: 8px; color: #94A3B8; font-family: monospace; }
+
+  .semantic-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .semantic-card {
+    border-radius: 10px; overflow: hidden;
+    border: 1px solid #E2E8F0;
+  }
+  .semantic-main { height: 48px; }
+  .semantic-light { height: 24px; }
+  .semantic-info { padding: 10px 12px; }
+  .semantic-name { font-size: 12px; font-weight: 700; }
+  .semantic-vals { font-size: 10px; color: #94A3B8; margin-top: 2px; }
+
+  /* ── Typography ─────────────────────────────────────────────────── */
+  .type-demo {
+    background: white; border: 1px solid #E2E8F0; border-radius: 12px;
+    padding: 32px;
+  }
+  .type-scale-row {
+    display: flex; align-items: baseline; gap: 20px;
+    padding: 12px 0; border-bottom: 1px solid #F1F5F9;
+  }
+  .type-scale-row:last-child { border-bottom: none; }
+  .type-meta { width: 140px; flex-shrink: 0; }
+  .type-meta-size { font-size: 11px; font-weight: 600; color: #94A3B8; }
+  .type-meta-role { font-size: 10px; color: #CBD5E1; margin-top: 2px; }
+
+  /* ── Components ─────────────────────────────────────────────────── */
+  .component-demo {
+    background: white; border: 1px solid #E2E8F0; border-radius: 12px; padding: 24px;
+  }
+  .demo-label {
+    font-size: 10px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.07em; color: #94A3B8; margin-bottom: 14px;
+  }
+  .demo-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+  .demo-row:last-child { margin-bottom: 0; }
+
+  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px;
+    border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer;
+    border: none; font-family: 'Inter', sans-serif; white-space: nowrap; }
+  .btn-primary   { background: #3350D0; color: white; }
+  .btn-secondary { background: #EDEFFD; color: #1C2B90; }
+  .btn-outline   { background: transparent; color: #475569; border: 1px solid #CBD5E1; }
+  .btn-ghost     { background: transparent; color: #64748B; }
+  .btn-danger    { background: #FEE2E2; color: #B91C1C; }
+  .btn-success   { background: #D1FAE5; color: #047857; }
+  .btn-sm        { padding: 5px 12px; font-size: 12px; border-radius: 6px; }
+  .btn-lg        { padding: 11px 22px; font-size: 15px; border-radius: 10px; }
+
+  .input-field {
+    width: 100%; padding: 8px 12px; border: 1px solid #CBD5E1;
+    border-radius: 8px; font-size: 13px; font-family: 'Inter', sans-serif;
+    color: #1E293B; background: white; outline: none; margin-bottom: 8px;
+  }
+  .input-focused { border-color: #3350D0; box-shadow: 0 0 0 3px rgba(51,80,208,0.15); }
+  .input-error { border-color: #EF4444; box-shadow: 0 0 0 3px rgba(239,68,68,0.15); }
+  .input-disabled { background: #F1F5F9; color: #94A3B8; cursor: not-allowed; }
+  .field-error { font-size: 11px; color: #EF4444; margin-top: -4px; margin-bottom: 8px; }
+  .field-hint  { font-size: 11px; color: #94A3B8; margin-top: -4px; margin-bottom: 8px; }
+
+  .badge { display: inline-flex; align-items: center; padding: 2px 9px;
+    border-radius: 999px; font-size: 11px; font-weight: 600; }
+  .badge-blue  { background: #EDEFFD; color: #1C2B90; }
+  .badge-green { background: #D1FAE5; color: #047857; }
+  .badge-amber { background: #FEF3C7; color: #B45309; }
+  .badge-red   { background: #FEE2E2; color: #B91C1C; }
+  .badge-gray  { background: #F1F5F9; color: #475569; }
+
+  .tag { display: inline-flex; align-items: center; padding: 4px 10px;
+    border-radius: 6px; font-size: 11px; font-weight: 500;
+    background: #F1F5F9; color: #475569; border: 1px solid #E2E8F0; }
+
+  /* Card demo */
+  .card-objective {
+    background: white; border: 1px solid #E2E8F0; border-radius: 12px;
+    padding: 18px; box-shadow: 0 1px 3px rgba(15,23,42,0.04);
+  }
+  .card-obj-header {
+    display: flex; align-items: flex-start; justify-content: space-between; gap: 8px;
+    margin-bottom: 12px;
+  }
+  .card-obj-title { font-size: 14px; font-weight: 600; color: #1E293B; }
+  .card-obj-meta  { font-size: 12px; color: #94A3B8; margin-top: 2px; }
+  .progress-track {
+    background: #F1F5F9; border-radius: 999px; height: 6px; margin: 10px 0;
+  }
+  .progress-fill {
+    border-radius: 999px; height: 6px;
+    background: linear-gradient(90deg, #3350D0, #5572E5);
+  }
+  .progress-label {
+    display: flex; justify-content: space-between;
+    font-size: 11px; color: #94A3B8; margin-top: 6px;
+  }
+
+  /* Sidebar demo */
+  .sidebar-demo {
+    background: #0F172A; border-radius: 12px; padding: 16px;
+    font-size: 13px;
+  }
+  .sd-brand {
+    display: flex; align-items: center; gap: 8px;
+    padding-bottom: 16px; margin-bottom: 12px;
+    border-bottom: 1px solid #1E293B;
+  }
+  .sd-brand-text { font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 16px; font-weight: 800; color: white; letter-spacing: -0.01em; }
+  .sd-item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 7px 10px; border-radius: 7px; color: #64748B;
+    font-weight: 500; margin-bottom: 2px;
+  }
+  .sd-item.active { background: #1C2B90; color: white; }
+  .sd-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; opacity: 0.4; }
+  .sd-item.active .sd-dot { background: #8899EE; opacity: 1; }
+
+  /* Modal demo */
+  .modal-demo {
+    background: white; border: 1px solid #E2E8F0; border-radius: 16px;
+    box-shadow: 0 24px 48px rgba(15,23,42,0.12); padding: 28px; max-width: 420px;
+  }
+  .modal-header {
+    display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;
+  }
+  .modal-title { font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 18px; font-weight: 700; color: #0F172A; }
+  .modal-close {
+    width: 28px; height: 28px; border-radius: 6px; background: #F1F5F9;
+    display: flex; align-items: center; justify-content: center;
+    color: #64748B; font-size: 16px; cursor: pointer; border: none;
+  }
+  .modal-body { font-size: 14px; color: #64748B; margin-bottom: 24px; line-height: 1.6; }
+  .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+
+  /* ── Logo ───────────────────────────────────────────────────────── */
+  .logo-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
+    margin-bottom: 16px;
+  }
+  .logo-variant {
+    border-radius: 12px; padding: 24px; display: flex;
+    align-items: center; justify-content: center;
+    flex-direction: column; gap: 10px;
+  }
+  .logo-variant-label {
+    font-size: 10px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.07em; text-align: center;
+  }
+  .logo-imagotipo {
+    display: flex; align-items: center; gap: 10px;
+  }
+
+  .logo-dont-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
+  }
+  .logo-dont {
+    border: 2px solid #FEE2E2; border-radius: 12px; padding: 20px;
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column; gap: 8px;
+  }
+  .logo-dont-label {
+    font-size: 10px; font-weight: 700; color: #EF4444; text-align: center;
+  }
+
+  /* ── UX Principles ──────────────────────────────────────────────── */
+  .principle-card {
+    background: white; border: 1px solid #E2E8F0; border-radius: 12px;
+    padding: 20px;
+  }
+  .principle-icon {
+    font-size: 24px; margin-bottom: 10px;
+  }
+  .principle-title { font-size: 14px; font-weight: 700; color: #1E293B; margin-bottom: 6px; }
+  .principle-desc { font-size: 13px; color: #64748B; line-height: 1.5; }
+
+  /* ── Microinteractions ──────────────────────────────────────────── */
+  .micro-table {
+    width: 100%; border-collapse: separate; border-spacing: 0;
+    background: white; border-radius: 12px; overflow: hidden;
+    border: 1px solid #E2E8F0;
+  }
+  .micro-table th {
+    background: #F8FAFC; padding: 10px 16px; text-align: left;
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.07em; color: #94A3B8;
+    border-bottom: 1px solid #E2E8F0;
+  }
+  .micro-table td {
+    padding: 12px 16px; font-size: 13px; color: #475569;
+    border-bottom: 1px solid #F1F5F9;
+  }
+  .micro-table tr:last-child td { border-bottom: none; }
+  .micro-table td:first-child { font-weight: 600; color: #1E293B; }
+  .code { font-family: monospace; font-size: 12px; color: #3350D0;
+    background: #EDEFFD; padding: 2px 6px; border-radius: 4px; }
+
+  /* ── Tokens table ───────────────────────────────────────────────── */
+  .token-table {
+    width: 100%; border-collapse: separate; border-spacing: 0;
+    background: white; border-radius: 12px; overflow: hidden;
+    border: 1px solid #E2E8F0; margin-bottom: 16px;
+  }
+  .token-table th {
+    background: #F8FAFC; padding: 10px 16px; text-align: left;
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.07em; color: #94A3B8;
+    border-bottom: 1px solid #E2E8F0;
+  }
+  .token-table td { padding: 10px 16px; border-bottom: 1px solid #F1F5F9; }
+  .token-table tr:last-child td { border-bottom: none; }
+  .token-name { font-family: monospace; font-size: 12px; color: #3350D0;
+    background: #EDEFFD; padding: 2px 6px; border-radius: 4px; }
+  .token-value { font-family: monospace; font-size: 12px; color: #64748B; }
+  .token-desc { font-size: 12px; color: #94A3B8; }
+  .token-swatch { display: inline-block; width: 16px; height: 16px;
+    border-radius: 4px; vertical-align: middle; margin-right: 6px;
+    border: 1px solid rgba(0,0,0,0.08); }
+
+  /* ── Divider ────────────────────────────────────────────────────── */
+  .divider { height: 1px; background: #E2E8F0; margin: 32px 0; }
+
+  /* ── Callout ────────────────────────────────────────────────────── */
+  .callout {
+    border-radius: 10px; padding: 16px 20px; margin-bottom: 16px;
+    border-left: 3px solid;
+  }
+  .callout-blue { background: #EDEFFD; border-color: #3350D0; color: #1C2B90; }
+  .callout-green { background: #D1FAE5; border-color: #10B981; color: #047857; }
+  .callout-amber { background: #FEF3C7; border-color: #F59E0B; color: #B45309; }
+  .callout p { font-size: 13px; line-height: 1.6; }
+  .callout strong { font-weight: 700; }
+
+  /* ── Footer ─────────────────────────────────────────────────────── */
+  .doc-footer {
+    margin-top: 80px; padding-top: 32px; border-top: 1px solid #E2E8F0;
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 12px; color: #94A3B8;
+  }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR NAV -->
+<nav class="sidebar">
+  <div class="sidebar-logo">
+    <svg width="32" height="32" viewBox="0 0 44 44" fill="none">
+      <rect width="44" height="44" rx="11" fill="#1C2B90"/>
+      <rect x="11" y="12" width="22" height="3.5" rx="1.75" fill="white"/>
+      <path d="M 31 15.5 L 13 28.5" stroke="white" stroke-width="3" stroke-linecap="round"/>
+      <rect x="11" y="28.5" width="22" height="3.5" rx="1.75" fill="white"/>
+    </svg>
+    <span class="sidebar-logo-text">traza</span>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-section-label">Identidad</div>
+    <a href="#identidad" class="nav-item">01 · Identidad de Marca</a>
+    <a href="#direccion" class="nav-item">02 · Dirección Creativa</a>
+    <a href="#logo" class="nav-item">03 · Logo & Branding</a>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-label">Sistema Visual</div>
+    <a href="#colores" class="nav-item">04 · Paleta de Colores</a>
+    <a href="#tipografia" class="nav-item">05 · Tipografía</a>
+    <a href="#componentes" class="nav-item">06 · Componentes</a>
+    <a href="#iconografia" class="nav-item">07 · Iconografía</a>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-label">Experiencia</div>
+    <a href="#ux" class="nav-item">08 · UX Principles</a>
+    <a href="#micro" class="nav-item">09 · Microinteracciones</a>
+    <a href="#ilustraciones" class="nav-item">10 · Ilustraciones</a>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-label">Implementación</div>
+    <a href="#design-system" class="nav-item">11 · Design System</a>
+    <a href="#manual" class="nav-item">12 · Manual de Marca</a>
+    <a href="#inspiracion" class="nav-item">13 · Referencias</a>
+  </div>
+</nav>
+
+<!-- MAIN CONTENT -->
+<main class="main">
+
+  <!-- COVER -->
+  <div class="cover">
+    <div class="cover-content">
+      <div class="cover-badge">Brand Book & Design System</div>
+      <h1>Cada objetivo<br>deja una <span>traza.</span></h1>
+      <p>Identidad visual completa, sistema de diseño y lineamientos de marca para TRAZA — plataforma de gestión, seguimiento y validación de objetivos.</p>
+      <div class="cover-meta">
+        <div class="cover-meta-item">
+          <label>Versión</label>
+          <span>1.0 — 2026</span>
+        </div>
+        <div class="cover-meta-item">
+          <label>Tipo</label>
+          <span>SaaS B2B</span>
+        </div>
+        <div class="cover-meta-item">
+          <label>Mercado</label>
+          <span>Global (ES + EN)</span>
+        </div>
+        <div class="cover-meta-item">
+          <label>Segmento</label>
+          <span>Empresas medianas y grandes</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ 01 · IDENTIDAD DE MARCA ════════════════════════════════ -->
+  <section id="identidad" class="section">
+    <div class="section-header">
+      <span class="section-number">01</span>
+      <h2 class="section-title">Identidad de Marca</h2>
+    </div>
+
+    <div class="grid-2" style="margin-bottom:16px">
+      <div class="identity-card">
+        <div class="identity-icon">🏛️</div>
+        <div class="identity-label">Arquetipo</div>
+        <div class="identity-value">El Sabio</div>
+        <div class="identity-desc">TRAZA ilumina sin juzgar. No controla personas: transforma datos en claridad. Como un buen asesor, ayuda a verse con más objetividad.</div>
+      </div>
+      <div class="identity-card">
+        <div class="identity-icon">🎯</div>
+        <div class="identity-label">Misión</div>
+        <div class="identity-value">Reemplazar la subjetividad con evidencia</div>
+        <div class="identity-desc">Transformar la forma en que las organizaciones gestionan el desempeño: de evaluaciones esporádicas a seguimiento continuo y objetivo.</div>
+      </div>
+    </div>
+
+    <div class="grid-2" style="margin-bottom:16px">
+      <div class="identity-card">
+        <div class="identity-icon">🔭</div>
+        <div class="identity-label">Visión</div>
+        <div class="identity-value">Claridad total para cada colaborador</div>
+        <div class="identity-desc">Que cada persona tenga claridad sobre su desempeño, su progreso y su camino de crecimiento dentro de la organización.</div>
+      </div>
+      <div class="identity-card">
+        <div class="identity-icon">💎</div>
+        <div class="identity-label">Propuesta de Valor</div>
+        <div class="identity-value">Cada objetivo, una narrativa documentada</div>
+        <div class="identity-desc">Desde el primer compromiso hasta la validación final, todo queda registrado, visible y objetivamente evaluado.</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Valores de Marca</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
+        <div style="padding:12px;background:#F8FAFC;border-radius:8px;border:1px solid #E2E8F0">
+          <div style="font-size:12px;font-weight:700;color:#1C2B90;margin-bottom:4px">🔍 Transparencia</div>
+          <div style="font-size:12px;color:#64748B">Todo visible. Nada oculto. Cada decisión tiene un registro.</div>
+        </div>
+        <div style="padding:12px;background:#F8FAFC;border-radius:8px;border:1px solid #E2E8F0">
+          <div style="font-size:12px;font-weight:700;color:#1C2B90;margin-bottom:4px">🔗 Trazabilidad</div>
+          <div style="font-size:12px;color:#64748B">Cada acción deja evidencia. Cada avance, un registro verificable.</div>
+        </div>
+        <div style="padding:12px;background:#F8FAFC;border-radius:8px;border:1px solid #E2E8F0">
+          <div style="font-size:12px;font-weight:700;color:#1C2B90;margin-bottom:4px">🤝 Confianza</div>
+          <div style="font-size:12px;color:#64748B">Construida sobre datos reales, no percepciones.</div>
+        </div>
+        <div style="padding:12px;background:#F8FAFC;border-radius:8px;border:1px solid #E2E8F0">
+          <div style="font-size:12px;font-weight:700;color:#1C2B90;margin-bottom:4px">⚖️ Objetividad</div>
+          <div style="font-size:12px;color:#64748B">Evaluaciones basadas en hechos, no intuiciones.</div>
+        </div>
+        <div style="padding:12px;background:#F8FAFC;border-radius:8px;border:1px solid #E2E8F0">
+          <div style="font-size:12px;font-weight:700;color:#1C2B90;margin-bottom:4px">✨ Simplicidad</div>
+          <div style="font-size:12px;color:#64748B">Interfaces limpias. Información progresiva. Sin sobrecarga.</div>
+        </div>
+        <div style="padding:12px;background:#F8FAFC;border-radius:8px;border:1px solid #E2E8F0">
+          <div style="font-size:12px;font-weight:700;color:#1C2B90;margin-bottom:4px">🚀 Innovación</div>
+          <div style="font-size:12px;color:#64748B">Tecnología moderna al servicio de las personas.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Tono de Comunicación</div>
+      <div class="grid-4">
+        <div style="padding:14px;background:#EDEFFD;border-radius:8px">
+          <div style="font-size:12px;font-weight:700;color:#1C2B90;margin-bottom:4px">Directo</div>
+          <div style="font-size:12px;color:#3350D0">Sin rodeos ni jerga corporativa.</div>
+        </div>
+        <div style="padding:14px;background:#D1FAE5;border-radius:8px">
+          <div style="font-size:12px;font-weight:700;color:#047857;margin-bottom:4px">Confiado</div>
+          <div style="font-size:12px;color:#065F46">Sabe lo que hace, no presume.</div>
+        </div>
+        <div style="padding:14px;background:#FEF3C7;border-radius:8px">
+          <div style="font-size:12px;font-weight:700;color:#B45309;margin-bottom:4px">Humano</div>
+          <div style="font-size:12px;color:#92400E">Profesional pero accesible.</div>
+        </div>
+        <div style="padding:14px;background:#E0F2FE;border-radius:8px">
+          <div style="font-size:12px;font-weight:700;color:#0369A1;margin-bottom:4px">Claro</div>
+          <div style="font-size:12px;color:#075985">Explica lo complejo con simplicidad.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Brand Story</div>
+      <div style="font-size:15px;color:#334155;line-height:1.8;max-width:680px">
+        <p>Las organizaciones llevan décadas evaluando personas con herramientas de otra época: formularios anuales, percepciones subjetivas, conversaciones que no dejan registro.</p>
+        <br>
+        <p><strong style="color:#1E293B">TRAZA nació para cambiar eso.</strong></p>
+        <br>
+        <p>Creemos que cada persona merece claridad sobre lo que se espera de ella, y transparencia sobre cómo se va a evaluar su trabajo. Cada objetivo registrado en TRAZA es una promesa documentada. Cada avance, una pieza de evidencia. Cada validación, un reconocimiento objetivo.</p>
+        <br>
+        <p>No controlamos a las personas: <strong style="color:#1C2B90">les damos las herramientas para que su trabajo hable por sí mismo.</strong></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ 02 · DIRECCIÓN CREATIVA ════════════════════════════════ -->
+  <section id="direccion" class="section">
+    <div class="section-header">
+      <span class="section-number">02</span>
+      <h2 class="section-title">Dirección Creativa</h2>
+    </div>
+
+    <div class="grid-2" style="margin-bottom:16px">
+      <div class="panel">
+        <div class="panel-title">✅ Qué debe transmitir</div>
+        <ul style="list-style:none;display:flex;flex-direction:column;gap:8px">
+          <li style="display:flex;gap:10px;font-size:13px;color:#334155"><span style="color:#10B981;font-weight:700;flex-shrink:0">→</span> Claridad y precisión. Cada elemento tiene un propósito.</li>
+          <li style="display:flex;gap:10px;font-size:13px;color:#334155"><span style="color:#10B981;font-weight:700;flex-shrink:0">→</span> Confianza institucional. Herramienta seria para empresas serias.</li>
+          <li style="display:flex;gap:10px;font-size:13px;color:#334155"><span style="color:#10B981;font-weight:700;flex-shrink:0">→</span> Modernidad sin frivolidad. Innovador pero profesional.</li>
+          <li style="display:flex;gap:10px;font-size:13px;color:#334155"><span style="color:#10B981;font-weight:700;flex-shrink:0">→</span> Crecimiento y progreso. El usuario siente que avanza.</li>
+          <li style="display:flex;gap:10px;font-size:13px;color:#334155"><span style="color:#10B981;font-weight:700;flex-shrink:0">→</span> Colaboración. Nunca vigilancia ni control.</li>
+        </ul>
+      </div>
+      <div class="panel">
+        <div class="panel-title">❌ Qué NO usar nunca</div>
+        <ul style="list-style:none;display:flex;flex-direction:column;gap:8px">
+          <li style="display:flex;gap:10px;font-size:13px;color:#334155"><span style="color:#EF4444;font-weight:700;flex-shrink:0">✕</span> Verdes y azules corporativos genéricos.</li>
+          <li style="display:flex;gap:10px;font-size:13px;color:#334155"><span style="color:#EF4444;font-weight:700;flex-shrink:0">✕</span> Gradientes brillantes o efectos tipo "AI pink/purple".</li>
+          <li style="display:flex;gap:10px;font-size:13px;color:#334155"><span style="color:#EF4444;font-weight:700;flex-shrink:0">✕</span> Ilustraciones de personas en situaciones genéricas.</li>
+          <li style="display:flex;gap:10px;font-size:13px;color:#334155"><span style="color:#EF4444;font-weight:700;flex-shrink:0">✕</span> Íconos decorativos sin función.</li>
+          <li style="display:flex;gap:10px;font-size:13px;color:#334155"><span style="color:#EF4444;font-weight:700;flex-shrink:0">✕</span> Densidad visual excesiva. Pantallas recargadas.</li>
+          <li style="display:flex;gap:10px;font-size:13px;color:#334155"><span style="color:#EF4444;font-weight:700;flex-shrink:0">✕</span> Tipografías display decorativas o con serifa.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Referencias Visuales Apropiadas</div>
+      <div class="grid-4">
+        <div style="text-align:center;padding:16px;background:#F8FAFC;border-radius:10px;border:1px solid #E2E8F0">
+          <div style="font-size:20px;font-weight:800;color:#5E6AD2;font-family:'Plus Jakarta Sans',sans-serif">Linear</div>
+          <div style="font-size:11px;color:#94A3B8;margin-top:6px">Precisión, dark mode elegante, sidebar limpia</div>
+        </div>
+        <div style="text-align:center;padding:16px;background:#F8FAFC;border-radius:10px;border:1px solid #E2E8F0">
+          <div style="font-size:20px;font-weight:800;color:#635BFF;font-family:'Plus Jakarta Sans',sans-serif">Stripe</div>
+          <div style="font-size:11px;color:#94A3B8;margin-top:6px">Tipografía perfecta, docs impecables, spacing generoso</div>
+        </div>
+        <div style="text-align:center;padding:16px;background:#F8FAFC;border-radius:10px;border:1px solid #E2E8F0">
+          <div style="font-size:20px;font-weight:800;color:#000;font-family:'Plus Jakarta Sans',sans-serif">Notion</div>
+          <div style="font-size:11px;color:#94A3B8;margin-top:6px">Limpieza extrema, jerarquía clara, sin ruido</div>
+        </div>
+        <div style="text-align:center;padding:16px;background:#F8FAFC;border-radius:10px;border:1px solid #E2E8F0">
+          <div style="font-size:20px;font-weight:800;color:#000;font-family:'Plus Jakarta Sans',sans-serif">Vercel</div>
+          <div style="font-size:11px;color:#94A3B8;margin-top:6px">Confianza técnica, negro puro, componentes perfectos</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ 03 · LOGO & BRANDING ════════════════════════════════════ -->
+  <section id="logo" class="section">
+    <div class="section-header">
+      <span class="section-number">03</span>
+      <h2 class="section-title">Logo & Branding</h2>
+    </div>
+
+    <div class="callout callout-blue">
+      <p><strong>Concepto del logo:</strong> El isotipo es una "Z" geométrica (de tra<strong>Z</strong>a) construida con tres elementos precisos: barra superior, diagonal y barra inferior. La diagonal representa el acto de trazar — el registro continuo. La forma es limpia, arquitectónica y memorable. No usa metáforas literales (sin huellas, caminos ni flechas genéricas).</p>
+    </div>
+
+    <div class="logo-grid">
+      <div class="logo-variant" style="background:white;border:1px solid #E2E8F0">
+        <div class="logo-imagotipo">
+          <svg width="36" height="36" viewBox="0 0 44 44" fill="none">
+            <rect width="44" height="44" rx="11" fill="#1C2B90"/>
+            <rect x="11" y="12" width="22" height="3.5" rx="1.75" fill="white"/>
+            <path d="M 31 15.5 L 13 28.5" stroke="white" stroke-width="3" stroke-linecap="round"/>
+            <rect x="11" y="28.5" width="22" height="3.5" rx="1.75" fill="white"/>
+          </svg>
+          <span style="font-family:'Plus Jakarta Sans',sans-serif;font-size:22px;font-weight:800;color:#1C2B90;letter-spacing:-0.02em">traza</span>
+        </div>
+        <div class="logo-variant-label" style="color:#94A3B8">PRINCIPAL · Fondo claro</div>
+      </div>
+
+      <div class="logo-variant" style="background:#0F172A">
+        <div class="logo-imagotipo">
+          <svg width="36" height="36" viewBox="0 0 44 44" fill="none">
+            <rect width="44" height="44" rx="11" fill="#1C2B90"/>
+            <rect x="11" y="12" width="22" height="3.5" rx="1.75" fill="white"/>
+            <path d="M 31 15.5 L 13 28.5" stroke="white" stroke-width="3" stroke-linecap="round"/>
+            <rect x="11" y="28.5" width="22" height="3.5" rx="1.75" fill="white"/>
+          </svg>
+          <span style="font-family:'Plus Jakarta Sans',sans-serif;font-size:22px;font-weight:800;color:white;letter-spacing:-0.02em">traza</span>
+        </div>
+        <div class="logo-variant-label" style="color:#475569">DARK MODE</div>
+      </div>
+
+      <div class="logo-variant" style="background:#EDEFFD">
+        <svg width="52" height="52" viewBox="0 0 44 44" fill="none">
+          <rect width="44" height="44" rx="11" fill="#1C2B90"/>
+          <rect x="11" y="12" width="22" height="3.5" rx="1.75" fill="white"/>
+          <path d="M 31 15.5 L 13 28.5" stroke="white" stroke-width="3" stroke-linecap="round"/>
+          <rect x="11" y="28.5" width="22" height="3.5" rx="1.75" fill="white"/>
+        </svg>
+        <div class="logo-variant-label" style="color:#3350D0">ISOTIPO · App icon</div>
+      </div>
+
+      <div class="logo-variant" style="background:#F8FAFC;border:1px solid #E2E8F0">
+        <div class="logo-imagotipo">
+          <svg width="36" height="36" viewBox="0 0 44 44" fill="none">
+            <rect width="44" height="44" rx="11" fill="#1E293B"/>
+            <rect x="11" y="12" width="22" height="3.5" rx="1.75" fill="white"/>
+            <path d="M 31 15.5 L 13 28.5" stroke="white" stroke-width="3" stroke-linecap="round"/>
+            <rect x="11" y="28.5" width="22" height="3.5" rx="1.75" fill="white"/>
+          </svg>
+          <span style="font-family:'Plus Jakarta Sans',sans-serif;font-size:22px;font-weight:800;color:#1E293B;letter-spacing:-0.02em">traza</span>
+        </div>
+        <div class="logo-variant-label" style="color:#94A3B8">MONOCROMÁTICO</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">❌ Usos Incorrectos</div>
+      <div class="logo-dont-grid">
+        <div class="logo-dont">
+          <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:20px;font-weight:800;color:#1C2B90;letter-spacing:-0.02em;opacity:0.3">traza</div>
+          <div class="logo-dont-label">No usar con opacidad reducida</div>
+        </div>
+        <div class="logo-dont">
+          <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:20px;font-weight:400;color:#1C2B90;letter-spacing:-0.02em">Traza</div>
+          <div class="logo-dont-label">No capitalizar el wordmark</div>
+        </div>
+        <div class="logo-dont">
+          <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:20px;font-weight:800;color:#EF4444;letter-spacing:-0.02em">traza</div>
+          <div class="logo-dont-label">No usar colores no aprobados</div>
+        </div>
+        <div class="logo-dont">
+          <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:20px;font-weight:800;color:#1C2B90;letter-spacing:-0.02em;transform:scaleX(1.3)">traza</div>
+          <div class="logo-dont-label">No distorsionar proporciones</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Área de Seguridad</div>
+      <p style="font-size:13px;color:#64748B;line-height:1.6">El área de seguridad del logo equivale a la altura de la letra "a" del wordmark en todos sus lados. Nunca colocar otros elementos visuales dentro de esta zona. En el isotipo, el área de seguridad es igual a 0.25x el alto del ícono por cada lado.</p>
+    </div>
+  </section>
+
+  <!-- ═══ 04 · PALETA DE COLORES ══════════════════════════════════ -->
+  <section id="colores" class="section">
+    <div class="section-header">
+      <span class="section-number">04</span>
+      <h2 class="section-title">Paleta de Colores</h2>
+    </div>
+
+    <div class="callout callout-blue">
+      <p><strong>Elección estratégica:</strong> Sapphire Indigo (#1C2B90). Más profundo que un azul corporativo estándar, más sobrio que un violeta. Transmite experticia, confianza institucional y sofisticación tecnológica. Con ligero undertone azul en los neutros para mantener cohesión visual en toda la interfaz.</p>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Paleta Primaria — Sapphire Indigo</div>
+      <div class="color-grid">
+        <div class="color-cell"><div class="color-cell-top" style="background:#EDEFFD"></div><div class="color-cell-label"><div class="color-cell-name">50</div><div class="color-cell-hex">#EDEFFD</div></div></div>
+        <div class="color-cell"><div class="color-cell-top" style="background:#DDE2FB"></div><div class="color-cell-label"><div class="color-cell-name">100</div><div class="color-cell-hex">#DDE2FB</div></div></div>
+        <div class="color-cell"><div class="color-cell-top" style="background:#BBC5F7"></div><div class="color-cell-label"><div class="color-cell-name">200</div><div class="color-cell-hex">#BBC5F7</div></div></div>
+        <div class="color-cell"><div class="color-cell-top" style="background:#8899EE"></div><div class="color-cell-label"><div class="color-cell-name">300</div><div class="color-cell-hex">#8899EE</div></div></div>
+        <div class="color-cell"><div class="color-cell-top" style="background:#5572E5"></div><div class="color-cell-label"><div class="color-cell-name">400</div><div class="color-cell-hex">#5572E5</div></div></div>
+        <div class="color-cell" style="outline:2px solid #3350D0;border-radius:8px"><div class="color-cell-top" style="background:#3350D0"></div><div class="color-cell-label"><div class="color-cell-name" style="color:#3350D0;font-weight:700">500★</div><div class="color-cell-hex">#3350D0</div></div></div>
+        <div class="color-cell"><div class="color-cell-top" style="background:#2438B0"></div><div class="color-cell-label"><div class="color-cell-name">600</div><div class="color-cell-hex">#2438B0</div></div></div>
+        <div class="color-cell" style="outline:2px solid #1C2B90;border-radius:8px"><div class="color-cell-top" style="background:#1C2B90"></div><div class="color-cell-label"><div class="color-cell-name" style="color:#1C2B90;font-weight:700">700★</div><div class="color-cell-hex">#1C2B90</div></div></div>
+        <div class="color-cell"><div class="color-cell-top" style="background:#152070"></div><div class="color-cell-label"><div class="color-cell-name">800</div><div class="color-cell-hex">#152070</div></div></div>
+        <div class="color-cell"><div class="color-cell-top" style="background:#0D1850"></div><div class="color-cell-label"><div class="color-cell-name">900</div><div class="color-cell-hex">#0D1850</div></div></div>
+        <div class="color-cell"><div class="color-cell-top" style="background:#060D2E"></div><div class="color-cell-label"><div class="color-cell-name">950</div><div class="color-cell-hex">#060D2E</div></div></div>
+      </div>
+      <div style="font-size:12px;color:#94A3B8">★ 500: botones, CTAs, links activos · 700: logo, marca, textos en color</div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Paleta Neutral — Slate (con undertone azul)</div>
+      <div class="color-grid">
+        <div class="color-cell"><div class="color-cell-top" style="background:#FFFFFF;border:1px solid #F1F5F9"></div><div class="color-cell-label"><div class="color-cell-name">50</div><div class="color-cell-hex">#FFFFFF</div></div></div>
+        <div class="color-cell"><div class="color-cell-top" style="background:#F8FAFC"></div><div class="color-cell-label"><div class="color-cell-name">100</div><div class="color-cell-hex">#F8FAFC</div></div></div>
+        <div class="color-cell"><div class="color-cell-top" style="background:#F1F5F9"></div><div class="color-cell-label"><div class="color-cell-name">200</div><div class="color-cell-hex">#F1F5F9</div></div></div>
+        <div class="color-cell"><div class="color-cell-top" style="background:#E2E8F0"></div><div class="color-cell-label"><div class="color-cell-name">300</div><div class="color-cell-hex">#E2E8F0</div></div></div>
+        <div class="color-cell"><div class="color-cell-top" style="background:#CBD5E1"></div><div class="color-cell-label"><div class="color-cell-name">400</div><div class="color-cell-hex">#CBD5E1</div></div></div>
+        <div class="color-cell"><div class="color-cell-top" style="background:#94A3B8"></div><div class="color-cell-label"><div class="color-cell-name">500</div><div class="color-cell-hex">#94A3B8</div></div></div>
+        <div class="color-cell"><div class="color-cell-top" style="background:#64748B"></div><div class="color-cell-label"><div class="color-cell-name">600</div><div class="color-cell-hex">#64748B</div></div></div>
+        <div class="color-cell"><div class="color-cell-top" style="background:#475569"></div><div class="color-cell-label"><div class="color-cell-name">700</div><div class="color-cell-hex">#475569</div></div></div>
+        <div class="color-cell"><div class="color-cell-top" style="background:#334155"></div><div class="color-cell-label"><div class="color-cell-name">800</div><div class="color-cell-hex">#334155</div></div></div>
+        <div class="color-cell"><div class="color-cell-top" style="background:#1E293B"></div><div class="color-cell-label"><div class="color-cell-name">900</div><div class="color-cell-hex">#1E293B</div></div></div>
+        <div class="color-cell"><div class="color-cell-top" style="background:#0F172A"></div><div class="color-cell-label"><div class="color-cell-name">950</div><div class="color-cell-hex">#0F172A</div></div></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Colores Semánticos (Estados)</div>
+      <div class="semantic-grid">
+        <div class="semantic-card">
+          <div class="semantic-main" style="background:#10B981"></div>
+          <div class="semantic-light" style="background:#D1FAE5"></div>
+          <div class="semantic-info">
+            <div class="semantic-name" style="color:#047857">Éxito</div>
+            <div class="semantic-vals">Main: #10B981 · Light: #D1FAE5</div>
+          </div>
+        </div>
+        <div class="semantic-card">
+          <div class="semantic-main" style="background:#F59E0B"></div>
+          <div class="semantic-light" style="background:#FEF3C7"></div>
+          <div class="semantic-info">
+            <div class="semantic-name" style="color:#B45309">Alerta</div>
+            <div class="semantic-vals">Main: #F59E0B · Light: #FEF3C7</div>
+          </div>
+        </div>
+        <div class="semantic-card">
+          <div class="semantic-main" style="background:#EF4444"></div>
+          <div class="semantic-light" style="background:#FEE2E2"></div>
+          <div class="semantic-info">
+            <div class="semantic-name" style="color:#B91C1C">Error</div>
+            <div class="semantic-vals">Main: #EF4444 · Light: #FEE2E2</div>
+          </div>
+        </div>
+        <div class="semantic-card">
+          <div class="semantic-main" style="background:#0EA5E9"></div>
+          <div class="semantic-light" style="background:#E0F2FE"></div>
+          <div class="semantic-info">
+            <div class="semantic-name" style="color:#0369A1">Información</div>
+            <div class="semantic-vals">Main: #0EA5E9 · Light: #E0F2FE</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Dark Mode — Superficies</div>
+      <div style="background:#060D2E;border-radius:10px;padding:20px;display:grid;grid-template-columns:repeat(5,1fr);gap:12px">
+        <div style="text-align:center">
+          <div style="height:40px;border-radius:6px;background:#060D2E;border:1px solid #152070"></div>
+          <div style="font-size:9px;color:#475569;margin-top:6px">App bg<br>#060D2E</div>
+        </div>
+        <div style="text-align:center">
+          <div style="height:40px;border-radius:6px;background:#0D1850"></div>
+          <div style="font-size:9px;color:#475569;margin-top:6px">Card<br>#0D1850</div>
+        </div>
+        <div style="text-align:center">
+          <div style="height:40px;border-radius:6px;background:#152070"></div>
+          <div style="font-size:9px;color:#475569;margin-top:6px">Elevated<br>#152070</div>
+        </div>
+        <div style="text-align:center">
+          <div style="height:40px;border-radius:6px;background:#1C2B90"></div>
+          <div style="font-size:9px;color:#475569;margin-top:6px">Active<br>#1C2B90</div>
+        </div>
+        <div style="text-align:center">
+          <div style="height:40px;border-radius:6px;background:#3350D0"></div>
+          <div style="font-size:9px;color:#94A3B8;margin-top:6px">CTA<br>#3350D0</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ 05 · TIPOGRAFÍA ═════════════════════════════════════════ -->
+  <section id="tipografia" class="section">
+    <div class="section-header">
+      <span class="section-number">05</span>
+      <h2 class="section-title">Tipografía</h2>
+    </div>
+
+    <div class="grid-2" style="margin-bottom:16px">
+      <div class="panel">
+        <div class="panel-title">Display — Plus Jakarta Sans</div>
+        <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:36px;font-weight:800;color:#0F172A;letter-spacing:-0.02em;line-height:1.1;margin-bottom:12px">
+          Claridad.<br>Trazabilidad.
+        </div>
+        <div style="font-size:12px;color:#94A3B8">
+          Pesos: 600 (SemiBold) · 700 (Bold) · 800 (ExtraBold)<br>
+          Uso: títulos de página, headings, marketing, onboarding<br>
+          Tracking: −0.02em en tamaños grandes
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">UI & Body — Inter</div>
+        <div style="font-family:'Inter',sans-serif;font-size:15px;color:#334155;line-height:1.7;margin-bottom:12px">
+          Cada avance queda registrado. Cada resultado puede ser verificado. TRAZA convierte la gestión del desempeño en un proceso transparente y basado en evidencia.
+        </div>
+        <div style="font-family:monospace;font-size:12px;color:#3350D0;background:#EDEFFD;padding:6px 10px;border-radius:6px;display:inline-block">
+          índice_traza: 87.3 · estado: "En progreso"
+        </div>
+      </div>
+    </div>
+
+    <div class="type-demo">
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:#94A3B8;margin-bottom:16px">ESCALA TIPOGRÁFICA COMPLETA</div>
+      <div class="type-scale-row">
+        <div class="type-meta"><div class="type-meta-size">48px / 800</div><div class="type-meta-role">Hero display</div></div>
+        <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:40px;font-weight:800;letter-spacing:-0.025em;color:#0F172A;line-height:1">Traza</div>
+      </div>
+      <div class="type-scale-row">
+        <div class="type-meta"><div class="type-meta-size">36px / 800</div><div class="type-meta-role">Page title</div></div>
+        <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:30px;font-weight:800;letter-spacing:-0.02em;color:#0F172A">Dashboard</div>
+      </div>
+      <div class="type-scale-row">
+        <div class="type-meta"><div class="type-meta-size">24px / 700</div><div class="type-meta-role">Section heading</div></div>
+        <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:22px;font-weight:700;letter-spacing:-0.015em;color:#0F172A">Objetivos del período</div>
+      </div>
+      <div class="type-scale-row">
+        <div class="type-meta"><div class="type-meta-size">20px / 700</div><div class="type-meta-role">Card title</div></div>
+        <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:18px;font-weight:700;color:#1E293B">Índice Traza</div>
+      </div>
+      <div class="type-scale-row">
+        <div class="type-meta"><div class="type-meta-size">15px / 600</div><div class="type-meta-role">Subheading</div></div>
+        <div style="font-size:14px;font-weight:600;color:#1E293B">Tasa de conversión ≥ 40%</div>
+      </div>
+      <div class="type-scale-row">
+        <div class="type-meta"><div class="type-meta-size">15px / 400</div><div class="type-meta-role">Body text</div></div>
+        <div style="font-size:14px;color:#475569;line-height:1.6">El objetivo fue completado con evidencia documentada y validado por el supervisor.</div>
+      </div>
+      <div class="type-scale-row">
+        <div class="type-meta"><div class="type-meta-size">13px / 500</div><div class="type-meta-role">UI label</div></div>
+        <div style="font-size:12px;font-weight:500;color:#64748B">Fecha de vencimiento · Área: Comercial</div>
+      </div>
+      <div class="type-scale-row">
+        <div class="type-meta"><div class="type-meta-size">11px / 700</div><div class="type-meta-role">Caption / Badge</div></div>
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:#94A3B8">EN PROGRESO · ALTA PRIORIDAD</div>
+      </div>
+      <div class="type-scale-row">
+        <div class="type-meta"><div class="type-meta-size">12px / 400</div><div class="type-meta-role">Monospace</div></div>
+        <div style="font-family:monospace;font-size:12px;color:#3350D0;background:#EDEFFD;padding:3px 8px;border-radius:4px">objetivo_id: 4ffe2f78 · score: 87.3</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ 06 · COMPONENTES ════════════════════════════════════════ -->
+  <section id="componentes" class="section">
+    <div class="section-header">
+      <span class="section-number">06</span>
+      <h2 class="section-title">Sistema de Componentes</h2>
+    </div>
+
+    <div class="grid-2" style="margin-bottom:16px">
+      <!-- Buttons -->
+      <div class="component-demo">
+        <div class="demo-label">Botones</div>
+        <div class="demo-row">
+          <button class="btn btn-primary">Guardar objetivo</button>
+          <button class="btn btn-secondary">Ver historial</button>
+        </div>
+        <div class="demo-row">
+          <button class="btn btn-outline">Cancelar</button>
+          <button class="btn btn-ghost">Ver más</button>
+          <button class="btn btn-danger">Eliminar</button>
+        </div>
+        <div class="demo-row">
+          <button class="btn btn-success">Completado ✓</button>
+        </div>
+        <div style="height:1px;background:#F1F5F9;margin:12px 0"></div>
+        <div class="demo-label">Tamaños</div>
+        <div class="demo-row" style="align-items:center">
+          <button class="btn btn-primary btn-lg">Large</button>
+          <button class="btn btn-primary">Default</button>
+          <button class="btn btn-primary btn-sm">Small</button>
+        </div>
+      </div>
+
+      <!-- Inputs -->
+      <div class="component-demo">
+        <div class="demo-label">Formularios</div>
+        <label style="font-size:11px;font-weight:600;color:#64748B;display:block;margin-bottom:4px">Título del objetivo</label>
+        <input class="input-field" placeholder="Ej: Aumentar conversión al 40%" readonly>
+        <label style="font-size:11px;font-weight:600;color:#3350D0;display:block;margin-bottom:4px">Estado actual <span style="color:#EF4444">*</span></label>
+        <input class="input-field input-focused" value="En progreso" readonly>
+        <label style="font-size:11px;font-weight:600;color:#EF4444;display:block;margin-bottom:4px">Fecha límite</label>
+        <input class="input-field input-error" placeholder="Seleccioná una fecha" readonly>
+        <div class="field-error">⚠ Este campo es obligatorio</div>
+        <input class="input-field input-disabled" value="Campo deshabilitado" readonly>
+        <div class="field-hint">Podés editar esto después de guardar</div>
+      </div>
+    </div>
+
+    <div class="grid-2" style="margin-bottom:16px">
+      <!-- Badges & Tags -->
+      <div class="component-demo">
+        <div class="demo-label">Badges de Estado</div>
+        <div class="demo-row">
+          <span class="badge badge-blue">En progreso</span>
+          <span class="badge badge-green">Completado</span>
+          <span class="badge badge-amber">Pendiente</span>
+          <span class="badge badge-red">Vencido</span>
+          <span class="badge badge-gray">Archivado</span>
+        </div>
+        <div style="height:1px;background:#F1F5F9;margin:12px 0"></div>
+        <div class="demo-label">Tags & Chips</div>
+        <div class="demo-row">
+          <span class="tag">Alta prioridad</span>
+          <span class="tag">Resultado</span>
+          <span class="tag">Comercial</span>
+          <span class="tag">Q3 2026</span>
+        </div>
+        <div style="height:1px;background:#F1F5F9;margin:12px 0"></div>
+        <div class="demo-label">Avatar</div>
+        <div class="demo-row" style="align-items:center">
+          <div style="width:32px;height:32px;border-radius:50%;background:#1C2B90;color:white;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center">LF</div>
+          <div style="width:32px;height:32px;border-radius:50%;background:#10B981;color:white;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center">DM</div>
+          <div style="width:32px;height:32px;border-radius:50%;background:#F59E0B;color:white;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center">SR</div>
+          <div style="font-size:12px;color:#64748B">Initials-based avatars</div>
+        </div>
+      </div>
+
+      <!-- Cards -->
+      <div class="component-demo">
+        <div class="demo-label">Card de Objetivo</div>
+        <div class="card-objective">
+          <div class="card-obj-header">
+            <div>
+              <div class="card-obj-title">Tasa de conversión ≥ 40%</div>
+              <div class="card-obj-meta">Área Comercial · Resultado · Alta prioridad</div>
+            </div>
+            <span class="badge badge-blue">En progreso</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill" style="width:74%"></div>
+          </div>
+          <div class="progress-label">
+            <span>74% completado</span>
+            <span>Vence: 31 oct 2026</span>
+          </div>
+          <div style="margin-top:12px;padding-top:12px;border-top:1px solid #F1F5F9;display:flex;gap:8px">
+            <button class="btn btn-secondary btn-sm">Ver avances</button>
+            <button class="btn btn-ghost btn-sm">Agregar nota</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-2" style="margin-bottom:16px">
+      <!-- Sidebar -->
+      <div class="component-demo" style="background:#F8FAFC">
+        <div class="demo-label">Navegación Lateral</div>
+        <div class="sidebar-demo">
+          <div class="sd-brand">
+            <svg width="24" height="24" viewBox="0 0 44 44" fill="none">
+              <rect width="44" height="44" rx="11" fill="#1C2B90"/>
+              <rect x="11" y="12" width="22" height="3.5" rx="1.75" fill="white"/>
+              <path d="M 31 15.5 L 13 28.5" stroke="white" stroke-width="3" stroke-linecap="round"/>
+              <rect x="11" y="28.5" width="22" height="3.5" rx="1.75" fill="white"/>
+            </svg>
+            <span class="sd-brand-text">traza</span>
+          </div>
+          <div class="sd-item active"><div class="sd-dot"></div>Dashboard</div>
+          <div class="sd-item"><div class="sd-dot"></div>Mi Trabajo</div>
+          <div class="sd-item"><div class="sd-dot"></div>Objetivos del equipo</div>
+          <div class="sd-item"><div class="sd-dot"></div>Reuniones 1:1</div>
+          <div class="sd-item"><div class="sd-dot"></div>Mi Semana</div>
+          <div class="sd-item"><div class="sd-dot"></div>Reportes</div>
+        </div>
+      </div>
+
+      <!-- Modal -->
+      <div class="component-demo">
+        <div class="demo-label">Modal</div>
+        <div class="modal-demo">
+          <div class="modal-header">
+            <div class="modal-title">Validar objetivo</div>
+            <button class="modal-close">✕</button>
+          </div>
+          <div class="modal-body">
+            ¿Confirmás que este objetivo fue completado satisfactoriamente? Esta acción quedará registrada como validación formal en el historial.
+          </div>
+          <label style="font-size:11px;font-weight:600;color:#64748B;display:block;margin-bottom:6px">Comentario de validación</label>
+          <input class="input-field" placeholder="Agregá tu comentario..." readonly>
+          <div class="modal-actions">
+            <button class="btn btn-outline">Cancelar</button>
+            <button class="btn btn-primary">Confirmar validación</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Border Radius — Sistema Consistente</div>
+      <div style="display:flex;gap:20px;align-items:flex-end;flex-wrap:wrap">
+        <div style="text-align:center">
+          <div style="width:44px;height:44px;background:#EDEFFD;border:1.5px solid #1C2B90;border-radius:6px;margin:0 auto"></div>
+          <div style="font-size:10px;color:#94A3B8;margin-top:6px">6px<br>Chips, badges</div>
+        </div>
+        <div style="text-align:center">
+          <div style="width:64px;height:36px;background:#EDEFFD;border:1.5px solid #1C2B90;border-radius:8px;margin:0 auto"></div>
+          <div style="font-size:10px;color:#94A3B8;margin-top:6px">8px<br>Botones, inputs</div>
+        </div>
+        <div style="text-align:center">
+          <div style="width:80px;height:60px;background:#EDEFFD;border:1.5px solid #1C2B90;border-radius:12px;margin:0 auto"></div>
+          <div style="font-size:10px;color:#94A3B8;margin-top:6px">12px<br>Cards, paneles</div>
+        </div>
+        <div style="text-align:center">
+          <div style="width:90px;height:70px;background:#EDEFFD;border:1.5px solid #1C2B90;border-radius:16px;margin:0 auto"></div>
+          <div style="font-size:10px;color:#94A3B8;margin-top:6px">16px<br>Modales</div>
+        </div>
+        <div style="text-align:center">
+          <div style="width:100px;height:36px;background:#EDEFFD;border:1.5px solid #1C2B90;border-radius:9999px;margin:0 auto"></div>
+          <div style="font-size:10px;color:#94A3B8;margin-top:6px">999px<br>Pills, avatares</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ 07 · ICONOGRAFÍA ════════════════════════════════════════ -->
+  <section id="iconografia" class="section">
+    <div class="section-header">
+      <span class="section-number">07</span>
+      <h2 class="section-title">Iconografía</h2>
+    </div>
+
+    <div class="grid-2" style="margin-bottom:16px">
+      <div class="panel">
+        <div class="panel-title">Biblioteca Recomendada</div>
+        <div style="display:flex;align-items:center;gap:12px;padding:16px;background:#F8FAFC;border-radius:10px;border:1px solid #E2E8F0;margin-bottom:12px">
+          <div style="font-size:24px">🎯</div>
+          <div>
+            <div style="font-size:14px;font-weight:700;color:#1E293B">Lucide Icons</div>
+            <div style="font-size:12px;color:#64748B;margin-top:2px">Stroke-based, 24px grid, 2px stroke weight. Perfecto para SaaS dashboards. Open source.</div>
+            <div style="font-size:11px;color:#3350D0;margin-top:4px">lucide.dev · npm: lucide-react</div>
+          </div>
+        </div>
+        <div class="callout callout-blue" style="margin-bottom:0">
+          <p>Ya está instalado en el proyecto. Mantenerlo como única biblioteca de iconos para garantizar consistencia.</p>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">Especificaciones</div>
+        <table class="micro-table" style="border:none">
+          <tr><td>Estilo</td><td>Stroke (línea), nunca filled sólido</td></tr>
+          <tr><td>Grosor</td><td>2px stroke width</td></tr>
+          <tr><td>Bordes</td><td>Redondeados (strokeLinecap: round)</td></tr>
+          <tr><td>Tamaño base</td><td>16px en UI · 20px en navegación</td></tr>
+          <tr><td>Color activo</td><td>#1C2B90 (traza-700)</td></tr>
+          <tr><td>Color inactivo</td><td>#94A3B8 (slate-500)</td></tr>
+          <tr><td>Color en sidebar</td><td>currentColor con opacity 0.5/1</td></tr>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ 08 · UX PRINCIPLES ══════════════════════════════════════ -->
+  <section id="ux" class="section">
+    <div class="section-header">
+      <span class="section-number">08</span>
+      <h2 class="section-title">Principios UX</h2>
+    </div>
+
+    <div class="grid-3" style="margin-bottom:16px">
+      <div class="principle-card">
+        <div class="principle-icon">⬜</div>
+        <div class="principle-title">Espacio sobre densidad</div>
+        <div class="principle-desc">Padding mínimo de 20px en cards. Nunca comprimir información. El espacio es claridad visual.</div>
+      </div>
+      <div class="principle-card">
+        <div class="principle-icon">🧠</div>
+        <div class="principle-title">Baja carga cognitiva</div>
+        <div class="principle-desc">Mostrar solo lo necesario en cada paso. Un máximo de 3 acciones primarias por pantalla.</div>
+      </div>
+      <div class="principle-card">
+        <div class="principle-icon">📊</div>
+        <div class="principle-title">Información progresiva</div>
+        <div class="principle-desc">Lo más importante primero. Los detalles se revelan cuando el usuario los necesita.</div>
+      </div>
+      <div class="principle-card">
+        <div class="principle-icon">✅</div>
+        <div class="principle-title">Feedback inmediato</div>
+        <div class="principle-desc">Cada acción del usuario debe tener respuesta visual en menos de 100ms.</div>
+      </div>
+      <div class="principle-card">
+        <div class="principle-icon">🎯</div>
+        <div class="principle-title">Jerarquía clara</div>
+        <div class="principle-desc">Una sola acción primaria por sección. La jerarquía visual guía el recorrido del ojo.</div>
+      </div>
+      <div class="principle-card">
+        <div class="principle-icon">♿</div>
+        <div class="principle-title">Accesibilidad</div>
+        <div class="principle-desc">Contraste mínimo AA (4.5:1 para texto). Focus visible siempre. ARIA labels en íconos.</div>
+      </div>
+    </div>
+
+    <div class="callout callout-amber">
+      <p><strong>Regla de oro TRAZA:</strong> Si un elemento no tiene una función específica, no existe. Cada píxel en pantalla debe justificarse con un propósito claro para el usuario.</p>
+    </div>
+  </section>
+
+  <!-- ═══ 09 · MICROINTERACCIONES ════════════════════════════════ -->
+  <section id="micro" class="section">
+    <div class="section-header">
+      <span class="section-number">09</span>
+      <h2 class="section-title">Microinteracciones</h2>
+    </div>
+
+    <table class="micro-table">
+      <thead>
+        <tr><th>Interacción</th><th>Comportamiento</th><th>Duración</th><th>Easing</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Hover en botón</td><td>Darkens 8%, subtle scale(1.005)</td><td>150ms</td><td>ease-out</td></tr>
+        <tr><td>Click en botón</td><td>scale(0.98), darken 12%</td><td>75ms</td><td>ease-in</td></tr>
+        <tr><td>Focus en input</td><td>Border color → traza-500, shadow ring 3px</td><td>150ms</td><td>ease-default</td></tr>
+        <tr><td>Apertura de modal</td><td>Fade in + scale(0.96 → 1.0) + backdrop blur</td><td>200ms</td><td>ease-out</td></tr>
+        <tr><td>Apertura dropdown</td><td>slideDown (Y: -4px → 0), fade in</td><td>150ms</td><td>ease-out</td></tr>
+        <tr><td>Toast / notificación</td><td>slideUp desde bottom, auto-dismiss 3s</td><td>300ms</td><td>spring</td></tr>
+        <tr><td>Loading skeleton</td><td>Shimmer: gradiente animado horizontal</td><td>1.5s loop</td><td>linear</td></tr>
+        <tr><td>Estado vacío</td><td>Fade in con ilustración. No aparece instantáneo.</td><td>300ms</td><td>ease-out</td></tr>
+        <tr><td>Éxito (guardado)</td><td>Badge verde + ✓. Desaparece solo en 2.5s</td><td>200ms</td><td>spring</td></tr>
+        <tr><td>Error (validación)</td><td>Shake horizontal (2px × 3), borde rojo</td><td>300ms</td><td>ease-default</td></tr>
+        <tr><td>Hover en card</td><td>border-color → slate-300, shadow-md</td><td>150ms</td><td>ease-default</td></tr>
+        <tr><td>Navegación de página</td><td>Fade out 100ms → Fade in contenido 200ms</td><td>300ms total</td><td>ease</td></tr>
+        <tr><td>Progress bar</td><td>Width animado con CSS transition</td><td>500ms</td><td>ease-out</td></tr>
+        <tr><td>Toggle / Checkbox</td><td>Background slide + icon scale</td><td>200ms</td><td>spring</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout callout-green" style="margin-top:16px">
+      <p><strong>Principio de movimiento TRAZA:</strong> Las animaciones comunican, no decoran. Toda transición debe responder la pregunta: ¿qué le está diciendo esto al usuario?</p>
+    </div>
+  </section>
+
+  <!-- ═══ 10 · ILUSTRACIONES ══════════════════════════════════════ -->
+  <section id="ilustraciones" class="section">
+    <div class="section-header">
+      <span class="section-number">10</span>
+      <h2 class="section-title">Ilustraciones & Gráficos</h2>
+    </div>
+
+    <div class="grid-2" style="margin-bottom:16px">
+      <div class="panel">
+        <div class="panel-title">Estilo de Ilustración</div>
+        <ul style="list-style:none;display:flex;flex-direction:column;gap:8px">
+          <li style="font-size:13px;color:#334155;display:flex;gap:8px"><span style="color:#3350D0">→</span> Geométrico y minimalista. Sin fotografías.</li>
+          <li style="font-size:13px;color:#334155;display:flex;gap:8px"><span style="color:#3350D0">→</span> Paleta restringida: primaria + neutros únicamente.</li>
+          <li style="font-size:13px;color:#334155;display:flex;gap:8px"><span style="color:#3350D0">→</span> Sin sombras complejas. Flat design con profundidad por capas.</li>
+          <li style="font-size:13px;color:#334155;display:flex;gap:8px"><span style="color:#3350D0">→</span> Formas simples que representen conceptos (datos, caminos, nodos).</li>
+          <li style="font-size:13px;color:#334155;display:flex;gap:8px"><span style="color:#3350D0">→</span> Nunca personas genéricas en celebración.</li>
+        </ul>
+      </div>
+      <div class="panel">
+        <div class="panel-title">Empty States — Estados Vacíos</div>
+        <div style="background:#F8FAFC;border-radius:10px;padding:32px;text-align:center;border:1px dashed #CBD5E1">
+          <div style="width:48px;height:48px;background:#EDEFFD;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:12px">📋</div>
+          <div style="font-size:14px;font-weight:600;color:#1E293B;margin-bottom:6px">Todavía no hay objetivos</div>
+          <div style="font-size:13px;color:#94A3B8;margin-bottom:16px">Creá tu primer objetivo para empezar a construir tu historial.</div>
+          <button class="btn btn-primary btn-sm">+ Crear objetivo</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Gráficos de Datos</div>
+      <div class="grid-3">
+        <div style="padding:14px;background:#F8FAFC;border-radius:8px;border:1px solid #E2E8F0">
+          <div style="font-size:12px;font-weight:700;color:#1E293B;margin-bottom:6px">Líneas de tendencia</div>
+          <div style="font-size:12px;color:#64748B">Color traza-500 (#3350D0). Stroke 2px. Sin relleno por defecto.</div>
+        </div>
+        <div style="padding:14px;background:#F8FAFC;border-radius:8px;border:1px solid #E2E8F0">
+          <div style="font-size:12px;font-weight:700;color:#1E293B;margin-bottom:6px">Barras de progreso</div>
+          <div style="font-size:12px;color:#64748B">Gradiente traza-400 → traza-500. Fondo slate-200. Border-radius full.</div>
+        </div>
+        <div style="padding:14px;background:#F8FAFC;border-radius:8px;border:1px solid #E2E8F0">
+          <div style="font-size:12px;font-weight:700;color:#1E293B;margin-bottom:6px">Donut / Circular</div>
+          <div style="font-size:12px;color:#64748B">Colores semánticos para estados. Valor central en Plus Jakarta Sans 700.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ 11 · DESIGN SYSTEM ══════════════════════════════════════ -->
+  <section id="design-system" class="section">
+    <div class="section-header">
+      <span class="section-number">11</span>
+      <h2 class="section-title">Design System — Implementación</h2>
+    </div>
+
+    <div class="callout callout-green">
+      <p><strong>Archivos en /brand/:</strong> <code style="background:rgba(0,0,0,0.08);padding:2px 6px;border-radius:4px">design-tokens.css</code> (CSS custom properties) + <code style="background:rgba(0,0,0,0.08);padding:2px 6px;border-radius:4px">tailwind.traza.config.js</code> (extensión Tailwind). Listos para producción.</p>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Tokens Principales</div>
+      <table class="token-table">
+        <thead><tr><th>Token</th><th>Valor</th><th>Uso</th></tr></thead>
+        <tbody>
+          <tr><td><span class="token-name">--traza-500</span></td><td><span class="token-swatch" style="background:#3350D0"></span><span class="token-value">#3350D0</span></td><td class="token-desc">Botones, links, CTAs</td></tr>
+          <tr><td><span class="token-name">--traza-700</span></td><td><span class="token-swatch" style="background:#1C2B90"></span><span class="token-value">#1C2B90</span></td><td class="token-desc">Logo, marca, headings en color</td></tr>
+          <tr><td><span class="token-name">--surface-app</span></td><td><span class="token-swatch" style="background:#F8FAFC;border:1px solid #E2E8F0"></span><span class="token-value">#F8FAFC</span></td><td class="token-desc">Fondo principal de la app</td></tr>
+          <tr><td><span class="token-name">--surface-card</span></td><td><span class="token-swatch" style="background:#FFFFFF;border:1px solid #E2E8F0"></span><span class="token-value">#FFFFFF</span></td><td class="token-desc">Cards, paneles</td></tr>
+          <tr><td><span class="token-name">--text-primary</span></td><td><span class="token-swatch" style="background:#0F172A"></span><span class="token-value">#0F172A</span></td><td class="token-desc">Títulos, texto principal</td></tr>
+          <tr><td><span class="token-name">--text-secondary</span></td><td><span class="token-swatch" style="background:#64748B"></span><span class="token-value">#64748B</span></td><td class="token-desc">Texto secundario, ayudas</td></tr>
+          <tr><td><span class="token-name">--border-subtle</span></td><td><span class="token-swatch" style="background:#E2E8F0"></span><span class="token-value">#E2E8F0</span></td><td class="token-desc">Bordes de cards</td></tr>
+          <tr><td><span class="token-name">--shadow-focus</span></td><td><span class="token-value">0 0 0 3px rgba(51,80,208,0.20)</span></td><td class="token-desc">Focus ring en inputs y botones</td></tr>
+          <tr><td><span class="token-name">--radius-lg</span></td><td><span class="token-value">12px</span></td><td class="token-desc">Cards y paneles</td></tr>
+          <tr><td><span class="token-name">--font-display</span></td><td><span class="token-value">'Plus Jakarta Sans'</span></td><td class="token-desc">Headings y display</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Sistema de Espaciado (base 4px)</div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">
+        <div style="text-align:center"><div style="width:4px;height:4px;background:#1C2B90;margin:0 auto"></div><div style="font-size:10px;color:#94A3B8;margin-top:4px">4px</div></div>
+        <div style="text-align:center"><div style="width:8px;height:8px;background:#1C2B90;margin:0 auto"></div><div style="font-size:10px;color:#94A3B8;margin-top:4px">8px</div></div>
+        <div style="text-align:center"><div style="width:12px;height:12px;background:#1C2B90;margin:0 auto"></div><div style="font-size:10px;color:#94A3B8;margin-top:4px">12px</div></div>
+        <div style="text-align:center"><div style="width:16px;height:16px;background:#1C2B90;margin:0 auto"></div><div style="font-size:10px;color:#94A3B8;margin-top:4px">16px</div></div>
+        <div style="text-align:center"><div style="width:20px;height:20px;background:#3350D0;margin:0 auto"></div><div style="font-size:10px;color:#64748B;margin-top:4px">20px</div></div>
+        <div style="text-align:center"><div style="width:24px;height:24px;background:#3350D0;margin:0 auto"></div><div style="font-size:10px;color:#64748B;margin-top:4px">24px</div></div>
+        <div style="text-align:center"><div style="width:32px;height:32px;background:#5572E5;margin:0 auto"></div><div style="font-size:10px;color:#94A3B8;margin-top:4px">32px</div></div>
+        <div style="text-align:center"><div style="width:40px;height:40px;background:#8899EE;margin:0 auto"></div><div style="font-size:10px;color:#94A3B8;margin-top:4px">40px</div></div>
+        <div style="text-align:center"><div style="width:48px;height:48px;background:#BBC5F7;margin:0 auto"></div><div style="font-size:10px;color:#94A3B8;margin-top:4px">48px</div></div>
+        <div style="text-align:center"><div style="width:64px;height:64px;background:#DDE2FB;margin:0 auto"></div><div style="font-size:10px;color:#94A3B8;margin-top:4px">64px</div></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Integración en Next.js (tailwind.config.ts)</div>
+      <pre style="background:#0F172A;color:#E2E8F0;padding:20px;border-radius:10px;font-family:monospace;font-size:12px;overflow-x:auto;line-height:1.7"><code>import type { Config } from 'tailwindcss'
+import trazaTheme from './brand/tailwind.traza.config.js'
+
+const config: Config = {
+  content: ['./src/**/*.{js,ts,jsx,tsx}'],
+  darkMode: ['class', '[data-theme="dark"]'],
+  theme: {
+    extend: {
+      ...trazaTheme
+    }
+  }
+}
+
+export default config</code></pre>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Integración CSS (globals.css)</div>
+      <pre style="background:#0F172A;color:#E2E8F0;padding:20px;border-radius:10px;font-family:monospace;font-size:12px;overflow-x:auto;line-height:1.7"><code>@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap');
+@import './brand/design-tokens.css';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;</code></pre>
+    </div>
+  </section>
+
+  <!-- ═══ 12 · MANUAL DE MARCA ════════════════════════════════════ -->
+  <section id="manual" class="section">
+    <div class="section-header">
+      <span class="section-number">12</span>
+      <h2 class="section-title">Manual de Marca — Reglas de Uso</h2>
+    </div>
+
+    <div class="grid-2" style="margin-bottom:16px">
+      <div class="panel">
+        <div class="panel-title">✅ Siempre hacer</div>
+        <ul style="list-style:none;display:flex;flex-direction:column;gap:10px">
+          <li style="font-size:13px;color:#334155;display:flex;gap:10px"><span style="color:#10B981;font-weight:700">✓</span> Usar "traza" en minúscula en el wordmark y la UI.</li>
+          <li style="font-size:13px;color:#334155;display:flex;gap:10px"><span style="color:#10B981;font-weight:700">✓</span> Mantener el ratio del isotipo. Nunca deformarlo.</li>
+          <li style="font-size:13px;color:#334155;display:flex;gap:10px"><span style="color:#10B981;font-weight:700">✓</span> Respetar el área de seguridad del logo.</li>
+          <li style="font-size:13px;color:#334155;display:flex;gap:10px"><span style="color:#10B981;font-weight:700">✓</span> Usar los tokens definidos. Nunca valores arbitrarios.</li>
+          <li style="font-size:13px;color:#334155;display:flex;gap:10px"><span style="color:#10B981;font-weight:700">✓</span> Priorizar espacio en blanco sobre densidad.</li>
+          <li style="font-size:13px;color:#334155;display:flex;gap:10px"><span style="color:#10B981;font-weight:700">✓</span> Usar Inter para UI y Plus Jakarta Sans para headings.</li>
+          <li style="font-size:13px;color:#334155;display:flex;gap:10px"><span style="color:#10B981;font-weight:700">✓</span> Verificar contraste mínimo AA en textos.</li>
+        </ul>
+      </div>
+      <div class="panel">
+        <div class="panel-title">❌ Nunca hacer</div>
+        <ul style="list-style:none;display:flex;flex-direction:column;gap:10px">
+          <li style="font-size:13px;color:#334155;display:flex;gap:10px"><span style="color:#EF4444;font-weight:700">✕</span> Capitalizar "Traza" o "TRAZA" en el logo.</li>
+          <li style="font-size:13px;color:#334155;display:flex;gap:10px"><span style="color:#EF4444;font-weight:700">✕</span> Usar colores fuera de la paleta aprobada.</li>
+          <li style="font-size:13px;color:#334155;display:flex;gap:10px"><span style="color:#EF4444;font-weight:700">✕</span> Agregar gradientes al logo.</li>
+          <li style="font-size:13px;color:#334155;display:flex;gap:10px"><span style="color:#EF4444;font-weight:700">✕</span> Usar el isotipo con fondo de color que no sea primario, negro o blanco.</li>
+          <li style="font-size:13px;color:#334155;display:flex;gap:10px"><span style="color:#EF4444;font-weight:700">✕</span> Usar tipografía con serif en ningún contexto de producto.</li>
+          <li style="font-size:13px;color:#334155;display:flex;gap:10px"><span style="color:#EF4444;font-weight:700">✕</span> Mezclar dos bibliotecas de iconos.</li>
+          <li style="font-size:13px;color:#334155;display:flex;gap:10px"><span style="color:#EF4444;font-weight:700">✕</span> Colocar el logo sobre fondos con bajo contraste.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="callout callout-blue">
+      <p><strong>Definición de "producto de primer nivel":</strong> No es la cantidad de elementos en pantalla. Es la coherencia absoluta entre cada pixel y el sistema que lo define. Si hay una duda sobre qué usar, la respuesta siempre está en este documento.</p>
+    </div>
+  </section>
+
+  <!-- ═══ 13 · REFERENCIAS ═════════════════════════════════════════ -->
+  <section id="inspiracion" class="section">
+    <div class="section-header">
+      <span class="section-number">13</span>
+      <h2 class="section-title">Referencias & Inspiración</h2>
+    </div>
+
+    <div class="grid-3">
+      <div class="panel" style="padding:20px">
+        <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:20px;font-weight:800;color:#5E6AD2;margin-bottom:10px">Linear</div>
+        <div style="font-size:13px;color:#64748B;line-height:1.6">Dark sidebar, spacing impecable, transiciones rápidas, componentes precisos. Referencia de product design B2B de primer nivel.</div>
+        <div style="margin-top:12px;font-size:11px;color:#94A3B8">linear.app</div>
+      </div>
+      <div class="panel" style="padding:20px">
+        <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:20px;font-weight:800;color:#635BFF;margin-bottom:10px">Stripe</div>
+        <div style="font-size:13px;color:#64748B;line-height:1.6">Tipografía perfecta, documentación impecable, paleta refinada. Cómo se ve un SaaS B2B que respeta al usuario profesional.</div>
+        <div style="margin-top:12px;font-size:11px;color:#94A3B8">stripe.com</div>
+      </div>
+      <div class="panel" style="padding:20px">
+        <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:20px;font-weight:800;color:#000;margin-bottom:10px">Vercel</div>
+        <div style="font-size:13px;color:#64748B;line-height:1.6">Confianza técnica, negro puro, componentes impecables. Cómo transmitir sofisticación con un sistema minimalista.</div>
+        <div style="margin-top:12px;font-size:11px;color:#94A3B8">vercel.com</div>
+      </div>
+      <div class="panel" style="padding:20px">
+        <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:20px;font-weight:800;color:#000;margin-bottom:10px">Notion</div>
+        <div style="font-size:13px;color:#64748B;line-height:1.6">Claridad extrema, jerarquía visual limpia, sin adornos. Cómo hacer que UI compleja se sienta simple.</div>
+        <div style="margin-top:12px;font-size:11px;color:#94A3B8">notion.so</div>
+      </div>
+      <div class="panel" style="padding:20px">
+        <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:20px;font-weight:800;color:#F06A6A;margin-bottom:10px">Asana</div>
+        <div style="font-size:13px;color:#64748B;line-height:1.6">Performance management similar al dominio de TRAZA. Referencia para flujos de objetivos, validaciones y estados.</div>
+        <div style="margin-top:12px;font-size:11px;color:#94A3B8">asana.com</div>
+      </div>
+      <div class="panel" style="padding:20px">
+        <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:20px;font-weight:800;color:#F06292;margin-bottom:10px">Figma</div>
+        <div style="font-size:13px;color:#64748B;line-height:1.6">Componentes perfectamente ejecutados, dark/light mode cohesivos. Estándar de calidad para sistemas de diseño modernos.</div>
+        <div style="margin-top:12px;font-size:11px;color:#94A3B8">figma.com</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <div class="doc-footer">
+    <div>
+      <svg width="20" height="20" viewBox="0 0 44 44" fill="none" style="vertical-align:middle;margin-right:8px">
+        <rect width="44" height="44" rx="11" fill="#1C2B90"/>
+        <rect x="11" y="12" width="22" height="3.5" rx="1.75" fill="white"/>
+        <path d="M 31 15.5 L 13 28.5" stroke="white" stroke-width="3" stroke-linecap="round"/>
+        <rect x="11" y="28.5" width="22" height="3.5" rx="1.75" fill="white"/>
+      </svg>
+      <strong style="color:#1E293B">TRAZA</strong> Brand Book v1.0 · 2026
+    </div>
+    <div>Cada objetivo deja una traza.</div>
+  </div>
+
+</main>
+
+<script>
+  // Highlight active nav item on scroll
+  const sections = document.querySelectorAll('section[id]');
+  const navItems = document.querySelectorAll('.nav-item');
+
+  window.addEventListener('scroll', () => {
+    let current = '';
+    sections.forEach(s => {
+      if (window.scrollY >= s.offsetTop - 80) current = s.id;
+    });
+    navItems.forEach(item => {
+      item.classList.remove('active');
+      if (item.getAttribute('href') === '#' + current) item.classList.add('active');
+    });
+  });
+</script>
+
+</body>
+</html>

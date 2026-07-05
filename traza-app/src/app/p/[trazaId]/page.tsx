@@ -247,8 +247,8 @@ Las 3 oraciones deben cubrir: (1) quién es y dónde trabaja hoy, (2) su evoluci
     .filter(o => !!o.validacion && o.fecha_limite)
     .sort((a, b) => new Date(b.fecha_limite!).getTime() - new Date(a.fecha_limite!).getTime())[0]
 
-  const scoreColor = scoreDisplay >= 85 ? '#16a34a' : scoreDisplay >= 65 ? '#0F4C81' : scoreDisplay >= 40 ? '#d97706' : '#9ca3af'
-  const scoreBg    = scoreDisplay >= 85 ? '#dcfce7' : scoreDisplay >= 65 ? '#dbeafe' : scoreDisplay >= 40 ? '#fef3c7' : '#f3f4f6'
+  const scoreColor = scoreDisplay >= 85 ? '#16a34a' : scoreDisplay >= 65 ? '#3350D0' : scoreDisplay >= 40 ? '#d97706' : '#9ca3af'
+  const scoreBg    = scoreDisplay >= 85 ? '#dcfce7' : scoreDisplay >= 65 ? '#EDEFFD' : scoreDisplay >= 40 ? '#fef3c7' : '#F1F5F9'
 
   const ahora = formatFechaLarga(new Date().toISOString())
 
@@ -256,14 +256,14 @@ Las 3 oraciones deben cubrir: (1) quién es y dónde trabaja hoy, (2) su evoluci
     <div className="min-h-screen" style={{ backgroundColor: '#f1f5f9' }}>
 
       {/* ── HEADER ── */}
-      <div style={{ background: 'linear-gradient(135deg, #0F4C81 0%, #1a6bb5 100%)' }} className="px-5 pt-6 pb-10">
+      <div style={{ background: 'linear-gradient(135deg, #1C2B90 0%, #3350D0 100%)' }} className="px-5 pt-6 pb-10">
         <div className="max-w-xl mx-auto">
 
           {/* Barra superior */}
           <div className="flex items-center justify-between mb-7">
             <div className="flex items-center gap-2">
-              <span className="text-white font-black text-base tracking-tight">TRAZA</span>
-              <span className="text-blue-300 text-xs font-medium">· Credencial verificada</span>
+              <span className="text-white font-black text-base tracking-tight">traza</span>
+              <span className="text-xs font-medium" style={{ color: '#8899EE' }}>· Credencial verificada</span>
             </div>
             <div className="flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full"
               style={{ backgroundColor: 'rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.7)' }}>
@@ -316,7 +316,7 @@ Las 3 oraciones deben cubrir: (1) quién es y dónde trabaja hoy, (2) su evoluci
             <span className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-full"
               style={{ backgroundColor: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.7)' }}>
               <Building2 size={10} />
-              {todasLasPersonas.length} empresa{todasLasPersonas.length !== 1 ? 's' : ''} en TRAZA
+              {todasLasPersonas.length} empresa{todasLasPersonas.length !== 1 ? 's' : ''} en traza
             </span>
             {ultimaValidacion?.fecha_limite && (
               <span className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-full"
@@ -335,7 +335,7 @@ Las 3 oraciones deben cubrir: (1) quién es y dónde trabaja hoy, (2) su evoluci
         {/* Índice de desempeño verificado */}
         <div className="bg-white rounded-2xl px-5 py-4 shadow-sm">
           <div className="flex items-center gap-2 mb-4">
-            <ShieldCheck size={14} style={{ color: '#1d4ed8' }} />
+            <ShieldCheck size={14} style={{ color: '#3350D0' }} />
             <span className="text-sm font-semibold text-gray-900">Índice de desempeño verificado</span>
             <span className="ml-auto text-sm font-bold px-2.5 py-1 rounded-full"
               style={{ backgroundColor: scoreBg, color: scoreColor }}>
@@ -344,7 +344,7 @@ Las 3 oraciones deben cubrir: (1) quién es y dónde trabaja hoy, (2) su evoluci
           </div>
           <div className="space-y-3.5">
             {[
-              { label: 'Resultados validados', sub: 'Calificaciones de supervisores y administradores', valor: moduloA, peso: '35%', color: '#1d4ed8' },
+              { label: 'Resultados validados', sub: 'Calificaciones de supervisores y administradores', valor: moduloA, peso: '35%', color: '#3350D0' },
               { label: 'Cumplimiento', sub: 'Objetivos completados sobre los comprometidos', valor: moduloB, peso: '25%', color: '#16a34a' },
               { label: 'Proactividad', sub: 'Regularidad y constancia en el seguimiento de objetivos', valor: moduloC, peso: '20%', color: '#7c3aed' },
               { label: 'Alineación', sub: 'Coherencia entre autoevaluación y validación del supervisor', valor: indiceActual.alineacion, peso: '10%', color: '#0891b2' },
@@ -375,10 +375,10 @@ Las 3 oraciones deben cubrir: (1) quién es y dónde trabaja hoy, (2) su evoluci
         {/* Narrativa IA */}
         <div className="bg-white rounded-2xl p-5 shadow-sm">
           <div className="flex items-center gap-2 mb-3">
-            <Star size={14} style={{ color: '#0F4C81' }} strokeWidth={1.75} />
+            <Star size={14} style={{ color: '#3350D0' }} strokeWidth={1.75} />
             <h2 className="font-semibold text-gray-900 text-sm">Trayectoria profesional</h2>
             <span className="ml-auto text-xs px-2 py-0.5 rounded-full font-medium"
-              style={{ backgroundColor: narrativaIA ? '#ede9fe' : '#f3f4f6', color: narrativaIA ? '#7c3aed' : '#9ca3af' }}>
+              style={{ backgroundColor: narrativaIA ? '#ede9fe' : '#F1F5F9', color: narrativaIA ? '#7c3aed' : '#9ca3af' }}>
               {narrativaIA ? 'Análisis IA' : 'Resumen automático'}
             </span>
           </div>
@@ -389,7 +389,7 @@ Las 3 oraciones deben cubrir: (1) quién es y dónde trabaja hoy, (2) su evoluci
         {todasLasPersonas.length > 1 && (
           <div className="bg-white rounded-2xl p-5 shadow-sm">
             <div className="flex items-center gap-2 mb-4">
-              <Briefcase size={14} style={{ color: '#0F4C81' }} strokeWidth={1.75} />
+              <Briefcase size={14} style={{ color: '#3350D0' }} strokeWidth={1.75} />
               <h2 className="font-semibold text-gray-900 text-sm">Historial de empresas</h2>
               <span className="ml-auto text-xs text-gray-400">{todasLasPersonas.length} empleos</span>
             </div>
@@ -397,13 +397,13 @@ Las 3 oraciones deben cubrir: (1) quién es y dónde trabaja hoy, (2) su evoluci
             <div className="space-y-4">
               {historialEmpresas.map((h, i) => {
                 const pct = h.totalObj > 0 ? Math.round((h.positivosObj / h.totalObj) * 100) : 0
-                const dotColor = h.activo ? '#0F4C81' : '#9ca3af'
+                const dotColor = h.activo ? '#3350D0' : '#9ca3af'
                 return (
                   <div key={h.personaId} className="flex gap-3">
                     {/* Timeline dot */}
                     <div className="flex flex-col items-center">
                       <div className="w-3 h-3 rounded-full mt-0.5 flex-shrink-0"
-                        style={{ backgroundColor: h.activo ? '#0F4C81' : '#d1d5db', border: h.activo ? '2px solid #bfdbfe' : 'none' }} />
+                        style={{ backgroundColor: h.activo ? '#3350D0' : '#d1d5db', border: h.activo ? '2px solid #BBC5F7' : 'none' }} />
                       {i < historialEmpresas.length - 1 && (
                         <div className="w-px flex-1 mt-1" style={{ backgroundColor: '#e5e7eb', minHeight: 24 }} />
                       )}
@@ -422,7 +422,7 @@ Las 3 oraciones deben cubrir: (1) quién es y dónde trabaja hoy, (2) su evoluci
                         </div>
                         {h.activo && (
                           <span className="text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0"
-                            style={{ backgroundColor: '#dbeafe', color: '#1d4ed8' }}>
+                            style={{ backgroundColor: '#EDEFFD', color: '#3350D0' }}>
                             Actual
                           </span>
                         )}
@@ -437,7 +437,7 @@ Las 3 oraciones deben cubrir: (1) quién es y dónde trabaja hoy, (2) su evoluci
                           </div>
                           <div className="h-1 bg-gray-100 rounded-full overflow-hidden">
                             <div className="h-full rounded-full"
-                              style={{ width: `${h.score}%`, backgroundColor: h.activo ? '#0F4C81' : '#9ca3af' }} />
+                              style={{ width: `${h.score}%`, backgroundColor: h.activo ? '#3350D0' : '#9ca3af' }} />
                           </div>
                         </div>
                       )}
@@ -454,27 +454,27 @@ Las 3 oraciones deben cubrir: (1) quién es y dónde trabaja hoy, (2) su evoluci
         {totalValidadosActuales > 0 && (
           <div className="bg-white rounded-2xl p-5 shadow-sm">
             <div className="flex items-center gap-2 mb-4">
-              <TrendingUp size={14} style={{ color: '#0F4C81' }} strokeWidth={1.75} />
+              <TrendingUp size={14} style={{ color: '#3350D0' }} strokeWidth={1.75} />
               <h2 className="font-semibold text-gray-900 text-sm">Validaciones de supervisores</h2>
               <span className="ml-auto text-xs text-gray-400">{totalValidadosActuales} evaluaciones</span>
             </div>
             {/* Porcentaje positivo destacado */}
             {totalValidadosActuales > 0 && (
               <div className="mb-3 flex items-center gap-3">
-                <span className="text-2xl font-bold" style={{ color: '#1d4ed8' }}>
+                <span className="text-2xl font-bold" style={{ color: '#3350D0' }}>
                   {Math.round((positivos / totalValidadosActuales) * 100)}%
                 </span>
                 <span className="text-xs text-gray-500 leading-tight">de objetivos evaluados<br/>con resultado positivo</span>
               </div>
             )}
             <div className="flex h-2 rounded-full overflow-hidden mb-3" style={{ gap: 2 }}>
-              {positivos > 0 && <div style={{ flex: positivos, backgroundColor: '#1d4ed8', borderRadius: 9999 }} />}
+              {positivos > 0 && <div style={{ flex: positivos, backgroundColor: '#3350D0', borderRadius: 9999 }} />}
               {parciales > 0 && <div style={{ flex: parciales, backgroundColor: '#7c3aed' }} />}
               {negativos > 0 && <div style={{ flex: negativos, backgroundColor: '#dc2626', borderRadius: 9999 }} />}
             </div>
             <div className="flex flex-wrap gap-3 mt-3">
               {[
-                { n: positivos, label: 'Positivo', color: '#1d4ed8' },
+                { n: positivos, label: 'Positivo', color: '#3350D0' },
                 { n: parciales, label: 'Con observaciones', color: '#7c3aed' },
                 { n: negativos, label: 'A reforzar', color: '#dc2626' },
               ].filter(x => x.n > 0).map(({ n, label, color }) => (
@@ -491,7 +491,7 @@ Las 3 oraciones deben cubrir: (1) quién es y dónde trabaja hoy, (2) su evoluci
         {timelineEntries.length > 0 && (
           <div className="bg-white rounded-2xl p-5 shadow-sm">
             <div className="flex items-center gap-2 mb-4">
-              <Calendar size={14} style={{ color: '#0F4C81' }} strokeWidth={1.75} />
+              <Calendar size={14} style={{ color: '#3350D0' }} strokeWidth={1.75} />
               <h2 className="font-semibold text-gray-900 text-sm">Actividad trimestral</h2>
             </div>
             <div className="space-y-3">
@@ -501,7 +501,7 @@ Las 3 oraciones deben cubrir: (1) quién es y dónde trabaja hoy, (2) su evoluci
                   const pctPos = entry.completados > 0 ? Math.round((entry.validadosPos / entry.completados) * 100) : 0
                   // Ancho proporcional al máximo del período (mín 20% para que siempre sea visible)
                   const barWidth = Math.max(20, Math.round((entry.completados / maxCompletados) * 100))
-                  const barColor = pctPos >= 80 ? '#16a34a' : pctPos >= 50 ? '#0F4C81' : entry.validadosPos === 0 ? '#9ca3af' : '#d97706'
+                  const barColor = pctPos >= 80 ? '#16a34a' : pctPos >= 50 ? '#3350D0' : entry.validadosPos === 0 ? '#9ca3af' : '#d97706'
                   return (
                     <div key={key} className="flex items-center gap-3">
                       <span className="text-xs font-medium text-gray-400 w-20 flex-shrink-0">
@@ -527,7 +527,7 @@ Las 3 oraciones deben cubrir: (1) quién es y dónde trabaja hoy, (2) su evoluci
         {valExt.length > 0 && (
           <div className="bg-white rounded-2xl p-5 shadow-sm">
             <div className="flex items-center gap-2 mb-4">
-              <Users size={14} style={{ color: '#0F4C81' }} strokeWidth={1.75} />
+              <Users size={14} style={{ color: '#3350D0' }} strokeWidth={1.75} />
               <h2 className="font-semibold text-gray-900 text-sm">Validaciones externas</h2>
               <span className="ml-auto text-xs text-gray-400">{valExt.length} evaluación{valExt.length !== 1 ? 'es' : ''}</span>
             </div>
@@ -577,7 +577,7 @@ Las 3 oraciones deben cubrir: (1) quién es y dónde trabaja hoy, (2) su evoluci
           <div className="flex items-center gap-1.5">
             <ShieldCheck size={12} style={{ color: '#6b7280' }} />
             <p className="text-xs font-medium text-gray-500">
-              Verificado por <span className="font-bold text-gray-700">TRAZA</span> · Performance Intelligence Platform
+              Verificado por <span className="font-bold text-gray-700">traza</span> · Performance Intelligence Platform
             </p>
           </div>
           <p className="text-xs text-gray-400">Actualizada el {ahora}</p>

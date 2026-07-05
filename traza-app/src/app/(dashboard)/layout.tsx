@@ -28,14 +28,25 @@ export default async function DashboardLayout({ children }: { children: React.Re
     : { data: null }
 
   return (
-    <div className="flex h-screen overflow-hidden" style={{ backgroundColor: '#F5F4F0' }}>
+    <div className="flex h-screen overflow-hidden" style={{ backgroundColor: '#F8FAFC' }}>
       <Sidebar profile={profile as Profile} empresaNombre={empresa?.nombre ?? null} />
-      <main className="flex-1 ml-64 overflow-y-auto">
-        {/* Top bar con campana */}
-        <div className="flex items-center justify-end px-8 py-3 border-b border-gray-100 bg-white/60 backdrop-blur-sm sticky top-0 z-40">
+
+      <main className="flex-1 ml-64 overflow-y-auto flex flex-col">
+        {/* Top bar */}
+        <div
+          className="flex items-center justify-end px-8 h-14 sticky top-0 z-40 flex-shrink-0"
+          style={{
+            backgroundColor: 'rgba(248, 250, 252, 0.85)',
+            backdropFilter: 'blur(12px)',
+            WebkitBackdropFilter: 'blur(12px)',
+            borderBottom: '1px solid #E2E8F0',
+          }}
+        >
           <NotificationBell userId={user.id} />
         </div>
-        <div className="max-w-7xl mx-auto px-8 py-8">
+
+        {/* Contenido */}
+        <div className="flex-1 max-w-7xl w-full mx-auto px-8 py-8">
           {children}
         </div>
       </main>
