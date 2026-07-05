@@ -49,9 +49,129 @@ function CardHeader({ title, sub, right }: { title: string; sub?: string; right?
 export default async function DashboardPage() {
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  const { data: profile }  = await supabase.from('profiles').select('*').eq('id', user!.id).single()
-  if (!profile) return null
+  const { data: profileData } = await supabase.from('profiles').select('*').eq('id', user!.id).single()
 
+  // Usuario independiente — fallback a datos de personas
+  if (!profileData || profileData.rol === 'individuo' || !profileData.empresa_id) {
+    const nombre = profileData?.nombre ?? user!.email?.split('@')[0] ?? 'Profesional'
+    const { data: persona } = await supabase
+      .from('personas').select('id, nombre, apellido, traza_id')
+      .eq('user_id', user!.id).eq('empleo_activo', true).maybeSingle()
+
+    const { data: misObjetivos } = persona?.id
+      ? await supabase.from('objetivos').select('*').eq('persona_id', persona.id)
+      : { data: [] }
+
+    const { data: avances } = persona?.id
+      ? await supabase.from('objetivo_avances').select('persona_id, creado_en')
+          .eq('persona_id', persona.id).order('creado_en', { ascending: true })
+      : { data: [] }
+
+    const objs    = (misObjetivos ?? []) as Objetivo[]
+    const indice  = calcularIndiceTraza(objs, avances ?? [])
+    const sinDatos = objs.length === 0
+
+    return (
+      <div className="space-y-7">
+        <div className="traza-page-header">
+          <div>
+            <h1 className="traza-page-title">Buen día, {profileData?.nombre ?? persona?.nombre ?? nombre}</h1>
+            <p className="traza-page-sub capitalize">
+              {new Date().toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' })}
+            </p>
+          </div>
+        </div>
+
+        {sinDatos ? (
+          /* ── Empty state onboarding ───────────────────────── */
+          <div
+            style={{ borderRadius: 16, border: '1px solid #E2E8F0', background: 'linear-gradient(135deg, #F8FAFC 0%, #EEF2FF 100%)', padding: '48px 32px', textAlign: 'center' }}
+          >
+            <div style={{ width: 56, height: 56, borderRadius: 16, background: 'linear-gradient(135deg, #1C2B90, #3350D0)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
+              <Zap size={24} style={{ color: '#fff' }} />
+            </div>
+            <p style={{ fontWeight: 700, color: '#0F172A', fontSize: 18, marginBottom: 8 }}>
+              Tu TRAZA ID está listo
+            </p>
+            {persona?.traza_id && (
+              <p style={{ fontSize: 12, color: '#64748B', marginBottom: 16, fontFamily: 'monospace' }}>
+                ID: {persona.traza_id}
+              </p>
+            )}
+            <p style={{ color: '#64748B', fontSize: 14, maxWidth: 400, margin: '0 auto 28px', lineHeight: 1.6 }}>
+              Empezá cargando tu primer objetivo. Cada logro que registres queda en tu historial profesional verificado, para siempre.
+            </p>
+            <a
+              href="/mi-trabajo"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'linear-gradient(135deg, #1C2B90, #3350D0)', color: '#fff', borderRadius: 12, padding: '12px 24px', fontWeight: 600, fontSize: 14, textDecoration: 'none' }}
+            >
+              <TrendingUp size={15} />
+              Cargar mi primer objetivo
+            </a>
+          </div>
+        ) : (
+          /* ── Score personal ────────────────────────────────── */
+          <div className="traza-card overflow-hidden">
+            <CardHeader
+              title="Índice Traza"
+              sub="Tu desempeño profesional verificado"
+              right={
+                <span
+                  className="text-xs font-bold px-3 py-1 rounded-full"
+                  style={{ backgroundColor: '#EEF2FF', color: '#3350D0' }}
+                >
+                  {indice.badge}
+                </span>
+              }
+            />
+            <div className="px-6 py-6 flex items-center gap-8">
+              <div style={{ textAlign: 'center', flexShrink: 0 }}>
+                <p style={{ fontSize: 48, fontWeight: 900, color: ScoreColor(indice.score), lineHeight: 1 }}>
+                  {indice.score}
+                </p>
+                <p className="text-xs mt-1" style={{ color: '#94A3B8' }}>de 100</p>
+              </div>
+              <div className="flex-1 space-y-3">
+                <div className="flex items-center justify-between text-xs" style={{ color: '#64748B' }}>
+                  <span>Objetivos totales</span><span className="font-bold" style={{ color: '#0F172A' }}>{indice.total}</span>
+                </div>
+                <div className="flex items-center justify-between text-xs" style={{ color: '#64748B' }}>
+                  <span>Completados</span><span className="font-bold" style={{ color: '#0F172A' }}>{indice.completados}</span>
+                </div>
+                <div className="flex items-center justify-between text-xs" style={{ color: '#64748B' }}>
+                  <span>Validados positivos</span><span className="font-bold" style={{ color: '#16a34a' }}>{indice.positivos}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── CTA credencial pública ─────────────────────────── */}
+        {persona?.traza_id && !sinDatos && (
+          <div style={{ borderRadius: 16, overflow: 'hidden', background: 'linear-gradient(135deg, #1C2B90 0%, #3350D0 100%)' }}>
+            <div style={{ padding: '20px 20px 16px' }}>
+              <p style={{ color: '#ffffff', fontWeight: 700, fontSize: 15, marginBottom: 4 }}>
+                Tu historial profesional te pertenece.
+              </p>
+              <p style={{ color: '#BBC5F7', fontSize: 13, marginBottom: 16 }}>
+                Compartí tu credencial verificada con empleadores o colegas.
+              </p>
+              <a
+                href={`/p/${persona.traza_id}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(255,255,255,0.15)', color: '#fff', borderRadius: 8, padding: '8px 16px', fontSize: 13, fontWeight: 600, textDecoration: 'none' }}
+              >
+                Ver credencial pública <CheckCircle2 size={13} />
+              </a>
+            </div>
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  const profile = profileData
   const esAdmin  = ['admin', 'super_admin', 'supervisor'].includes(profile.rol)
   const empresaId = profile.empresa_id
 

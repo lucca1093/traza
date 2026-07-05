@@ -86,6 +86,16 @@ export default function RegistroPage() {
         credencial_publica: true,
       })
 
+      // Crear fila en profiles para poder acceder al dashboard
+      await supabase.from('profiles').upsert({
+        id:          authData.user.id,
+        nombre:      nombre.trim(),
+        apellido:    apellido.trim(),
+        cargo:       cargo.trim() || null,
+        rol:         'individuo',
+        empresa_id:  null,
+      }, { onConflict: 'id' })
+
       setTrazaId(nuevoTrazaId)
       setStep('listo')
     } catch {

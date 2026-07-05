@@ -38,6 +38,11 @@ export function cn(...inputs: ClassValue[]) {
 // ============================================================
 
 export function calcularIndiceTraza(objetivos: Objetivo[], avances: any[] = []): IndiceTraza {
+  // Sin objetivos → score 0 (no mostrar valores ficticios)
+  if (objetivos.length === 0) {
+    return { score: 0, nivel: 'Inicial', badge: 'Sin datos', total: 0, completados: 0, positivos: 0, parciales: 0, negativos: 0, cumplimiento: 0, moduloA: 0, moduloB: 0, moduloC: 0, alineacion: 0, evolucion: 0 }
+  }
+
   const total       = objetivos.length
   const completados = objetivos.filter(o => o.estado === 'Completado').length
   const positivos   = objetivos.filter(o => o.validacion === 'De acuerdo').length
@@ -578,17 +583,17 @@ export function generarPerfilNarrativo(input: PerfilNarrativoInput): string {
 import type { UserRole, NavItem } from '@/types'
 
 export const NAV_ITEMS: NavItem[] = [
-  { label: 'Inicio',               href: '/dashboard',       icon: 'LayoutDashboard', roles: ['super_admin', 'admin', 'supervisor', 'empleado'] },
-  { label: 'Mi Semana',            href: '/mi-semana',       icon: 'CalendarDays',    roles: ['super_admin', 'admin', 'supervisor', 'empleado'] },
+  { label: 'Inicio',               href: '/dashboard',       icon: 'LayoutDashboard', roles: ['super_admin', 'admin', 'supervisor', 'empleado', 'individuo'] },
+  { label: 'Mi Semana',            href: '/mi-semana',       icon: 'CalendarDays',    roles: ['super_admin', 'admin', 'supervisor', 'empleado', 'individuo'] },
   { label: 'Empresas',             href: '/empresas',        icon: 'Building2',       roles: ['super_admin', 'admin'] },
   { label: 'Personas',             href: '/personas',        icon: 'Users',           roles: ['super_admin', 'admin'] },
-  { label: 'Mi Trabajo',           href: '/mi-trabajo',      icon: 'Target',          roles: ['super_admin', 'admin', 'supervisor', 'empleado'] },
+  { label: 'Mi Trabajo',           href: '/mi-trabajo',      icon: 'Target',          roles: ['super_admin', 'admin', 'supervisor', 'empleado', 'individuo'] },
   { label: 'Mi Equipo',            href: '/equipo',          icon: 'UsersRound',      roles: ['super_admin', 'admin', 'supervisor'] },
   { label: 'Gestión de Objetivos', href: '/objetivos',       icon: 'ClipboardList',   roles: ['super_admin', 'admin', 'supervisor'] },
   { label: 'Validación',           href: '/validacion',      icon: 'CheckSquare',     roles: ['super_admin', 'admin', 'supervisor'] },
   { label: 'Analytics',            href: '/analytics',       icon: 'BarChart2',       roles: ['super_admin', 'admin', 'supervisor'] },
   { label: 'Buscar Talento',       href: '/buscar-talento',  icon: 'Search',          roles: ['super_admin', 'admin', 'supervisor'] },
-  { label: 'Perfil Profesional',   href: '/perfil',          icon: 'User',            roles: ['super_admin', 'admin', 'supervisor', 'empleado'] },
+  { label: 'Perfil Profesional',   href: '/perfil',          icon: 'User',            roles: ['super_admin', 'admin', 'supervisor', 'empleado', 'individuo'] },
   { label: 'Reuniones 1:1',        href: '/reuniones',       icon: 'MessageSquare',   roles: ['super_admin', 'admin', 'supervisor', 'empleado'] },
   { label: 'Reportes',             href: '/reportes',        icon: 'FileText',        roles: ['super_admin', 'admin', 'supervisor'] },
 ]

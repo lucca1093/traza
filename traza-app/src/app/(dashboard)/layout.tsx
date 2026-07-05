@@ -13,14 +13,39 @@ export default async function DashboardLayout({ children }: { children: React.Re
     redirect('/login')
   }
 
-  const { data: profile } = await supabase
+  const { data: profileData } = await supabase
     .from('profiles')
     .select('*')
     .eq('id', user.id)
     .single()
 
+  let profile: Profile | null = profileData
+
+  // Usuario independiente — no tiene row en profiles
   if (!profile) {
-    redirect('/login')
+    const { data: persona } = await supabase
+      .from('personas')
+      .select('nombre, apellido')
+      .eq('user_id', user.id)
+      .eq('empleo_activo', true)
+      .single()
+
+    if (!persona) {
+      redirect('/login')
+    }
+
+    profile = {
+      id: user.id,
+      empresa_id: null,
+      nombre: persona.nombre,
+      apellido: persona.apellido,
+      cargo: null,
+      area: null,
+      supervisor_id: null,
+      rol: 'individuo',
+      avatar_url: null,
+      created_at: new Date().toISOString(),
+    } as Profile
   }
 
   const { data: empresa } = profile?.empresa_id

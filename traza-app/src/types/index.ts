@@ -2,7 +2,7 @@
 // TRAZA - TypeScript Types
 // ============================================================
 
-export type UserRole = 'super_admin' | 'admin' | 'supervisor' | 'empleado'
+export type UserRole = 'super_admin' | 'admin' | 'supervisor' | 'empleado' | 'individuo'
 
 export interface Empresa {
   id: string
