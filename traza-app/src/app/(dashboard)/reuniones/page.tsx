@@ -22,6 +22,7 @@ function labelDias(dias: number): { texto: string; color: string; alerta: boolea
 
 export default function ReunionesPage() {
   const [loading, setLoading]         = useState(true)
+  const [esIndependiente, setEsIndependiente] = useState(false)
   const [rol, setRol]                 = useState('')
   const [empresaId, setEmpresaId]     = useState('')
   const [miPersonaId, setMiPersonaId] = useState('')
@@ -52,8 +53,15 @@ export default function ReunionesPage() {
       const { data: profile } = await supabase
         .from('profiles').select('rol, empresa_id').eq('id', user.id).single()
 
+      const esIndep = !profile || !profile.empresa_id
+      setEsIndependiente(esIndep)
       setRol(profile?.rol ?? '')
       setEmpresaId(profile?.empresa_id ?? '')
+
+      if (esIndep) {
+        setLoading(false)
+        return
+      }
 
       const { data: miPersona } = await supabase
         .from('personas').select('id').eq('user_id', user.id).eq('empleo_activo', true).single()
@@ -148,6 +156,26 @@ export default function ReunionesPage() {
 
   if (loading) return (
     <div className="py-16 text-center text-sm" style={{ color: '#94A3B8' }}>Cargando...</div>
+  )
+
+  if (esIndependiente) return (
+    <div className="space-y-6">
+      <div className="traza-page-header">
+        <div>
+          <h1 className="traza-page-title">Reuniones 1:1</h1>
+          <p className="traza-page-sub">Conversaciones entre empleados y supervisores.</p>
+        </div>
+      </div>
+      <div style={{ borderRadius: 16, border: '1px solid #E2E8F0', background: '#F8FAFC', padding: '48px 32px', textAlign: 'center' }}>
+        <MessageSquare size={40} style={{ color: '#CBD5E1', margin: '0 auto 16px' }} />
+        <p style={{ fontWeight: 600, color: '#1E293B', fontSize: 16, marginBottom: 8 }}>
+          Las reuniones 1:1 son una función de equipo
+        </p>
+        <p style={{ color: '#64748B', fontSize: 14, maxWidth: 380, margin: '0 auto' }}>
+          Cuando tu empresa adopte Traza, tus conversaciones con tu supervisor aparecerán aquí.
+        </p>
+      </div>
+    </div>
   )
 
   return (

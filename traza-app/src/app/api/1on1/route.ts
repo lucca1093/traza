@@ -8,6 +8,11 @@ export async function GET(request: NextRequest) {
   const empleadoId = searchParams.get('empleadoId')
   const supervisorId = searchParams.get('supervisorId')
 
+  // Sin empresa_id no devolvemos nada (usuario independiente)
+  if (!empresaId && !empleadoId && !supervisorId) {
+    return NextResponse.json({ reuniones: [] })
+  }
+
   const admin = createAdminClient()
 
   let query = admin

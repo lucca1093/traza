@@ -31,7 +31,10 @@ export default function PerfilPage() {
       const { data: p } = await supabase.from('profiles').select('*').eq('id', user!.id).single()
       setProfile(p)
 
-      if (p?.rol === 'empleado') {
+      // Independiente = no tiene profile en tabla profiles, o no tiene empresa_id
+      const esIndependiente = !p || !p.empresa_id
+
+      if (esIndependiente || p?.rol === 'empleado') {
         // Solo ve su propio perfil
         const { data: persona } = await supabase.from('personas').select('*').eq('user_id', user!.id).eq('empleo_activo', true).single()
         if (persona) {
