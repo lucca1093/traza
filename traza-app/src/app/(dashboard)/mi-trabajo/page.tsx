@@ -364,9 +364,13 @@ export default function MiTrabajoPage() {
   )
 }
 
-// ── HistorialCard — vista compacta para completados ────────────
+// ── HistorialCard — vista para completados con autoevaluación ──
 function HistorialCard({ obj }: { obj: Objetivo }) {
-  const [expanded, setExpanded] = useState(false)
+  const [expanded, setExpanded]     = useState(false)
+  const [autoEval, setAutoEval]     = useState((obj as any).autoevaluacion ?? '')
+  const [comentarioEmp, setComentarioEmp] = useState((obj as any).comentario_empleado ?? '')
+  const [savingAuto, setSavingAuto] = useState(false)
+  const [autoSaved, setAutoSaved]   = useState(false)
 
   const validacion = (obj as any).validacion
   const auto       = (obj as any).autoevaluacion
@@ -374,12 +378,27 @@ function HistorialCard({ obj }: { obj: Objetivo }) {
   // Resultado final: prioriza validación del supervisor, sino autoevaluación
   let resultado = ''
   let resultadoColor = '#6b7280'
-  if (validacion === 'De acuerdo')              { resultado = 'Validado'; resultadoColor = '#15803d' }
-  else if (validacion === 'Parcialmente de acuerdo') { resultado = 'Parcial'; resultadoColor = '#b45309' }
-  else if (validacion === 'En desacuerdo')      { resultado = 'En desacuerdo'; resultadoColor = '#b91c1c' }
-  else if (auto === 'Cumplido')                 { resultado = 'Cumplido'; resultadoColor = '#15803d' }
-  else if (auto === 'Parcialmente cumplido')    { resultado = 'Parcial'; resultadoColor = '#b45309' }
-  else if (auto === 'No cumplido')              { resultado = 'No cumplido'; resultadoColor = '#b91c1c' }
+  if (validacion === 'De acuerdo')                   { resultado = 'Validado';       resultadoColor = '#15803d' }
+  else if (validacion === 'Parcialmente de acuerdo') { resultado = 'Parcial';        resultadoColor = '#b45309' }
+  else if (validacion === 'En desacuerdo')           { resultado = 'En desacuerdo';  resultadoColor = '#b91c1c' }
+  else if (auto === 'Cumplido')                      { resultado = 'Cumplido';       resultadoColor = '#15803d' }
+  else if (auto === 'Parcialmente cumplido')         { resultado = 'Parcial';        resultadoColor = '#b45309' }
+  else if (auto === 'No cumplido')                   { resultado = 'No cumplido';    resultadoColor = '#b91c1c' }
+
+  // Indicador: falta autoevaluación propia
+  const faltaAuto = !autoEval
+
+  async function handleGuardarAuto() {
+    if (!autoEval) return
+    setSavingAuto(true)
+    await supabase.from('objetivos').update({
+      autoevaluacion:     autoEval,
+      comentario_empleado: comentarioEmp || null,
+    }).eq('id', obj.id)
+    setAutoSaved(true)
+    setTimeout(() => setAutoSaved(false), 2500)
+    setSavingAuto(false)
+  }
 
   return (
     <div className="traza-card overflow-hidden">
@@ -395,7 +414,12 @@ function HistorialCard({ obj }: { obj: Objetivo }) {
           </div>
         </div>
         <div className="flex items-center gap-3 ml-4 flex-shrink-0">
-          {resultado && (
+          {faltaAuto && (
+            <span className="flex items-center gap-1 text-xs font-medium text-amber-500">
+              <Star size={11} strokeWidth={2} /> Pendiente
+            </span>
+          )}
+          {resultado && !faltaAuto && (
             <span className="text-xs font-semibold" style={{ color: resultadoColor }}>{resultado}</span>
           )}
           {expanded ? <ChevronUp size={14} className="text-gray-400" /> : <ChevronDown size={14} className="text-gray-400" />}
@@ -403,34 +427,49 @@ function HistorialCard({ obj }: { obj: Objetivo }) {
       </div>
 
       {expanded && (
-        <div className="border-t border-gray-100 px-5 py-4 space-y-3">
+        <div className="border-t border-gray-100 px-5 py-4 space-y-4">
           {obj.descripcion && <p className="text-sm text-gray-600">{obj.descripcion}</p>}
 
-          {/* Validaciones — chiquitas y discretas */}
-          <div className="flex flex-wrap gap-x-4 gap-y-1">
-            {(obj as any).autoevaluacion && (
-              <span className="text-xs text-gray-400">Vos: <span className="text-gray-600 font-medium">{(obj as any).autoevaluacion}</span></span>
-            )}
-            {(obj as any).validacion && (
-              <span className="text-xs text-gray-400">Supervisor: <span className="text-gray-600 font-medium">{(obj as any).validacion}</span></span>
-            )}
-            {(obj as any).validacion_admin && (
-              <span className="text-xs text-gray-400">Admin: <span className="text-gray-600 font-medium">{(obj as any).validacion_admin}</span></span>
-            )}
-          </div>
+          {/* Validación del supervisor */}
+          {(obj as any).validacion && (
+            <div className="rounded-xl border border-gray-100 px-4 py-3 space-y-1">
+              <p className="text-xs font-semibold text-gray-400">Validación del supervisor</p>
+              <p className="text-sm font-medium text-gray-800">{(obj as any).validacion}</p>
+              {(obj as any).comentario_supervisor?.trim() && (
+                <p className="text-sm text-gray-500 italic">"{(obj as any).comentario_supervisor}"</p>
+              )}
+            </div>
+          )}
+          {(obj as any).validacion_admin && (
+            <div className="rounded-xl border border-gray-100 px-4 py-3 space-y-1">
+              <p className="text-xs font-semibold text-gray-400">Validación del admin</p>
+              <p className="text-sm font-medium text-gray-800">{(obj as any).validacion_admin}</p>
+            </div>
+          )}
 
-          {(obj as any).comentario_supervisor && (
-            <div className="rounded-xl bg-gray-50 px-4 py-3">
-              <p className="text-xs font-semibold text-gray-400 mb-1">Comentario del supervisor</p>
-              <p className="text-sm text-gray-700 italic">"{(obj as any).comentario_supervisor}"</p>
+          {/* Autoevaluación — formulario editable */}
+          <div className="bg-amber-50 rounded-xl p-4 space-y-3 border border-amber-100">
+            <div className="flex items-center gap-2">
+              <Star size={14} className="text-amber-400" strokeWidth={1.75} />
+              <p className="text-xs font-semibold text-gray-700">Tu autoevaluación</p>
+              {autoSaved && <span className="text-xs text-green-500 ml-auto">Guardada ✓</span>}
+              {!autoSaved && autoEval && <span className="text-xs text-gray-400 ml-auto">completada</span>}
             </div>
-          )}
-          {(obj as any).comentario_empleado && (
-            <div className="rounded-xl bg-gray-50 px-4 py-3">
-              <p className="text-xs font-semibold text-gray-400 mb-1">Tu comentario</p>
-              <p className="text-sm text-gray-700">"{(obj as any).comentario_empleado}"</p>
+            <div className="grid grid-cols-1 gap-2">
+              {['Cumplido', 'Parcialmente cumplido', 'No cumplido'].map(opt => (
+                <label key={opt} className={`flex items-center gap-3 px-3 py-2.5 rounded-xl border cursor-pointer transition-colors text-sm ${autoEval === opt ? 'border-traza-700 bg-traza-50 font-medium' : 'border-gray-200 bg-white hover:bg-gray-50'}`}>
+                  <input type="radio" value={opt} checked={autoEval === opt} onChange={e => setAutoEval(e.target.value)} className="text-traza-700" />
+                  {opt}
+                </label>
+              ))}
             </div>
-          )}
+            <textarea className="traza-input text-sm min-h-[64px] resize-none bg-white"
+              placeholder="¿Cómo evaluás tu desempeño en este objetivo?"
+              value={comentarioEmp} onChange={e => setComentarioEmp(e.target.value)} />
+            <Button size="sm" loading={savingAuto} onClick={handleGuardarAuto} disabled={!autoEval}>
+              {autoEval ? 'Actualizar autoevaluación' : 'Guardar autoevaluación'}
+            </Button>
+          </div>
         </div>
       )}
     </div>
@@ -673,8 +712,8 @@ function ObjetivoCard({ obj, saving, onUpdate, onUpdateAuto, onDelete, autoExpan
               <Button size="sm" loading={saving === obj.id} onClick={() => onUpdate(obj.id, estado)}>Guardar</Button>
             </div>
 
-            {/* Autoevaluación */}
-            {yaCompletado ? (
+            {/* Autoevaluación — solo cuando Completado */}
+            {yaCompletado && (
               <div className="bg-gray-50 rounded-xl p-4 space-y-3">
                 <div className="flex items-center gap-2">
                   <Star size={14} className="text-amber-400" strokeWidth={1.75} />
@@ -694,11 +733,6 @@ function ObjetivoCard({ obj, saving, onUpdate, onUpdateAuto, onDelete, autoExpan
                   placeholder="¿Querés agregar algo sobre tu desempeño en este objetivo?"
                   value={comentarioEmp} onChange={e => setComentarioEmp(e.target.value)} />
                 <Button size="sm" loading={savingAuto} onClick={handleGuardarAuto} disabled={!autoEval}>Guardar autoevaluación</Button>
-              </div>
-            ) : (
-              <div className="rounded-xl border border-dashed border-gray-200 px-4 py-3 flex items-center gap-2.5 opacity-60">
-                <Star size={13} className="text-gray-300 flex-shrink-0" strokeWidth={1.75} />
-                <p className="text-xs text-gray-400">La autoevaluación estará disponible cuando marques este objetivo como <span className="font-medium">Completado</span>.</p>
               </div>
             )}
 
