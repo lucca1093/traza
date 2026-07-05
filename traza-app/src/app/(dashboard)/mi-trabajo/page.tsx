@@ -39,6 +39,8 @@ export default function MiTrabajoPage() {
     prioridad: 'Media' as const,
     categoria: 'Resultado' as CategoriaObjetivo,
     es_continuo: false, fecha_limite: '',
+    evidencia_url: '',
+    con_externo: false,
   })
 
   useEffect(() => {
@@ -64,15 +66,40 @@ export default function MiTrabajoPage() {
     setSaving('new')
     const { data: { user } } = await supabase.auth.getUser()
     const { data: profile }  = await supabase.from('profiles').select('empresa_id').eq('id', user!.id).single()
+
+    // Si es "con externo", crear primero el grupo
+    let grupoId: string | null = null
+    if (form.con_externo) {
+      const { data: grupo } = await supabase.from('objetivo_grupos').insert({
+        empresa_id:  profile!.empresa_id,
+        titulo:      form.titulo,
+        descripcion: form.descripcion || null,
+        prioridad:   form.prioridad,
+        categoria:   form.categoria,
+        es_continuo: form.es_continuo,
+        fecha_limite: form.es_continuo ? null : (form.fecha_limite || null),
+        creado_por:  user!.id,
+        tipo:        'externo',
+      }).select().single()
+      grupoId = grupo?.id ?? null
+    }
+
     await supabase.from('objetivos').insert({
-      empresa_id: profile!.empresa_id, persona_id: persona.id, creado_por: user!.id,
-      titulo: form.titulo, descripcion: form.descripcion || null,
-      prioridad: form.prioridad, categoria: form.categoria,
-      es_continuo: form.es_continuo,
+      empresa_id:   profile!.empresa_id,
+      persona_id:   persona.id,
+      creado_por:   user!.id,
+      titulo:       form.titulo,
+      descripcion:  form.descripcion || null,
+      prioridad:    form.prioridad,
+      categoria:    form.categoria,
+      es_continuo:  form.es_continuo,
       fecha_limite: form.es_continuo ? null : (form.fecha_limite || null),
-      tipo: 'Personal', estado: 'Pendiente',
+      evidencia_url: form.evidencia_url || null,
+      tipo:         'Personal',
+      estado:       'Pendiente',
+      grupo_id:     grupoId,
     })
-    setForm({ titulo: '', descripcion: '', prioridad: 'Media', categoria: 'Resultado', es_continuo: false, fecha_limite: '' })
+    setForm({ titulo: '', descripcion: '', prioridad: 'Media', categoria: 'Resultado', es_continuo: false, fecha_limite: '', evidencia_url: '', con_externo: false })
     setShowForm(false)
     const { data: obs } = await supabase.from('objetivos').select('*, grupo:objetivo_grupos(tipo)').eq('persona_id', persona.id)
       .order('fecha_limite', { ascending: true, nullsFirst: false })
@@ -209,6 +236,31 @@ export default function MiTrabajoPage() {
                 </label>
               </div>
             </div>
+
+            {/* Evidencia + colaborador externo */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="traza-label flex items-center gap-1.5">
+                  <Link2 size={12} className="text-gray-400" /> Evidencia (link)
+                </label>
+                <input type="url" className="traza-input" placeholder="https://..."
+                  value={form.evidencia_url} onChange={e => setForm(f => ({ ...f, evidencia_url: e.target.value }))} />
+                <p className="text-xs text-gray-400 mt-1">Podés agregar más archivos después de crear el objetivo.</p>
+              </div>
+              <div>
+                <label className="traza-label">Tipo de objetivo</label>
+                <label className={`flex items-start gap-3 mt-1 px-3 py-3 rounded-xl border cursor-pointer transition-colors ${form.con_externo ? 'border-traza-700 bg-traza-50' : 'border-gray-200 hover:bg-gray-50'}`}>
+                  <input type="checkbox" checked={form.con_externo}
+                    onChange={e => setForm(f => ({ ...f, con_externo: e.target.checked }))}
+                    className="w-4 h-4 rounded accent-traza-700 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="text-sm font-medium text-gray-800">Con colaborador externo</p>
+                    <p className="text-xs text-gray-500 mt-0.5">Incluye a alguien de afuera de la empresa. Podrás compartirles un link después de crear el objetivo.</p>
+                  </div>
+                </label>
+              </div>
+            </div>
+
             <Button type="submit" loading={saving === 'new'}>Guardar objetivo</Button>
           </form>
         </div>
@@ -622,7 +674,7 @@ function ObjetivoCard({ obj, saving, onUpdate, onUpdateAuto, onDelete, autoExpan
             </div>
 
             {/* Autoevaluación */}
-            {yaCompletado && (
+            {yaCompletado ? (
               <div className="bg-gray-50 rounded-xl p-4 space-y-3">
                 <div className="flex items-center gap-2">
                   <Star size={14} className="text-amber-400" strokeWidth={1.75} />
@@ -642,6 +694,11 @@ function ObjetivoCard({ obj, saving, onUpdate, onUpdateAuto, onDelete, autoExpan
                   placeholder="¿Querés agregar algo sobre tu desempeño en este objetivo?"
                   value={comentarioEmp} onChange={e => setComentarioEmp(e.target.value)} />
                 <Button size="sm" loading={savingAuto} onClick={handleGuardarAuto} disabled={!autoEval}>Guardar autoevaluación</Button>
+              </div>
+            ) : (
+              <div className="rounded-xl border border-dashed border-gray-200 px-4 py-3 flex items-center gap-2.5 opacity-60">
+                <Star size={13} className="text-gray-300 flex-shrink-0" strokeWidth={1.75} />
+                <p className="text-xs text-gray-400">La autoevaluación estará disponible cuando marques este objetivo como <span className="font-medium">Completado</span>.</p>
               </div>
             )}
 
