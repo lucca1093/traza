@@ -497,7 +497,7 @@ function HistorialCard({ obj, valExt = [] }: { obj: Objetivo; valExt?: any[] }) 
                   <div key={i} className="flex items-start gap-3 py-1.5 border-t border-gray-50 first:border-0">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-xs font-semibold text-gray-700">{v.nombre_validador || 'Anónimo'}</span>
+                        <span className="text-xs font-semibold text-gray-700">{v.nombre || 'Anónimo'}</span>
                         <span className="text-xs text-gray-400">{nivelLabel}</span>
                         <span className="text-xs font-medium" style={{ color }}>{v.calificacion}</span>
                       </div>
@@ -984,7 +984,7 @@ function ObjetivoCard({ obj, saving, onUpdate, onUpdateAuto, onDelete, autoExpan
                     <div key={i} className="flex items-start gap-3 py-1.5 border-t border-gray-50 first:border-0">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-xs font-semibold text-gray-700">{v.nombre_validador || 'Anónimo'}</span>
+                          <span className="text-xs font-semibold text-gray-700">{v.nombre || 'Anónimo'}</span>
                           <span className="text-xs text-gray-400">{nivelLabel}</span>
                           <span className="text-xs font-medium" style={{ color }}>{v.calificacion}</span>
                         </div>
