@@ -6,10 +6,10 @@ export async function GET(
   { params }: { params: { token: string } }
 ) {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://traza-three.vercel.app'
+  const { token } = params
 
   try {
     const admin = createAdminClient()
-    const { token } = params
 
     const { data: validacion, error } = await admin
       .from('validaciones_externas')
