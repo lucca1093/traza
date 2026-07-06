@@ -70,8 +70,8 @@ export function calcularIndiceTraza(objetivos: Objetivo[], avances: any[] = [], 
       if ((o as any).autoevaluacion)    { sumaTotal += autoScore[(o as any).autoevaluacion] * 0.5; pesoTotal += 0.5 }
     })
 
-    // Validaciones externas blended con menor peso
-    validacionesExternas.forEach(v => {
+    // Validaciones externas — solo las confirmadas cuentan en el score
+    validacionesExternas.filter(v => v.confirmado !== false).forEach(v => {
       const calif = v.calificacion ?? v.rating
       const nivel = v.nivel_confianza ?? 'personal'
       const peso  = extPeso[nivel] ?? 0.1

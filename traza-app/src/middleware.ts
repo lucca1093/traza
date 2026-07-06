@@ -36,6 +36,7 @@ export async function middleware(request: NextRequest) {
     || request.nextUrl.pathname.startsWith('/onboarding')
     || request.nextUrl.pathname.startsWith('/logout')
     || request.nextUrl.pathname.startsWith('/colaborar')
+    || request.nextUrl.pathname.startsWith('/confirmar-validacion')
 
   // Si no hay sesión y trata de acceder al dashboard → redirigir a login
   if (!user && !isAuthRoute && !isPublicRoute) {

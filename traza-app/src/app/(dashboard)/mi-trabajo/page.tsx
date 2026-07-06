@@ -500,6 +500,9 @@ function HistorialCard({ obj, valExt = [] }: { obj: Objetivo; valExt?: any[] }) 
                         <span className="text-xs font-semibold text-gray-700">{v.nombre || 'Anónimo'}</span>
                         <span className="text-xs text-gray-400">{nivelLabel}</span>
                         <span className="text-xs font-medium" style={{ color }}>{v.calificacion}</span>
+                        {v.confirmado === false && (
+                          <span className="text-xs text-amber-500 font-medium">· Pendiente de confirmación</span>
+                        )}
                       </div>
                       {v.comentario?.trim() && (
                         <p className="text-xs text-gray-500 mt-0.5 italic">"{v.comentario}"</p>
@@ -987,6 +990,9 @@ function ObjetivoCard({ obj, saving, onUpdate, onUpdateAuto, onDelete, autoExpan
                           <span className="text-xs font-semibold text-gray-700">{v.nombre || 'Anónimo'}</span>
                           <span className="text-xs text-gray-400">{nivelLabel}</span>
                           <span className="text-xs font-medium" style={{ color }}>{v.calificacion}</span>
+                          {v.confirmado === false && (
+                            <span className="text-xs text-amber-500 font-medium">· Pendiente de confirmación</span>
+                          )}
                         </div>
                         {v.comentario?.trim() && (
                           <p className="text-xs text-gray-500 mt-0.5 italic">"{v.comentario}"</p>
