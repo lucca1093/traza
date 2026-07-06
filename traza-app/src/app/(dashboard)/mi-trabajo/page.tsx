@@ -20,9 +20,10 @@ export default function MiTrabajoPage() {
   const objetivoDestacado = searchParams.get('objetivo')
   const router            = useRouter()
 
-  const [objetivos, setObjetivos] = useState<Objetivo[]>([])
-  const [persona, setPersona]     = useState<Persona | null>(null)
-  const [loading, setLoading]     = useState(true)
+  const [objetivos, setObjetivos]   = useState<Objetivo[]>([])
+  const [persona, setPersona]       = useState<Persona | null>(null)
+  const [loading, setLoading]       = useState(true)
+  const [valExtMap, setValExtMap]   = useState<Record<string, any[]>>({})
   const [saving, setSaving]       = useState<string | null>(null)
   const [showForm, setShowForm]   = useState(false)
   const [tab, setTab]             = useState<'activos' | 'historial'>('activos')
@@ -53,7 +54,23 @@ export default function MiTrabajoPage() {
         const { data: obs } = await supabase
           .from('objetivos').select('*, grupo:objetivo_grupos(tipo)').eq('persona_id', p.id)
           .order('fecha_limite', { ascending: true, nullsFirst: false })
-        setObjetivos((obs ?? []) as Objetivo[])
+        const objs = (obs ?? []) as Objetivo[]
+        setObjetivos(objs)
+
+        // Validaciones externas para todos los objetivos
+        if (objs.length > 0) {
+          const { data: valExt } = await supabase
+            .from('validaciones_externas')
+            .select('*')
+            .in('objetivo_id', objs.map(o => o.id))
+            .order('created_at', { ascending: false })
+          const map: Record<string, any[]> = {}
+          ;(valExt ?? []).forEach(v => {
+            if (!map[v.objetivo_id]) map[v.objetivo_id] = []
+            map[v.objetivo_id].push(v)
+          })
+          setValExtMap(map)
+        }
       }
       setLoading(false)
     }
@@ -364,7 +381,8 @@ export default function MiTrabajoPage() {
                 <ObjetivoCard key={obj.id} obj={obj} saving={saving}
                   onUpdate={updateEstado} onUpdateAuto={updateAutoevaluacion}
                   onDelete={obj.tipo === 'Personal' ? deleteObjetivo : undefined}
-                  autoExpand={obj.id === objetivoDestacado} />
+                  autoExpand={obj.id === objetivoDestacado}
+                  valExt={valExtMap[obj.id] ?? []} />
               ))}
             </div>
           )}
@@ -377,7 +395,7 @@ export default function MiTrabajoPage() {
           {completados.length === 0 ? (
             <div className="traza-card p-10 text-center text-gray-400 text-sm">Todavía no hay objetivos completados.</div>
           ) : (
-            completados.map(obj => <HistorialCard key={obj.id} obj={obj} />)
+            completados.map(obj => <HistorialCard key={obj.id} obj={obj} valExt={valExtMap[obj.id] ?? []} />)
           )}
         </div>
       )}
@@ -386,7 +404,7 @@ export default function MiTrabajoPage() {
 }
 
 // ── HistorialCard — vista para completados con autoevaluación ──
-function HistorialCard({ obj }: { obj: Objetivo }) {
+function HistorialCard({ obj, valExt = [] }: { obj: Objetivo; valExt?: any[] }) {
   const [expanded, setExpanded]     = useState(false)
   const [autoEval, setAutoEval]     = useState((obj as any).autoevaluacion ?? '')
   const [comentarioEmp, setComentarioEmp] = useState((obj as any).comentario_empleado ?? '')
@@ -465,6 +483,34 @@ function HistorialCard({ obj }: { obj: Objetivo }) {
             <div className="rounded-xl border border-gray-100 px-4 py-3 space-y-1">
               <p className="text-xs font-semibold text-gray-400">Validación del admin</p>
               <p className="text-sm font-medium text-gray-800">{(obj as any).validacion_admin}</p>
+            </div>
+          )}
+
+          {/* Validaciones externas */}
+          {valExt.length > 0 && (
+            <div className="rounded-xl border border-gray-100 px-4 py-3 space-y-2">
+              <p className="text-xs font-semibold text-gray-400">Validaciones externas ({valExt.length})</p>
+              {valExt.map((v: any, i: number) => {
+                const color = v.calificacion === 'De acuerdo' ? '#15803d' : v.calificacion === 'Parcialmente de acuerdo' ? '#b45309' : '#b91c1c'
+                const nivelLabel = v.nivel_confianza === 'corporativo' ? '🏢 Corporativo' : v.nivel_confianza === 'personal' ? '👤 Personal' : '—'
+                return (
+                  <div key={i} className="flex items-start gap-3 py-1.5 border-t border-gray-50 first:border-0">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-xs font-semibold text-gray-700">{v.nombre_validador || 'Anónimo'}</span>
+                        <span className="text-xs text-gray-400">{nivelLabel}</span>
+                        <span className="text-xs font-medium" style={{ color }}>{v.calificacion}</span>
+                      </div>
+                      {v.comentario?.trim() && (
+                        <p className="text-xs text-gray-500 mt-0.5 italic">"{v.comentario}"</p>
+                      )}
+                    </div>
+                    <span className="text-xs text-gray-300 flex-shrink-0">
+                      {new Date(v.created_at).toLocaleDateString('es-AR', { day: '2-digit', month: 'short' })}
+                    </span>
+                  </div>
+                )
+              })}
             </div>
           )}
 
@@ -593,13 +639,14 @@ function CierreSemanal({ personaId }: { personaId: string }) {
 }
 
 // ── ObjetivoCard ──────────────────────────────────────────────
-function ObjetivoCard({ obj, saving, onUpdate, onUpdateAuto, onDelete, autoExpand }: {
+function ObjetivoCard({ obj, saving, onUpdate, onUpdateAuto, onDelete, autoExpand, valExt = [] }: {
   obj: Objetivo
   saving: string | null
   onUpdate: (id: string, estado: string) => void
   onUpdateAuto: (id: string, auto: string, comentario: string) => void
   onDelete?: (id: string) => void
   autoExpand?: boolean
+  valExt?: any[]
 }) {
   const [expanded, setExpanded]         = useState(autoExpand ?? false)
   const [estado, setEstado]             = useState(obj.estado)
@@ -922,6 +969,36 @@ function ObjetivoCard({ obj, saving, onUpdate, onUpdateAuto, onDelete, autoExpan
                   Marcar mi parte como completada
                 </button>
               )}
+            </div>
+          )}
+
+          {/* Validaciones externas recibidas */}
+          {valExt.length > 0 && (
+            <div className="px-5 pb-4">
+              <div className="rounded-xl border border-gray-100 px-4 py-3 space-y-2">
+                <p className="text-xs font-semibold text-gray-400">Validaciones externas ({valExt.length})</p>
+                {valExt.map((v: any, i: number) => {
+                  const color = v.calificacion === 'De acuerdo' ? '#15803d' : v.calificacion === 'Parcialmente de acuerdo' ? '#b45309' : '#b91c1c'
+                  const nivelLabel = v.nivel_confianza === 'corporativo' ? '🏢 Corporativo' : v.nivel_confianza === 'personal' ? '👤 Personal' : '—'
+                  return (
+                    <div key={i} className="flex items-start gap-3 py-1.5 border-t border-gray-50 first:border-0">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-xs font-semibold text-gray-700">{v.nombre_validador || 'Anónimo'}</span>
+                          <span className="text-xs text-gray-400">{nivelLabel}</span>
+                          <span className="text-xs font-medium" style={{ color }}>{v.calificacion}</span>
+                        </div>
+                        {v.comentario?.trim() && (
+                          <p className="text-xs text-gray-500 mt-0.5 italic">"{v.comentario}"</p>
+                        )}
+                      </div>
+                      <span className="text-xs text-gray-300 flex-shrink-0">
+                        {new Date(v.created_at).toLocaleDateString('es-AR', { day: '2-digit', month: 'short' })}
+                      </span>
+                    </div>
+                  )
+                })}
+              </div>
             </div>
           )}
 
