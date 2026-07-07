@@ -151,6 +151,7 @@ export default function EquipoPage() {
   }
 
   return (
+    <>
     <div className="space-y-6">
       {/* Header */}
       <div className="traza-page-header">
@@ -412,5 +413,6 @@ export default function EquipoPage() {
         </div>
       </div>
     )}
+    </>
   )
 }
