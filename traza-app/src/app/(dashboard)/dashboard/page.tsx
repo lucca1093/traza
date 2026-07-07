@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase-server'
 import MetricCard from '@/components/ui/MetricCard'
-import { calcularIndiceTraza, getEstadoClasses, formatFecha, detectarDiscrepancia } from '@/lib/traza'
+import { calcularIndiceTraza, calcularRacha, getEstadoClasses, formatFecha, detectarDiscrepancia } from '@/lib/traza'
 import { AlertTriangle, Clock, MessageSquare, Link2, Paperclip, CheckCircle2, TrendingUp, Zap } from 'lucide-react'
 import type { Objetivo } from '@/types'
 import Link from 'next/link'
@@ -517,6 +517,7 @@ export default async function DashboardPage() {
     .order('creado_en', { ascending: true })
 
   const indice = calcularIndiceTraza(objs, todosAvances ?? [])
+  const racha  = calcularRacha(todosAvances ?? [])
 
   function explicarDimension(key: 'A' | 'B' | 'C' | 'D' | 'E', val: number): string {
     if (key === 'A') {
@@ -674,6 +675,42 @@ export default async function DashboardPage() {
             )
           })}
         </div>
+      </div>
+
+      {/* ── Racha ───────────────────────────────────────── */}
+      <div
+        className="traza-card overflow-hidden flex items-center gap-6 px-6 py-5"
+        style={{ background: racha >= 4 ? 'linear-gradient(135deg, #FFF7ED 0%, #FEF3C7 100%)' : undefined }}
+      >
+        <div
+          className="w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0 text-3xl"
+          style={{ background: racha > 0 ? 'linear-gradient(135deg, #F97316, #EAB308)' : '#F1F5F9' }}
+        >
+          {racha > 0 ? '🔥' : '💤'}
+        </div>
+        <div className="flex-1">
+          <p className="text-sm font-semibold" style={{ color: '#94A3B8', letterSpacing: '0.05em', textTransform: 'uppercase', fontSize: 11 }}>
+            Racha de actividad
+          </p>
+          <p className="text-3xl font-bold mt-0.5" style={{ color: racha > 0 ? '#EA580C' : '#CBD5E1', fontFamily: DISPLAY, letterSpacing: '-0.04em' }}>
+            {racha} {racha === 1 ? 'semana' : 'semanas'}
+          </p>
+          <p className="text-xs mt-1" style={{ color: '#94A3B8' }}>
+            {racha === 0 ? 'Registrá un avance esta semana para empezar tu racha' :
+             racha === 1 ? '¡Arrancaste! Seguí la semana que viene.' :
+             racha < 4  ? `${racha} semanas consecutivas con actividad` :
+             racha < 8  ? `🔥 ¡${racha} semanas seguidas! Vas muy bien.` :
+             `🏆 Racha élite — ${racha} semanas consecutivas`}
+          </p>
+        </div>
+        {racha >= 2 && (
+          <div className="flex-shrink-0 text-right">
+            <p className="text-xs font-semibold px-3 py-1.5 rounded-full"
+              style={{ background: '#FED7AA', color: '#9A3412' }}>
+              Top {racha >= 8 ? '5%' : racha >= 4 ? '20%' : '40%'}
+            </p>
+          </div>
+        )}
       </div>
 
       {/* ── Grid 2 cols ─────────────────────────────────── */}

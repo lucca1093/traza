@@ -23,7 +23,8 @@ export default function MiTrabajoPage() {
   const [objetivos, setObjetivos]   = useState<Objetivo[]>([])
   const [persona, setPersona]       = useState<Persona | null>(null)
   const [loading, setLoading]       = useState(true)
-  const [valExtMap, setValExtMap]   = useState<Record<string, any[]>>({})
+  const [valExtMap, setValExtMap]         = useState<Record<string, any[]>>({})
+  const [reconocimientos, setReconocimientos] = useState<any[]>([])
   const [saving, setSaving]       = useState<string | null>(null)
   const [showForm, setShowForm]   = useState(false)
   const [tab, setTab]             = useState<'activos' | 'historial'>('activos')
@@ -71,6 +72,14 @@ export default function MiTrabajoPage() {
           })
           setValExtMap(map)
         }
+
+        // Reconocimientos recibidos
+        const { data: recons } = await supabase
+          .from('reconocimientos')
+          .select('*')
+          .eq('persona_id', p.id)
+          .order('created_at', { ascending: false })
+        setReconocimientos(recons ?? [])
       }
       setLoading(false)
     }
@@ -288,6 +297,30 @@ export default function MiTrabajoPage() {
 
             <Button type="submit" loading={saving === 'new'}>Guardar objetivo</Button>
           </form>
+        </div>
+      )}
+
+      {/* Reconocimientos recibidos */}
+      {reconocimientos.length > 0 && (
+        <div className="traza-card overflow-hidden">
+          <div className="flex items-center gap-2 px-5 py-3.5" style={{ borderBottom: '1px solid #F1F5F9' }}>
+            <span className="text-base">⭐</span>
+            <p className="text-sm font-semibold text-gray-900">Reconocimientos recibidos</p>
+            <span className="text-xs text-gray-400 ml-1">({reconocimientos.length})</span>
+          </div>
+          <div className="divide-y divide-gray-50">
+            {reconocimientos.map((r: any) => (
+              <div key={r.id} className="px-5 py-3.5">
+                <p className="text-sm font-semibold text-gray-800">⭐ {r.titulo}</p>
+                {r.descripcion && (
+                  <p className="text-xs text-gray-500 mt-1 italic">"{r.descripcion}"</p>
+                )}
+                <p className="text-xs text-gray-300 mt-1">
+                  {new Date(r.created_at).toLocaleDateString('es-AR', { day: '2-digit', month: 'short', year: 'numeric' })}
+                </p>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
