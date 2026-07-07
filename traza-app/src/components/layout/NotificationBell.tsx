@@ -40,6 +40,20 @@ export default function NotificationBell({ userId }: { userId: string }) {
       if (!persona) return
       setPersonaId(persona.id)
       await fetchNotifs(persona.id)
+
+      // Real-time: escuchar nuevas notificaciones
+      const channel = supabase
+        .channel(`notifs_${persona.id}`)
+        .on(
+          'postgres_changes',
+          { event: 'INSERT', schema: 'public', table: 'notificaciones', filter: `persona_id=eq.${persona.id}` },
+          (payload) => {
+            setNotifs(prev => [payload.new as Notificacion, ...prev].slice(0, 20))
+          }
+        )
+        .subscribe()
+
+      return () => { supabase.removeChannel(channel) }
     }
     init()
   }, [userId])

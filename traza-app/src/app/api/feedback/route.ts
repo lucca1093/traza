@@ -90,6 +90,17 @@ Redactá un párrafo de feedback constructivo, profesional y específico en espa
         })
       }
 
+      // Notificar al empleado si no es borrador
+      if (!borrador) {
+        await admin.from('notificaciones').insert({
+          empresa_id:  empresa_id ?? null,
+          persona_id:  persona_id,
+          tipo:        'feedback_recibido',
+          objetivo_id: null,
+          mensaje:     `💬 Tu supervisor te envió feedback formal del período ${periodo}`,
+        })
+      }
+
       return NextResponse.json({ ok: true })
     }
 

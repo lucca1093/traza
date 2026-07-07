@@ -30,6 +30,27 @@ export async function GET(
       .update({ confirmado: true })
       .eq('id', validacion.id)
 
+    // Notificar al empleado dueño del objetivo
+    const { data: valFull } = await admin
+      .from('validaciones_externas')
+      .select('objetivo_id, nombre, objetivo:objetivos(titulo, empresa_id, persona:personas(id))')
+      .eq('id', validacion.id)
+      .maybeSingle()
+
+    if (valFull?.objetivo) {
+      const obj = valFull.objetivo as any
+      const personaId = Array.isArray(obj.persona) ? obj.persona[0]?.id : obj.persona?.id
+      if (personaId) {
+        await admin.from('notificaciones').insert({
+          empresa_id:  obj.empresa_id ?? null,
+          persona_id:  personaId,
+          tipo:        'validacion_externa_confirmada',
+          objetivo_id: valFull.objetivo_id,
+          mensaje:     `✅ ${valFull.nombre} confirmó su validación en "${obj.titulo}"`,
+        })
+      }
+    }
+
     return NextResponse.redirect(`${baseUrl}/confirmar-validacion/${token}?estado=ok`)
   } catch (err) {
     console.error('Error en /api/confirmar-validacion:', err)

@@ -126,6 +126,13 @@ export default function EquipoPage() {
       titulo:          reconTitulo.trim(),
       descripcion:     reconDesc.trim() || null,
     })
+    await supabase.from('notificaciones').insert({
+      empresa_id:  reconModal.empresa_id ?? null,
+      persona_id:  reconModal.id,
+      tipo:        'reconocimiento_recibido',
+      objetivo_id: null,
+      mensaje:     `⭐ Recibiste un reconocimiento: "${reconTitulo.trim()}"`,
+    })
     setReconSaving(false)
     setReconDone(true)
     setTimeout(() => { setReconModal(null); setReconTitulo(''); setReconDesc(''); setReconDone(false) }, 2000)
