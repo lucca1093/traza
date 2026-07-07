@@ -25,6 +25,7 @@ export default function MiTrabajoPage() {
   const [loading, setLoading]       = useState(true)
   const [valExtMap, setValExtMap]         = useState<Record<string, any[]>>({})
   const [reconocimientos, setReconocimientos] = useState<any[]>([])
+  const [feedbacks, setFeedbacks]         = useState<any[]>([])
   const [saving, setSaving]       = useState<string | null>(null)
   const [showForm, setShowForm]   = useState(false)
   const [tab, setTab]             = useState<'activos' | 'historial'>('activos')
@@ -80,6 +81,11 @@ export default function MiTrabajoPage() {
           .eq('persona_id', p.id)
           .order('created_at', { ascending: false })
         setReconocimientos(recons ?? [])
+
+        // Feedback formal recibido
+        const fbRes = await fetch(`/api/feedback?persona_id=${p.id}`)
+        const fbJson = await fbRes.json()
+        setFeedbacks(fbJson.feedback ?? [])
       }
       setLoading(false)
     }
@@ -320,6 +326,55 @@ export default function MiTrabajoPage() {
                 </p>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* Feedback formal del supervisor */}
+      {feedbacks.length > 0 && (
+        <div className="traza-card overflow-hidden">
+          <div className="flex items-center gap-2 px-5 py-3.5" style={{ borderBottom: '1px solid #F1F5F9' }}>
+            <span className="text-base">💬</span>
+            <p className="text-sm font-semibold text-gray-900">Feedback de mi supervisor</p>
+            <span className="text-xs text-gray-400 ml-1">({feedbacks.length})</span>
+          </div>
+          <div className="divide-y divide-gray-50">
+            {feedbacks.map((fb: any) => {
+              const dims = [
+                { label: 'Ejecución',     val: fb.dim_ejecucion },
+                { label: 'Comunicación',  val: fb.dim_comunicacion },
+                { label: 'Colaboración',  val: fb.dim_colaboracion },
+                { label: 'Iniciativa',    val: fb.dim_iniciativa },
+                { label: 'Liderazgo',     val: fb.dim_liderazgo },
+              ].filter(d => d.val != null)
+              return (
+                <div key={fb.id} className="px-5 py-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-semibold text-gray-900">Período: {fb.periodo}</p>
+                    <p className="text-xs text-gray-300">
+                      {new Date(fb.enviado_en ?? fb.created_at).toLocaleDateString('es-AR', { day: '2-digit', month: 'short', year: 'numeric' })}
+                    </p>
+                  </div>
+                  {dims.length > 0 && (
+                    <div className="grid grid-cols-5 gap-2">
+                      {dims.map(d => (
+                        <div key={d.label} className="text-center">
+                          <p className="text-xs text-gray-400 mb-1">{d.label}</p>
+                          <p className="text-base font-bold" style={{ color: d.val >= 4 ? '#16a34a' : d.val >= 3 ? '#d97706' : '#dc2626' }}>
+                            {d.val}/5
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {fb.comentario_general && (
+                    <p className="text-xs text-gray-600 italic leading-relaxed border-l-2 border-gray-100 pl-3">
+                      "{fb.comentario_general}"
+                    </p>
+                  )}
+                </div>
+              )
+            })}
           </div>
         </div>
       )}
