@@ -13,6 +13,11 @@ import Link from 'next/link'
 
 type Step = 'tipo' | 'empresa_check' | 'invitacion' | 'form' | 'listo'
 
+interface EmpresaDetectada {
+  id: string
+  nombre: string
+}
+
 function generarTrazaId(): string {
   const letras = 'ABCDEFGHJKLMNPQRSTUVWXYZ'
   const nums   = '23456789'
@@ -36,6 +41,22 @@ export default function RegistroPage() {
   const [loading,  setLoading]  = useState(false)
   const [error,    setError]    = useState('')
   const [trazaId,  setTrazaId]  = useState('')
+  const [empresaDetectada, setEmpresaDetectada] = useState<EmpresaDetectada | null>(null)
+  const [checkingDominio,  setCheckingDominio]  = useState(false)
+
+  // ── Detección de dominio ──────────────────────────────────────────────────
+
+  async function checkDominio(emailVal: string) {
+    setEmpresaDetectada(null)
+    if (!emailVal.includes('@') || emailVal.split('@')[1].length < 3) return
+    setCheckingDominio(true)
+    try {
+      const res = await fetch(`/api/check-dominio?email=${encodeURIComponent(emailVal)}`)
+      const json = await res.json()
+      if (json.empresa) setEmpresaDetectada(json.empresa)
+    } catch { /* silenciar */ }
+    setCheckingDominio(false)
+  }
 
   // ── Submit ─────────────────────────────────────────────────────────────────
 
@@ -182,10 +203,47 @@ export default function RegistroPage() {
 
             <div>
               <label className="text-xs text-gray-500">Email personal *</label>
-              <input type="email" value={email} onChange={e => setEmail(e.target.value)}
+              <input
+                type="email"
+                value={email}
+                onChange={e => {
+                  setEmail(e.target.value)
+                  setEmpresaDetectada(null)
+                }}
+                onBlur={e => checkDominio(e.target.value)}
                 placeholder="vos@gmail.com"
-                className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2" />
+                className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2"
+              />
               <p className="text-xs text-gray-400 mt-1">Usá tu email personal, no el del trabajo.</p>
+              {/* Banner detección empresa */}
+              {checkingDominio && (
+                <p className="text-xs text-gray-400 mt-2 flex items-center gap-1.5">
+                  <span className="animate-spin inline-block w-3 h-3 border border-gray-300 border-t-gray-600 rounded-full" />
+                  Verificando dominio...
+                </p>
+              )}
+              {empresaDetectada && !checkingDominio && (
+                <div className="mt-2 rounded-xl border p-3 flex items-start gap-3"
+                  style={{ borderColor: '#BBC5F7', backgroundColor: '#EDEFFD' }}>
+                  <Building2 size={15} style={{ color: '#3350D0' }} className="mt-0.5 flex-shrink-0" />
+                  <div className="flex-1">
+                    <p className="text-xs font-semibold" style={{ color: '#1C2B90' }}>
+                      ¡{empresaDetectada.nombre} ya usa TRAZA!
+                    </p>
+                    <p className="text-xs mt-0.5" style={{ color: '#4B5CA8' }}>
+                      Podés unirte con el link de invitación de tu empresa para sincronizar tu historial.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setStep('invitacion')}
+                    className="text-xs font-semibold flex-shrink-0 mt-0.5"
+                    style={{ color: '#3350D0' }}
+                  >
+                    Unirse →
+                  </button>
+                </div>
+              )}
             </div>
 
             <div>

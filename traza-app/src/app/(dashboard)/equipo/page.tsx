@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { calcularIndiceTraza, isVencido } from '@/lib/traza'
-import { AlertTriangle, CheckCircle2, Clock, Activity, Star, X, MessageSquare, Sparkles, Loader2 } from 'lucide-react'
+import { AlertTriangle, CheckCircle2, Clock, Activity, Star, X, MessageSquare, Sparkles, Loader2, ClipboardCheck, ThumbsUp, RotateCcw, Eye } from 'lucide-react'
 import Link from 'next/link'
 
 interface MiembroEquipo {
@@ -108,6 +108,12 @@ export default function EquipoPage() {
   const [fbSugeriendo, setFbSugeriendo] = useState(false)
   const [fbGuardando, setFbGuardando]   = useState(false)
   const [fbDone, setFbDone]             = useState(false)
+
+  /* — Revisión de avances (feature 4.2) — */
+  const [avancesModal,   setAvancesModal]   = useState<any | null>(null)  // persona seleccionada
+  const [avancesData,    setAvancesData]    = useState<any[]>([])
+  const [avancesLoading, setAvancesLoading] = useState(false)
+  const [reviewingId,    setReviewingId]    = useState<string | null>(null)
 
   /* — Briefing semanal — */
   const [briefing, setBriefing]           = useState('')
@@ -226,6 +232,41 @@ export default function EquipoPage() {
       setBriefing('No se pudo generar el briefing.')
     }
     setBriefingLoading(false)
+  }
+
+  /* ── Revisión de avances ────────────────────────────── */
+  async function abrirAvances(persona: any) {
+    setAvancesModal(persona)
+    setAvancesLoading(true)
+    setAvancesData([])
+    // Traer objetivos de la persona, luego sus avances recientes
+    const { data: objetivos } = await supabase
+      .from('objetivos')
+      .select('id, titulo')
+      .eq('persona_id', persona.id)
+    const objIds = (objetivos ?? []).map((o: any) => o.id)
+    if (objIds.length > 0) {
+      const { data: avances } = await supabase
+        .from('objetivo_avances')
+        .select('*')
+        .in('objetivo_id', objIds)
+        .order('creado_en', { ascending: false })
+        .limit(30)
+      // Enriquecer con título del objetivo
+      const objMap = Object.fromEntries((objetivos ?? []).map((o: any) => [o.id, o.titulo]))
+      setAvancesData((avances ?? []).map((a: any) => ({ ...a, objetivo_titulo: objMap[a.objetivo_id] ?? '' })))
+    }
+    setAvancesLoading(false)
+  }
+
+  async function revisarAvance(avanceId: string, estado: 'visto' | 'aprobado' | 'devuelto', respuesta?: string) {
+    setReviewingId(avanceId)
+    await supabase
+      .from('objetivo_avances')
+      .update({ estado_revision: estado, respuesta_supervisor: respuesta ?? null, revisado_en: new Date().toISOString() })
+      .eq('id', avanceId)
+    setAvancesData(prev => prev.map(a => a.id === avanceId ? { ...a, estado_revision: estado, respuesta_supervisor: respuesta ?? null } : a))
+    setReviewingId(null)
   }
 
   useEffect(() => {
@@ -505,6 +546,17 @@ export default function EquipoPage() {
 
                   {/* Acciones */}
                   <div className="col-span-2 flex justify-center gap-1" onClick={e => e.preventDefault()}>
+                    {/* Revisar avances */}
+                    <button
+                      onClick={e => { e.preventDefault(); e.stopPropagation(); abrirAvances(persona) }}
+                      className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
+                      style={{ color: '#CBD5E1' }}
+                      onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = '#0891b2'}
+                      onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = '#CBD5E1'}
+                      title="Revisar avances"
+                    >
+                      <ClipboardCheck size={15} />
+                    </button>
                     {/* Feedback */}
                     <button
                       onClick={e => {
@@ -706,6 +758,116 @@ export default function EquipoPage() {
               </div>
             </>
           )}
+        </div>
+      </div>
+    )}
+    {/* ── Modal: Revisar avances ──────────────────────── */}
+    {avancesModal && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center px-4"
+        style={{ backgroundColor: 'rgba(15,23,42,0.45)', backdropFilter: 'blur(4px)' }}>
+        <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[85vh] flex flex-col">
+          {/* Header */}
+          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 flex-shrink-0">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#94A3B8' }}>Revisión de avances</p>
+              <h3 className="text-base font-bold text-gray-900 mt-0.5">{avancesModal.nombre} {avancesModal.apellido}</h3>
+            </div>
+            <button onClick={() => setAvancesModal(null)} className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-gray-100">
+              <X size={16} className="text-gray-400" />
+            </button>
+          </div>
+
+          {/* Content */}
+          <div className="flex-1 overflow-y-auto px-6 py-4 space-y-3">
+            {avancesLoading ? (
+              <div className="flex items-center gap-3 py-8 justify-center">
+                <Loader2 size={18} className="animate-spin text-traza-400" />
+                <span className="text-sm text-gray-400">Cargando avances...</span>
+              </div>
+            ) : avancesData.length === 0 ? (
+              <div className="py-10 text-center">
+                <ClipboardCheck size={24} className="mx-auto mb-2 text-gray-200" />
+                <p className="text-sm text-gray-400">Sin avances registrados.</p>
+              </div>
+            ) : (
+              avancesData.map(a => {
+                const estaRevisando = reviewingId === a.id
+                const estado = a.estado_revision ?? 'sin_revisar'
+                return (
+                  <div key={a.id} className="rounded-xl border border-gray-100 p-4 space-y-3">
+                    {/* Objetivo */}
+                    <p className="text-xs font-semibold text-traza-600 truncate">{a.objetivo_titulo}</p>
+                    {/* Contenido */}
+                    <p className="text-sm text-gray-800 leading-relaxed">{a.contenido}</p>
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs text-gray-400">
+                        {new Date(a.creado_en).toLocaleDateString('es-AR', { day: '2-digit', month: 'short', year: 'numeric' })}
+                      </p>
+                      {/* Badge estado */}
+                      <span className="text-xs px-2 py-0.5 rounded-full font-medium"
+                        style={
+                          estado === 'aprobado' ? { backgroundColor: '#f0fdf4', color: '#15803d' }
+                          : estado === 'devuelto' ? { backgroundColor: '#fef2f2', color: '#dc2626' }
+                          : estado === 'visto' ? { backgroundColor: '#F1F5F9', color: '#64748B' }
+                          : { backgroundColor: '#FFFBEB', color: '#92400E' }
+                        }
+                      >
+                        {estado === 'aprobado' ? '✓ Aprobado' : estado === 'devuelto' ? '↩ Devuelto' : estado === 'visto' ? 'Visto' : 'Sin revisar'}
+                      </span>
+                    </div>
+
+                    {/* Respuesta del supervisor (si hay) */}
+                    {a.respuesta_supervisor && (
+                      <p className="text-xs text-gray-500 italic border-l-2 border-traza-200 pl-2">
+                        Vos: "{a.respuesta_supervisor}"
+                      </p>
+                    )}
+
+                    {/* Botones de acción */}
+                    {estado !== 'aprobado' && (
+                      <div className="flex gap-2 pt-1">
+                        <button
+                          onClick={() => revisarAvance(a.id, 'aprobado')}
+                          disabled={estaRevisando}
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all disabled:opacity-50"
+                          style={{ backgroundColor: '#f0fdf4', color: '#15803d' }}
+                        >
+                          {estaRevisando ? <Loader2 size={12} className="animate-spin" /> : <ThumbsUp size={12} />}
+                          Aprobar
+                        </button>
+                        <button
+                          onClick={() => revisarAvance(a.id, 'visto')}
+                          disabled={estaRevisando}
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all disabled:opacity-50"
+                          style={{ backgroundColor: '#F1F5F9', color: '#64748B' }}
+                        >
+                          <Eye size={12} /> Visto
+                        </button>
+                        <button
+                          onClick={() => {
+                            const resp = window.prompt('¿Qué feedback le dás a este avance?')
+                            if (resp !== null) revisarAvance(a.id, 'devuelto', resp)
+                          }}
+                          disabled={estaRevisando}
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all disabled:opacity-50"
+                          style={{ backgroundColor: '#fef2f2', color: '#dc2626' }}
+                        >
+                          <RotateCcw size={12} /> Devolver
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )
+              })
+            )}
+          </div>
+
+          <div className="px-6 py-3 border-t border-gray-100 flex-shrink-0">
+            <button onClick={() => setAvancesModal(null)}
+              className="w-full py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-500 hover:bg-gray-50">
+              Cerrar
+            </button>
+          </div>
         </div>
       </div>
     )}

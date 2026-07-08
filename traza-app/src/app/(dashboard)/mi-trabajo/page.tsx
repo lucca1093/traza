@@ -5,7 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Button from '@/components/ui/Button'
 import { detectarDiscrepancia, isVencido, formatFecha, cn } from '@/lib/traza'
-import { AlertTriangle, ArrowLeft, MessageSquare, Link2, Paperclip, Plus, CheckCircle2, Star, Share2, Copy, Check, ChevronDown, ChevronUp } from 'lucide-react'
+import { AlertTriangle, ArrowLeft, MessageSquare, Link2, Paperclip, Plus, CheckCircle2, Star, Share2, Copy, Check, ChevronDown, ChevronUp, Users } from 'lucide-react'
 import type { Objetivo, Persona, CategoriaObjetivo } from '@/types'
 
 // Indicador de prioridad como borde lateral — Sapphire Indigo system
@@ -753,6 +753,12 @@ function ObjetivoCard({ obj, saving, onUpdate, onUpdateAuto, onDelete, autoExpan
   const [tokenError, setTokenError]     = useState<string | null>(null)
   const [generando, setGenerando]       = useState(false)
   const [copiado, setCopiado]           = useState(false)
+  // Feedback de cliente (feature 4.1)
+  const [fbClienteShowing,  setFbClienteShowing]  = useState(false)
+  const [fbClienteNombre,   setFbClienteNombre]   = useState('')
+  const [fbClienteEmail,    setFbClienteEmail]    = useState('')
+  const [fbClienteEnviando, setFbClienteEnviando] = useState(false)
+  const [fbClienteOk,       setFbClienteOk]       = useState(false)
   const vencido = isVencido(obj.fecha_limite, obj.estado)
 
   useEffect(() => {
@@ -803,6 +809,28 @@ function ObjetivoCard({ obj, saving, onUpdate, onUpdateAuto, onDelete, autoExpan
     if (!tokenUrl) return
     await navigator.clipboard.writeText(tokenUrl)
     setCopiado(true); setTimeout(() => setCopiado(false), 2500)
+  }
+
+  async function pedirFeedbackCliente() {
+    if (!fbClienteNombre.trim() || !fbClienteEmail.trim()) return
+    setFbClienteEnviando(true)
+    try {
+      await fetch('/api/feedback-cliente', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action:         'solicitar',
+          objetivo_id:    obj.id,
+          persona_id:     obj.persona_id,
+          empresa_id:     (obj as any).empresa_id ?? null,
+          nombre_cliente: fbClienteNombre.trim(),
+          email_cliente:  fbClienteEmail.trim(),
+        }),
+      })
+      setFbClienteOk(true)
+      setFbClienteShowing(false)
+    } catch { /* silenciar */ }
+    setFbClienteEnviando(false)
   }
 
   function formatDT(dt: string) {
@@ -1096,8 +1124,9 @@ function ObjetivoCard({ obj, saving, onUpdate, onUpdateAuto, onDelete, autoExpan
             </div>
           )}
 
-          {/* Validación externa */}
-          <div className="px-5 pb-5 pt-3 border-t border-gray-100">
+          {/* Validación externa + Feedback de cliente */}
+          <div className="px-5 pb-5 pt-3 border-t border-gray-100 space-y-3">
+            {/* Solicitar validación externa */}
             {!tokenUrl ? (
               <div className="space-y-1.5">
                 <button onClick={generarToken} disabled={generando}
@@ -1119,6 +1148,55 @@ function ObjetivoCard({ obj, saving, onUpdate, onUpdateAuto, onDelete, autoExpan
                   </button>
                 </div>
                 <p className="text-xs mt-1.5" style={{ color: '#8899EE' }}>Vence en 7 días · Un solo uso</p>
+              </div>
+            )}
+
+            {/* Pedir feedback de cliente */}
+            {fbClienteOk ? (
+              <p className="text-xs text-green-600 flex items-center gap-1.5">
+                <CheckCircle2 size={12} /> Email enviado al cliente
+              </p>
+            ) : !fbClienteShowing ? (
+              <button
+                onClick={() => setFbClienteShowing(true)}
+                className="flex items-center gap-1.5 text-xs font-medium text-gray-400 hover:text-traza-700 transition-colors"
+              >
+                <Users size={12} />
+                Pedir opinión a un cliente
+              </button>
+            ) : (
+              <div className="space-y-2">
+                <p className="text-xs font-semibold text-gray-500">Opinión de cliente</p>
+                <input
+                  type="text"
+                  value={fbClienteNombre}
+                  onChange={e => setFbClienteNombre(e.target.value)}
+                  placeholder="Nombre del cliente"
+                  className="w-full text-xs border border-gray-200 rounded-xl px-3 py-2 focus:outline-none"
+                />
+                <input
+                  type="email"
+                  value={fbClienteEmail}
+                  onChange={e => setFbClienteEmail(e.target.value)}
+                  placeholder="Email del cliente"
+                  className="w-full text-xs border border-gray-200 rounded-xl px-3 py-2 focus:outline-none"
+                />
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => { setFbClienteShowing(false); setFbClienteNombre(''); setFbClienteEmail('') }}
+                    className="text-xs text-gray-400 hover:text-gray-600 px-3 py-1.5"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={pedirFeedbackCliente}
+                    disabled={!fbClienteNombre.trim() || !fbClienteEmail.trim() || fbClienteEnviando}
+                    className="text-xs font-semibold px-3 py-1.5 rounded-lg text-white disabled:opacity-40"
+                    style={{ backgroundColor: '#3350D0' }}
+                  >
+                    {fbClienteEnviando ? 'Enviando...' : 'Enviar pedido'}
+                  </button>
+                </div>
               </div>
             )}
           </div>

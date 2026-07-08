@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import TraceIndexBar from '@/components/ui/TraceIndexBar'
 import { calcularIndiceTraza, getValidacionStyle, getEstadoClasses, formatFecha } from '@/lib/traza'
-import { CheckCircle2, Trophy, Award, MessageSquare, ChevronDown, ChevronRight, Link2, Paperclip, Eye, EyeOff, Globe, Lock, Info, X, ExternalLink } from 'lucide-react'
+import { CheckCircle2, Award, MessageSquare, ChevronDown, ChevronRight, Link2, Paperclip, Eye, EyeOff, Globe, Lock, Info, X, ExternalLink, Building2, ShieldCheck, ShieldAlert, Send, Loader2 } from 'lucide-react'
 import type { Objetivo, Persona, Profile } from '@/types'
 
 export default function PerfilPage() {
@@ -19,6 +19,14 @@ export default function PerfilPage() {
   const [credencialPublica, setCredencialPublica] = useState(true)
   const [savingCred,       setSavingCred]       = useState(false)
   const [showInfo, setShowInfo]     = useState(false)
+  // Empresa actual (para independientes — feature 4.3)
+  const [showEmpresaForm,   setShowEmpresaForm]   = useState(false)
+  const [empNombre,         setEmpNombre]         = useState('')
+  const [empDominio,        setEmpDominio]        = useState('')
+  const [supNombre,         setSupNombre]         = useState('')
+  const [supEmail,          setSupEmail]          = useState('')
+  const [savingEmpresa,     setSavingEmpresa]     = useState(false)
+  const [empresaGuardada,   setEmpresaGuardada]   = useState(false)
   const [data, setData]             = useState<{
     persona: Persona | null
     objetivos: Objetivo[]
@@ -76,6 +84,13 @@ export default function PerfilPage() {
       avances = av ?? []
     }
     setData({ persona: persona ?? null, objetivos: objs, avances })
+    // Precargar datos de empresa actual si existen
+    if (persona) {
+      if ((persona as any).empresa_actual_nombre) setEmpNombre((persona as any).empresa_actual_nombre)
+      if ((persona as any).empresa_actual_dominio) setEmpDominio((persona as any).empresa_actual_dominio)
+      if ((persona as any).supervisor_nombre) setSupNombre((persona as any).supervisor_nombre)
+      if ((persona as any).supervisor_email) setSupEmail((persona as any).supervisor_email)
+    }
   }
 
   async function handleSelect(personaId: string) {
@@ -139,10 +154,34 @@ export default function PerfilPage() {
     setSavingDisp(false)
   }
 
+  async function guardarEmpresa() {
+    if (!data.persona || !empNombre.trim() || !supEmail.trim()) return
+    setSavingEmpresa(true)
+    try {
+      const res = await fetch('/api/declarar-empresa', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          persona_id:       data.persona.id,
+          empresa_nombre:   empNombre.trim(),
+          empresa_dominio:  empDominio.trim() || null,
+          supervisor_nombre: supNombre.trim() || null,
+          supervisor_email: supEmail.trim(),
+        }),
+      })
+      if (res.ok) {
+        setEmpresaGuardada(true)
+        setShowEmpresaForm(false)
+      }
+    } catch { /* silenciar */ }
+    setSavingEmpresa(false)
+  }
+
   if (loading) return <div className="text-gray-400 py-12 text-center">Cargando...</div>
 
   const { persona, objetivos } = data
-  const indice = calcularIndiceTraza(data.objetivos, data.avances)
+  const supVerificado = (persona as any)?.supervisor_verificado ?? true
+  const indice = calcularIndiceTraza(data.objetivos, data.avances, [], supVerificado)
 
   const scoreColor = indice.score >= 85 ? '#16a34a' : indice.score >= 65 ? '#3350D0' : indice.score >= 40 ? '#d97706' : '#9ca3af'
   const scoreBg    = indice.score >= 85 ? '#dcfce7' : indice.score >= 65 ? '#EDEFFD' : indice.score >= 40 ? '#fef3c7' : '#F1F5F9'
@@ -388,6 +427,144 @@ export default function PerfilPage() {
               ))}
             </div>
           </div>
+
+          {/* Mi empresa actual — solo para independientes */}
+          {(profile?.rol === 'individuo' || (profile?.rol === 'empleado' && !profile?.empresa_id)) && (
+            <div className="traza-card divide-y divide-gray-100">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-1">
+                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Mi empresa actual</p>
+                  {!showEmpresaForm && (
+                    <button
+                      onClick={() => setShowEmpresaForm(true)}
+                      className="text-xs font-medium transition-colors"
+                      style={{ color: '#3350D0' }}
+                    >
+                      {empNombre ? 'Editar' : 'Agregar'}
+                    </button>
+                  )}
+                </div>
+
+                {/* Estado actual */}
+                {!showEmpresaForm && (
+                  empNombre ? (
+                    <div className="mt-3 space-y-3">
+                      <div className="flex items-start gap-3">
+                        <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 bg-gray-100">
+                          <Building2 size={16} className="text-gray-500" />
+                        </div>
+                        <div>
+                          <p className="font-semibold text-gray-900 text-sm">{empNombre}</p>
+                          {empDominio && <p className="text-xs text-gray-400">{empDominio}</p>}
+                        </div>
+                      </div>
+                      {supEmail && (
+                        <div className="flex items-center gap-3 pt-2 border-t border-gray-50">
+                          {(data.persona as any)?.supervisor_verificado ? (
+                            <ShieldCheck size={15} className="text-green-500 flex-shrink-0" />
+                          ) : (
+                            <ShieldAlert size={15} className="text-amber-500 flex-shrink-0" />
+                          )}
+                          <div>
+                            <p className="text-xs font-medium text-gray-700">
+                              {supNombre || 'Supervisor'} · {supEmail}
+                            </p>
+                            <p className="text-xs mt-0.5" style={{
+                              color: (data.persona as any)?.supervisor_verificado ? '#16a34a' : '#d97706'
+                            }}>
+                              {(data.persona as any)?.supervisor_verificado
+                                ? 'Verificado — sus validaciones tienen peso completo'
+                                : 'Pendiente de verificación — se envió email al supervisor'}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                      {empresaGuardada && (
+                        <p className="text-xs text-green-600 bg-green-50 rounded-xl px-3 py-2">
+                          ✓ Se envió email de verificación al supervisor.
+                        </p>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="mt-3">
+                      <p className="text-xs text-gray-500 leading-relaxed">
+                        Declarar tu empresa actual y tu supervisor permite que sus validaciones tengan
+                        mayor peso en tu Índice Traza.
+                      </p>
+                    </div>
+                  )
+                )}
+
+                {/* Formulario */}
+                {showEmpresaForm && (
+                  <div className="mt-4 space-y-3">
+                    <div>
+                      <label className="text-xs text-gray-500">Empresa *</label>
+                      <input
+                        type="text"
+                        value={empNombre}
+                        onChange={e => setEmpNombre(e.target.value)}
+                        placeholder="Acme S.A."
+                        className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-500">Dominio corporativo <span className="text-gray-400">(opcional)</span></label>
+                      <input
+                        type="text"
+                        value={empDominio}
+                        onChange={e => setEmpDominio(e.target.value)}
+                        placeholder="acme.com"
+                        className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:outline-none"
+                      />
+                    </div>
+                    <div className="pt-1 border-t border-gray-100">
+                      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Supervisor / Responsable</p>
+                      <div className="space-y-2">
+                        <input
+                          type="text"
+                          value={supNombre}
+                          onChange={e => setSupNombre(e.target.value)}
+                          placeholder="Nombre del supervisor"
+                          className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:outline-none"
+                        />
+                        <input
+                          type="email"
+                          value={supEmail}
+                          onChange={e => setSupEmail(e.target.value)}
+                          placeholder="supervisor@empresa.com *"
+                          className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:outline-none"
+                        />
+                      </div>
+                      <p className="text-xs text-gray-400 mt-2 leading-relaxed">
+                        Le enviaremos un email para que confirme que sos su colaborador. Esto aumenta el peso de sus validaciones.
+                      </p>
+                    </div>
+                    <div className="flex gap-2 pt-1">
+                      <button
+                        onClick={() => setShowEmpresaForm(false)}
+                        className="flex-1 py-2.5 rounded-xl text-sm font-medium border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors"
+                      >
+                        Cancelar
+                      </button>
+                      <button
+                        onClick={guardarEmpresa}
+                        disabled={savingEmpresa || !empNombre.trim() || !supEmail.trim()}
+                        className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                        style={{ backgroundColor: '#3350D0' }}
+                      >
+                        {savingEmpresa ? (
+                          <><Loader2 size={14} className="animate-spin" /> Enviando...</>
+                        ) : (
+                          <><Send size={14} /> Guardar y enviar</>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Privacidad y visibilidad — solo para el propio empleado */}
           {profile?.rol === 'empleado' && (

@@ -37,7 +37,9 @@ export function cn(...inputs: ClassValue[]) {
 // Score final: A×0.35 + B×0.25 + C×0.20 + D×0.10 + E×0.10 → escala 0–100
 // ============================================================
 
-export function calcularIndiceTraza(objetivos: Objetivo[], avances: any[] = [], validacionesExternas: any[] = []): IndiceTraza {
+// supervisorVerificado: true (defecto) = peso normal.
+// false = el supervisor NO verificó vínculo → sus validaciones valen ×0.5 (feature 4.5)
+export function calcularIndiceTraza(objetivos: Objetivo[], avances: any[] = [], validacionesExternas: any[] = [], supervisorVerificado: boolean = true): IndiceTraza {
   // Sin objetivos → score 0 (no mostrar valores ficticios)
   if (objetivos.length === 0) {
     return { score: 0, nivel: 'Inicial', badge: 'Sin datos', total: 0, completados: 0, positivos: 0, parciales: 0, negativos: 0, cumplimiento: 0, moduloA: 0, moduloB: 0, moduloC: 0, alineacion: 0, evolucion: 0 }
@@ -59,13 +61,16 @@ export function calcularIndiceTraza(objetivos: Objetivo[], avances: any[] = [], 
   const extPeso:    Record<string, number> = { 'corporativo': 0.4, 'personal': 0.15, 'sin_email': 0.05 }
   const extScore:   Record<string, number> = { 'De acuerdo': 1.0, 'Parcialmente de acuerdo': 0.5, 'En desacuerdo': 0.0 }
 
+  // Peso del supervisor: 1.0 si verificado, 0.5 si no verificado (anti-fraude 4.5)
+  const pesoSupervisor = supervisorVerificado ? 1.0 : 0.5
+
   const conValidacion = objetivos.filter(o => o.validacion)
   let moduloA = 50
   if (conValidacion.length > 0 || validacionesExternas.length > 0) {
     let sumaTotal = 0, pesoTotal = 0
 
     conValidacion.forEach(o => {
-      if (o.validacion)                 { sumaTotal += supScore[o.validacion] * 1.0; pesoTotal += 1.0 }
+      if (o.validacion)                 { sumaTotal += supScore[o.validacion] * pesoSupervisor; pesoTotal += pesoSupervisor }
       if ((o as any).validacion_admin)  { sumaTotal += adminScore[(o as any).validacion_admin] * 1.0; pesoTotal += 1.0 }
       if ((o as any).autoevaluacion)    { sumaTotal += autoScore[(o as any).autoevaluacion] * 0.5; pesoTotal += 0.5 }
     })
