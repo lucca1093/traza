@@ -808,6 +808,14 @@ function ObjetivoCard({ obj, saving, onUpdate, onUpdateAuto, onDelete, autoExpan
     setSavingEdit(false)
   }
 
+  async function deleteAvance(avanceId: string) {
+    if (!confirm('¿Eliminar este avance?')) return
+    await supabase.from('objetivo_avances').delete().eq('id', avanceId)
+    setAvances(prev => prev.filter(a => a.id !== avanceId))
+    setEditingAvanceId(null)
+    setEditingContent('')
+  }
+
   async function generarToken() {
     setGenerando(true); setTokenError(null)
     try {
@@ -1012,7 +1020,7 @@ function ObjetivoCard({ obj, saving, onUpdate, onUpdateAuto, onDelete, autoExpan
                                   onChange={e => setEditingContent(e.target.value)}
                                 />
                               )}
-                              <div className="flex gap-2">
+                              <div className="flex items-center gap-2">
                                 <button
                                   onClick={() => updateAvance(a.id, editingContent)}
                                   disabled={!editingContent.trim() || savingEdit}
@@ -1026,6 +1034,12 @@ function ObjetivoCard({ obj, saving, onUpdate, onUpdateAuto, onDelete, autoExpan
                                   className="text-xs text-gray-400 hover:text-gray-600 px-3 py-1.5"
                                 >
                                   Cancelar
+                                </button>
+                                <button
+                                  onClick={() => deleteAvance(a.id)}
+                                  className="text-xs text-red-400 hover:text-red-600 px-3 py-1.5 ml-auto transition-colors"
+                                >
+                                  Eliminar
                                 </button>
                               </div>
                             </div>
