@@ -5,7 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Button from '@/components/ui/Button'
 import { detectarDiscrepancia, isVencido, formatFecha, cn } from '@/lib/traza'
-import { AlertTriangle, ArrowLeft, MessageSquare, Link2, Paperclip, Plus, CheckCircle2, Star, Share2, Copy, Check, ChevronDown, ChevronUp, Users } from 'lucide-react'
+import { AlertTriangle, ArrowLeft, MessageSquare, Link2, Paperclip, Plus, CheckCircle2, Star, Share2, Copy, Check, ChevronDown, ChevronUp, Users, Pencil } from 'lucide-react'
 import type { Objetivo, Persona, CategoriaObjetivo } from '@/types'
 
 // Indicador de prioridad como borde lateral — Sapphire Indigo system
@@ -753,6 +753,10 @@ function ObjetivoCard({ obj, saving, onUpdate, onUpdateAuto, onDelete, autoExpan
   const [tokenError, setTokenError]     = useState<string | null>(null)
   const [generando, setGenerando]       = useState(false)
   const [copiado, setCopiado]           = useState(false)
+  // Edición de avances
+  const [editingAvanceId,  setEditingAvanceId]  = useState<string | null>(null)
+  const [editingContent,   setEditingContent]   = useState('')
+  const [savingEdit,       setSavingEdit]       = useState(false)
   // Feedback de cliente (feature 4.1)
   const [fbClienteShowing,  setFbClienteShowing]  = useState(false)
   const [fbClienteNombre,   setFbClienteNombre]   = useState('')
@@ -792,6 +796,16 @@ function ObjetivoCard({ obj, saving, onUpdate, onUpdateAuto, onDelete, autoExpan
     setAutoSaved(true)
     setTimeout(() => setAutoSaved(false), 2000)
     setSavingAuto(false)
+  }
+
+  async function updateAvance(avanceId: string, newContent: string) {
+    if (!newContent.trim()) return
+    setSavingEdit(true)
+    await supabase.from('objetivo_avances').update({ contenido: newContent.trim() }).eq('id', avanceId)
+    setAvances(prev => prev.map(a => a.id === avanceId ? { ...a, contenido: newContent.trim() } : a))
+    setEditingAvanceId(null)
+    setEditingContent('')
+    setSavingEdit(false)
   }
 
   async function generarToken() {
@@ -981,12 +995,59 @@ function ObjetivoCard({ obj, saving, onUpdate, onUpdateAuto, onDelete, autoExpan
                           {a.tipo === 'archivo'    && <Paperclip size={14} className="text-orange-400" />}
                         </div>
                         <div className="flex-1 min-w-0">
-                          {(a.tipo === 'link' || a.tipo === 'archivo')
-                            ? <a href={a.contenido} target="_blank" rel="noopener noreferrer" className="text-traza-700 hover:underline break-all text-xs">{a.contenido}</a>
-                            : <p className="text-sm text-gray-700">{a.contenido}</p>}
-                          <p className="text-xs text-gray-400 mt-0.5">{formatDT(a.creado_en)}</p>
+                          {editingAvanceId === a.id ? (
+                            <div className="space-y-2">
+                              {a.tipo === 'comentario' ? (
+                                <textarea
+                                  autoFocus rows={3}
+                                  className="w-full text-sm rounded-xl border border-gray-300 px-3 py-2 resize-none focus:outline-none focus:border-traza-400 bg-white"
+                                  value={editingContent}
+                                  onChange={e => setEditingContent(e.target.value)}
+                                />
+                              ) : (
+                                <input
+                                  autoFocus type="url"
+                                  className="w-full text-sm rounded-xl border border-gray-300 px-3 py-2 focus:outline-none focus:border-traza-400 bg-white"
+                                  value={editingContent}
+                                  onChange={e => setEditingContent(e.target.value)}
+                                />
+                              )}
+                              <div className="flex gap-2">
+                                <button
+                                  onClick={() => updateAvance(a.id, editingContent)}
+                                  disabled={!editingContent.trim() || savingEdit}
+                                  className="text-xs font-semibold px-3 py-1.5 rounded-lg text-white disabled:opacity-40 transition-all"
+                                  style={{ backgroundColor: '#3350D0' }}
+                                >
+                                  {savingEdit ? 'Guardando...' : 'Guardar'}
+                                </button>
+                                <button
+                                  onClick={() => { setEditingAvanceId(null); setEditingContent('') }}
+                                  className="text-xs text-gray-400 hover:text-gray-600 px-3 py-1.5"
+                                >
+                                  Cancelar
+                                </button>
+                              </div>
+                            </div>
+                          ) : (
+                            <>
+                              {(a.tipo === 'link' || a.tipo === 'archivo')
+                                ? <a href={a.contenido} target="_blank" rel="noopener noreferrer" className="text-traza-700 hover:underline break-all text-xs">{a.contenido}</a>
+                                : <p className="text-sm text-gray-700">{a.contenido}</p>}
+                              <p className="text-xs text-gray-400 mt-0.5">{formatDT(a.creado_en)}</p>
+                            </>
+                          )}
                         </div>
-                        <div className="flex-shrink-0 flex items-center gap-1">
+                        <div className="flex-shrink-0 flex items-center gap-2 ml-2">
+                          {editingAvanceId !== a.id && (a.estado_revision ?? 'sin_revisar') === 'sin_revisar' && (
+                            <button
+                              onClick={() => { setEditingAvanceId(a.id); setEditingContent(a.contenido) }}
+                              title="Editar avance"
+                              className="text-gray-300 hover:text-gray-500 transition-colors"
+                            >
+                              <Pencil size={11} />
+                            </button>
+                          )}
                           <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: rs.dot }} />
                           <span className="text-xs font-medium" style={{ color: rs.dot }}>{rs.label}</span>
                         </div>
