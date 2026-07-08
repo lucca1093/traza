@@ -1,12 +1,17 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
+import { useSearchParams, useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Button from '@/components/ui/Button'
 import { getEstadoClasses, getValidacionStyle, getCategoriaStyle, detectarDiscrepancia, formatFecha } from '@/lib/traza'
-import { MessageSquare, Link2, Paperclip, ChevronDown, ChevronRight, AlertTriangle } from 'lucide-react'
+import { MessageSquare, Link2, Paperclip, ChevronDown, ChevronRight, AlertTriangle, ArrowLeft } from 'lucide-react'
 
-export default function ValidacionPage() {
+function ValidacionInner() {
+  const searchParams   = useSearchParams()
+  const router         = useRouter()
+  const objetivoParam  = searchParams.get('objetivo')
+  const backParam      = searchParams.get('back')
   const [objetivos, setObjetivos]   = useState<any[]>([])
   const [personas, setPersonas]     = useState<any[]>([])
   const [selected, setSelected]     = useState<string>('')
@@ -69,6 +74,24 @@ export default function ValidacionPage() {
       if (user) supabase.from('profiles').select('*').eq('id', user.id).single().then(({ data }) => setProfile(data))
     })
   }, [])
+
+  // Auto-selección cuando viene desde el dashboard con ?objetivo=<id>
+  useEffect(() => {
+    if (!objetivoParam || objetivos.length === 0) return
+    const obj = objetivos.find((o: any) => o.id === objetivoParam)
+    if (!obj) return
+    // Abrir la sección de la persona correspondiente
+    const personaId = obj.persona?.id
+    if (personaId) {
+      setExpanded(prev => { const next = new Set(prev); next.add(personaId); return next })
+    }
+    // Seleccionar el objetivo (carga avances y pone el formulario de validación)
+    handleSelect(obj.id)
+    // Scroll suave al panel derecho después de un tick
+    setTimeout(() => {
+      document.getElementById('panel-validacion')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }, 150)
+  }, [objetivos, objetivoParam])
 
   async function fetchAvances(objetivoId: string) {
     const { data } = await supabase
@@ -228,8 +251,19 @@ export default function ValidacionPage() {
 
   return (
     <div className="space-y-6">
-      <div className="traza-page-header">
+      <div className="traza-page-header" id="panel-validacion">
         <div>
+          {backParam === 'dashboard' && (
+            <button
+              onClick={() => router.push('/dashboard')}
+              className="flex items-center gap-1.5 text-xs font-medium mb-2 transition-colors"
+              style={{ color: '#94A3B8' }}
+              onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = '#3350D0'}
+              onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = '#94A3B8'}
+            >
+              <ArrowLeft size={13} /> Volver al inicio
+            </button>
+          )}
           <h1 className="traza-page-title">Validación</h1>
           <p className="traza-page-sub">Revisá y validá los objetivos completados del equipo.</p>
         </div>
@@ -663,5 +697,13 @@ export default function ValidacionPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function ValidacionPage() {
+  return (
+    <Suspense fallback={<div className="text-gray-400 py-12 text-center">Cargando...</div>}>
+      <ValidacionInner />
+    </Suspense>
   )
 }

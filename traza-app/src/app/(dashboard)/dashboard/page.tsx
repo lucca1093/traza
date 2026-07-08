@@ -478,7 +478,7 @@ export default async function DashboardPage() {
 
                     {a.objetivo?.estado === 'Completado' && !a.objetivo?.validacion && (
                       <Link
-                        href="/validacion"
+                        href={`/validacion?objetivo=${a.objetivo?.id}&back=dashboard`}
                         className="inline-flex items-center mt-2 text-xs font-semibold px-2.5 py-1 rounded-lg transition-colors"
                         style={{ backgroundColor: '#FEF3C7', color: '#92400E' }}
                       >
