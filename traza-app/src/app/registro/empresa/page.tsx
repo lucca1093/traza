@@ -7,22 +7,24 @@ import Link from 'next/link'
 import {
   ChevronRight, ChevronLeft, Building2, Users, Check,
   Eye, EyeOff, Copy, CheckCheck, ArrowRight, Sparkles,
+  Monitor, BarChart2, Activity, ShoppingBag, Settings2,
+  BookOpen, Truck, Utensils, Briefcase, Palette, Plus,
 } from 'lucide-react'
 
 // ─── Datos de industrias ───────────────────────────────────────────────────
 const RUBROS = [
-  { id: 'tecnologia',    label: 'Tecnología',      emoji: '💻' },
-  { id: 'finanzas',      label: 'Finanzas',        emoji: '🏦' },
-  { id: 'salud',         label: 'Salud',           emoji: '🏥' },
-  { id: 'retail',        label: 'Retail',          emoji: '🛒' },
-  { id: 'manufactura',   label: 'Manufactura',     emoji: '🏭' },
-  { id: 'construccion',  label: 'Construcción',    emoji: '🏗️' },
-  { id: 'educacion',     label: 'Educación',       emoji: '📚' },
-  { id: 'logistica',     label: 'Logística',       emoji: '🚚' },
-  { id: 'gastronomia',   label: 'Gastronomía',     emoji: '🍽️' },
-  { id: 'consultoria',   label: 'Consultoría',     emoji: '⚖️' },
-  { id: 'creatividad',   label: 'Creatividad',     emoji: '🎨' },
-  { id: 'otro',          label: 'Otro',            emoji: '✦' },
+  { id: 'tecnologia',   label: 'Tecnología',   icon: Monitor    },
+  { id: 'finanzas',     label: 'Finanzas',     icon: BarChart2  },
+  { id: 'salud',        label: 'Salud',        icon: Activity   },
+  { id: 'retail',       label: 'Retail',       icon: ShoppingBag},
+  { id: 'manufactura',  label: 'Manufactura',  icon: Settings2  },
+  { id: 'construccion', label: 'Construcción', icon: Building2  },
+  { id: 'educacion',    label: 'Educación',    icon: BookOpen   },
+  { id: 'logistica',    label: 'Logística',    icon: Truck      },
+  { id: 'gastronomia',  label: 'Gastronomía',  icon: Utensils   },
+  { id: 'consultoria',  label: 'Consultoría',  icon: Briefcase  },
+  { id: 'creatividad',  label: 'Creatividad',  icon: Palette    },
+  { id: 'otro',         label: 'Otro',         icon: Plus       },
 ]
 
 const TAMANOS = [
@@ -68,6 +70,7 @@ export default function RegistroEmpresaPage() {
   // Paso 1 — Empresa
   const [empresaNombre, setEmpresaNombre] = useState('')
   const [rubro,         setRubro]         = useState('')
+  const [rubroCustom,   setRubroCustom]   = useState('')
   const [tamano,        setTamano]        = useState('')
 
   // Paso 2 — Admin
@@ -90,6 +93,7 @@ export default function RegistroEmpresaPage() {
     e.preventDefault()
     if (!empresaNombre.trim()) { setError('Ingresá el nombre de tu empresa.'); return }
     if (!rubro)                 { setError('Seleccioná el rubro.'); return }
+    if (rubro === 'otro' && !rubroCustom.trim()) { setError('Escribí el rubro de tu empresa.'); return }
     if (!tamano)                { setError('Seleccioná el tamaño del equipo.'); return }
     setError('')
     setStep(1)
@@ -134,7 +138,9 @@ export default function RegistroEmpresaPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          empresaNombre, rubro, tamano,
+          empresaNombre,
+          rubro: rubro === 'otro' ? rubroCustom.trim() : rubro,
+          tamano,
           nombre, apellido, cargo,
           userId: authData.user.id,
         }),
@@ -240,20 +246,37 @@ export default function RegistroEmpresaPage() {
                       Rubro *
                     </label>
                     <div className="mt-1.5 grid grid-cols-3 gap-2">
-                      {RUBROS.map(r => (
-                        <button key={r.id} type="button" onClick={() => setRubro(r.id)}
-                          className={`flex flex-col items-center gap-1 py-2.5 px-2 rounded-xl border-2 text-center transition-all ${
-                            rubro === r.id
-                              ? 'border-blue-500 bg-blue-50'
-                              : 'border-gray-100 bg-gray-50 hover:border-gray-200'
-                          }`}>
-                          <span className="text-lg leading-none">{r.emoji}</span>
-                          <span className={`text-xs font-medium leading-tight ${rubro === r.id ? 'text-blue-700' : 'text-gray-600'}`}>
-                            {r.label}
-                          </span>
-                        </button>
-                      ))}
+                      {RUBROS.map(r => {
+                        const Icon = r.icon
+                        const active = rubro === r.id
+                        return (
+                          <button key={r.id} type="button" onClick={() => setRubro(r.id)}
+                            className="flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl border-2 text-center transition-all"
+                            style={{
+                              borderColor: active ? '#3350D0' : '#F1F5F9',
+                              backgroundColor: active ? '#EDEFFD' : '#F8FAFC',
+                            }}>
+                            <Icon size={16} color={active ? '#3350D0' : '#94A3B8'} />
+                            <span className="text-xs font-medium leading-tight"
+                              style={{ color: active ? '#1C2B90' : '#64748B' }}>
+                              {r.label}
+                            </span>
+                          </button>
+                        )
+                      })}
                     </div>
+                    {/* Campo libre cuando seleccionan Otro */}
+                    {rubro === 'otro' && (
+                      <input
+                        type="text"
+                        value={rubroCustom}
+                        onChange={e => setRubroCustom(e.target.value)}
+                        placeholder="Escribí tu rubro..."
+                        autoFocus
+                        className="mt-2 w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100"
+                        style={{ borderColor: '#BBC5F7' }}
+                      />
+                    )}
                   </div>
 
                   {/* Tamaño */}
