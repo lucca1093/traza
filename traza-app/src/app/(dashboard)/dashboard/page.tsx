@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase-server'
 import MetricCard from '@/components/ui/MetricCard'
 import { calcularIndiceTraza, calcularRacha, getEstadoClasses, formatFecha, detectarDiscrepancia } from '@/lib/traza'
-import { AlertTriangle, Clock, MessageSquare, Link2, Paperclip, CheckCircle2, TrendingUp, Zap } from 'lucide-react'
+import { AlertTriangle, Clock, MessageSquare, Link2, Paperclip, CheckCircle2, TrendingUp } from 'lucide-react'
 import type { Objetivo } from '@/types'
 import Link from 'next/link'
 import OnboardingChecklist from '@/components/OnboardingChecklist'
@@ -86,69 +86,48 @@ export default async function DashboardPage() {
         {/* ── Checklist de primeros pasos (solo para nuevos) ── */}
         <OnboardingChecklist />
 
-        {sinDatos ? (
-          /* ── Empty state onboarding ───────────────────────── */
-          <div
-            style={{ borderRadius: 16, border: '1px solid #E2E8F0', background: 'linear-gradient(135deg, #F8FAFC 0%, #EEF2FF 100%)', padding: '48px 32px', textAlign: 'center' }}
-          >
-            <div style={{ width: 56, height: 56, borderRadius: 16, background: 'linear-gradient(135deg, #1C2B90, #3350D0)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
-              <Zap size={24} style={{ color: '#fff' }} />
-            </div>
-            <p style={{ fontWeight: 700, color: '#0F172A', fontSize: 18, marginBottom: 8 }}>
-              Tu TRAZA ID está listo
-            </p>
-            {persona?.traza_id && (
-              <p style={{ fontSize: 12, color: '#64748B', marginBottom: 16, fontFamily: 'monospace' }}>
-                ID: {persona.traza_id}
+        {/* ── Score personal ────────────────────────────────── */}
+        <div className="traza-card overflow-hidden">
+          <CardHeader
+            title="Índice Traza"
+            sub="Tu desempeño profesional verificado"
+            right={
+              <span
+                className="text-xs font-bold px-3 py-1 rounded-full"
+                style={{ backgroundColor: '#EEF2FF', color: '#3350D0' }}
+              >
+                {indice.badge}
+              </span>
+            }
+          />
+          <div className="px-6 py-6 flex items-center gap-8">
+            <div style={{ textAlign: 'center', flexShrink: 0 }}>
+              <p style={{ fontSize: 48, fontWeight: 900, color: sinDatos ? '#CBD5E1' : ScoreColor(indice.score), lineHeight: 1 }}>
+                {sinDatos ? '—' : indice.score}
               </p>
-            )}
-            <p style={{ color: '#64748B', fontSize: 14, maxWidth: 400, margin: '0 auto 28px', lineHeight: 1.6 }}>
-              Empezá cargando tu primer objetivo. Cada logro que registres queda en tu historial profesional verificado, para siempre.
-            </p>
-            <a
-              href="/mi-trabajo"
-              style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'linear-gradient(135deg, #1C2B90, #3350D0)', color: '#fff', borderRadius: 12, padding: '12px 24px', fontWeight: 600, fontSize: 14, textDecoration: 'none' }}
-            >
-              <TrendingUp size={15} />
-              Cargar mi primer objetivo
-            </a>
-          </div>
-        ) : (
-          /* ── Score personal ────────────────────────────────── */
-          <div className="traza-card overflow-hidden">
-            <CardHeader
-              title="Índice Traza"
-              sub="Tu desempeño profesional verificado"
-              right={
-                <span
-                  className="text-xs font-bold px-3 py-1 rounded-full"
-                  style={{ backgroundColor: '#EEF2FF', color: '#3350D0' }}
-                >
-                  {indice.badge}
-                </span>
-              }
-            />
-            <div className="px-6 py-6 flex items-center gap-8">
-              <div style={{ textAlign: 'center', flexShrink: 0 }}>
-                <p style={{ fontSize: 48, fontWeight: 900, color: ScoreColor(indice.score), lineHeight: 1 }}>
-                  {indice.score}
+              <p className="text-xs mt-1" style={{ color: '#94A3B8' }}>de 100</p>
+            </div>
+            <div className="flex-1 space-y-3">
+              {sinDatos ? (
+                <p className="text-sm" style={{ color: '#94A3B8' }}>
+                  Cargá tu primer objetivo para empezar a construir tu índice.
                 </p>
-                <p className="text-xs mt-1" style={{ color: '#94A3B8' }}>de 100</p>
-              </div>
-              <div className="flex-1 space-y-3">
-                <div className="flex items-center justify-between text-xs" style={{ color: '#64748B' }}>
-                  <span>Objetivos totales</span><span className="font-bold" style={{ color: '#0F172A' }}>{indice.total}</span>
-                </div>
-                <div className="flex items-center justify-between text-xs" style={{ color: '#64748B' }}>
-                  <span>Completados</span><span className="font-bold" style={{ color: '#0F172A' }}>{indice.completados}</span>
-                </div>
-                <div className="flex items-center justify-between text-xs" style={{ color: '#64748B' }}>
-                  <span>Validados positivos</span><span className="font-bold" style={{ color: '#16a34a' }}>{indice.positivos}</span>
-                </div>
-              </div>
+              ) : (
+                <>
+                  <div className="flex items-center justify-between text-xs" style={{ color: '#64748B' }}>
+                    <span>Objetivos totales</span><span className="font-bold" style={{ color: '#0F172A' }}>{indice.total}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs" style={{ color: '#64748B' }}>
+                    <span>Completados</span><span className="font-bold" style={{ color: '#0F172A' }}>{indice.completados}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs" style={{ color: '#64748B' }}>
+                    <span>Validados positivos</span><span className="font-bold" style={{ color: '#16a34a' }}>{indice.positivos}</span>
+                  </div>
+                </>
+              )}
             </div>
           </div>
-        )}
+        </div>
 
         {/* ── CTA credencial pública ─────────────────────────── */}
         {persona?.traza_id && !sinDatos && (
