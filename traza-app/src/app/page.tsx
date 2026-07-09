@@ -284,8 +284,8 @@ function ProblemStrip() {
         </p>
         <div style={{ display: 'flex', justifyContent: 'center', gap: 12, flexWrap: 'wrap' }}>
           {[
-            'Planillas de Excel para objetivos',
-            'Feedback por WhatsApp o correo',
+            'Planillas de cálculo para objetivos',
+            'Feedback por mensajes o correo suelto',
             'Evaluaciones de desempeño subjetivas',
             'Historial laboral sin evidencia',
             'Reuniones sin registro ni acuerdos',
@@ -537,7 +537,7 @@ function ParaEmpresas() {
         <div style={{ maxWidth: 640, marginBottom: 60 }}>
           <p style={{ fontSize: 12, fontWeight: 700, color: PRIMARY, letterSpacing: '0.09em', marginBottom: 14 }}>PARA EMPRESAS</p>
           <h2 style={{ fontFamily: D, fontSize: 'clamp(26px, 3.8vw, 42px)', fontWeight: 900, color: '#0F172A', letterSpacing: '-0.02em', lineHeight: 1.1, marginBottom: 18 }}>
-            El desempeño de tu equipo, organizado. Sin Excel, sin WhatsApp, sin memoria.
+            El desempeño de tu equipo, organizado. Sin planillas, sin mensajes sueltos, sin memoria.
           </h2>
           <p style={{ fontSize: 16, color: '#64748B', lineHeight: 1.7 }}>
             Traza reemplaza los procesos informales de gestión del desempeño con un sistema trazable
