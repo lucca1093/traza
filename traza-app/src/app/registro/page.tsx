@@ -130,110 +130,69 @@ export default function RegistroPage() {
   // ── Pantalla: Listo ────────────────────────────────────────────────────────
 
   if (step === 'listo') {
-    const proximosPasos = [
-      {
-        num:   '1',
-        icon:  <Building2 size={15} />,
-        label: 'Completá tu perfil',
-        sub:   'Declarar empresa y supervisor le da peso a tu historial.',
-        href:  '/perfil',
-        color: '#3350D0',
-        bg:    '#EDEFFD',
-      },
-      {
-        num:   '2',
-        icon:  <Target size={15} />,
-        label: 'Cargá tu primer objetivo',
-        sub:   'Cada logro registrado queda verificado para siempre.',
-        href:  '/mi-trabajo',
-        color: '#16a34a',
-        bg:    '#f0fdf4',
-      },
-      {
-        num:   '3',
-        icon:  <ExternalLink size={15} />,
-        label: 'Compartí tu credencial',
-        sub:   `traza.app/p/${trazaId}`,
-        href:  `/p/${trazaId}`,
-        color: '#d97706',
-        bg:    '#fffbeb',
-        external: true,
-      },
-    ]
-
     return (
       <Shell>
-        <div className="bg-white rounded-2xl p-7 shadow-sm border border-gray-100 space-y-6">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
 
-          {/* Header */}
-          <div className="text-center">
-            <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4"
-              style={{ backgroundColor: '#EDEFFD' }}>
-              <ShieldCheck size={26} style={{ color: '#3350D0' }} />
+          {/* Banner superior */}
+          <div
+            className="px-7 pt-8 pb-6 text-center"
+            style={{ background: 'linear-gradient(135deg, #1C2B90 0%, #3350D0 100%)' }}
+          >
+            <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4 bg-white bg-opacity-20">
+              <ShieldCheck size={26} className="text-white" />
             </div>
-            <h2 className="text-xl font-black text-gray-900 mb-1">¡Tu cuenta está lista!</h2>
-            <p className="text-sm leading-relaxed" style={{ color: '#64748B' }}>
-              Tu historial profesional verificado empieza ahora.
+            <h2 className="text-xl font-black text-white mb-1">¡Bienvenido a Traza!</h2>
+            <p className="text-sm leading-relaxed" style={{ color: '#BBC5F7' }}>
+              Tu historial profesional verificado comienza hoy.
             </p>
           </div>
 
-          {/* TRAZA ID */}
-          <div className="rounded-xl border-2 px-4 py-3 text-center"
-            style={{ borderColor: '#BBC5F7', backgroundColor: '#EDEFFD' }}>
-            <p className="text-xs font-semibold mb-1" style={{ color: '#3350D0' }}>Tu TRAZA ID</p>
-            <p className="text-xl font-black font-mono tracking-widest" style={{ color: '#1C2B90' }}>
-              {trazaId}
-            </p>
-            <p className="text-xs mt-1" style={{ color: '#8899EE' }}>
-              traza.app/p/{trazaId}
-            </p>
-          </div>
-
-          {/* Próximos pasos */}
-          <div className="space-y-2">
-            <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#94A3B8' }}>
-              Próximos pasos
-            </p>
-            {proximosPasos.map(paso => (
+          <div className="p-7 space-y-5">
+            {/* TRAZA ID */}
+            <div className="rounded-xl border-2 px-4 py-3 text-center"
+              style={{ borderColor: '#BBC5F7', backgroundColor: '#EDEFFD' }}>
+              <p className="text-xs font-semibold mb-1" style={{ color: '#3350D0' }}>Tu TRAZA ID — es tuyo para siempre</p>
+              <p className="text-xl font-black font-mono tracking-widest" style={{ color: '#1C2B90' }}>
+                {trazaId}
+              </p>
               <a
-                key={paso.num}
-                href={paso.href}
-                {...(paso.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
-                className="flex items-center gap-3 px-3 py-3 rounded-xl transition-opacity hover:opacity-80"
-                style={{ backgroundColor: paso.bg, textDecoration: 'none' }}
+                href={`/p/${trazaId}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs mt-1 inline-flex items-center gap-1 hover:underline"
+                style={{ color: '#6677CC' }}
               >
-                <div
-                  className="w-7 h-7 rounded-lg flex items-center justify-center text-white flex-shrink-0"
-                  style={{ backgroundColor: paso.color }}
-                >
-                  {paso.icon}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-gray-900">{paso.label}</p>
-                  <p className="text-xs truncate" style={{ color: '#64748B' }}>{paso.sub}</p>
-                </div>
-                <ChevronRight size={14} style={{ color: paso.color }} className="flex-shrink-0" />
+                traza.app/p/{trazaId} <ExternalLink size={10} />
               </a>
-            ))}
-          </div>
+            </div>
 
-          {/* CTA principal */}
-          <div className="space-y-2">
-            <button
-              onClick={() => router.push('/perfil')}
-              className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-white text-sm transition-opacity hover:opacity-90"
-              style={{ background: 'linear-gradient(135deg, #1C2B90, #3350D0)' }}
-            >
-              Empezar por el perfil
-              <ChevronRight size={15} />
-            </button>
-            <button
-              onClick={() => router.push('/dashboard')}
-              className="w-full text-center text-xs py-1.5 transition-colors"
-              style={{ color: '#94A3B8' }}
-            >
-              Ir al dashboard →
-            </button>
+            {/* Qué sigue */}
+            <div className="rounded-xl p-4 space-y-2" style={{ backgroundColor: '#F8FAFC', border: '1px solid #E2E8F0' }}>
+              <p className="text-xs font-semibold text-gray-500">El primer paso</p>
+              <p className="text-sm text-gray-700 leading-relaxed">
+                Completá tu perfil con tu empresa actual y supervisor. Eso le da <strong>contexto y credibilidad</strong> a tu historial desde el primer día.
+              </p>
+            </div>
+
+            {/* CTA principal */}
+            <div className="space-y-2">
+              <button
+                onClick={() => router.push('/perfil?onboarding=1')}
+                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-white text-sm transition-opacity hover:opacity-90"
+                style={{ background: 'linear-gradient(135deg, #1C2B90, #3350D0)' }}
+              >
+                Completar mi perfil
+                <ChevronRight size={15} />
+              </button>
+              <button
+                onClick={() => router.push('/dashboard')}
+                className="w-full text-center text-xs py-1.5 transition-colors"
+                style={{ color: '#94A3B8' }}
+              >
+                Ir al dashboard →
+              </button>
+            </div>
           </div>
 
         </div>

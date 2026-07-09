@@ -29,6 +29,7 @@ export default function MiTrabajoPage() {
   const [saving, setSaving]       = useState<string | null>(null)
   const [showForm, setShowForm]   = useState(false)
   const [tab, setTab]             = useState<'activos' | 'historial'>('activos')
+  const [primerObjCreado, setPrimerObjCreado] = useState(false)
 
   // Filtros
   const [filtroPrioridad, setFiltroPrioridad] = useState('Todas')
@@ -131,12 +132,17 @@ export default function MiTrabajoPage() {
       estado:       'Pendiente',
       grupo_id:     grupoId,
     })
+    const eraPrimero = objetivos.length === 0
     setForm({ titulo: '', descripcion: '', prioridad: 'Media', categoria: 'Resultado', es_continuo: false, fecha_limite: '', evidencia_url: '', con_externo: false })
     setShowForm(false)
     const { data: obs } = await supabase.from('objetivos').select('*, grupo:objetivo_grupos(tipo)').eq('persona_id', persona.id)
       .order('fecha_limite', { ascending: true, nullsFirst: false })
     setObjetivos((obs ?? []) as Objetivo[])
     setSaving(null)
+    if (eraPrimero) {
+      setPrimerObjCreado(true)
+      setTimeout(() => setPrimerObjCreado(false), 6000)
+    }
   }
 
   async function updateEstado(id: string, estado: string) {
@@ -209,6 +215,28 @@ export default function MiTrabajoPage() {
           {showForm ? 'Cancelar' : '+ Objetivo personal'}
         </Button>
       </div>
+
+      {/* Banner primer objetivo creado */}
+      {primerObjCreado && (
+        <div
+          className="rounded-2xl px-5 py-4 flex items-center gap-4 animate-pulse-once"
+          style={{
+            background: 'linear-gradient(135deg, #f0fdf4, #dcfce7)',
+            border: '1px solid #86efac',
+          }}
+        >
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+            style={{ backgroundColor: '#22c55e' }}>
+            <CheckCircle2 size={20} className="text-white" />
+          </div>
+          <div className="flex-1">
+            <p className="text-sm font-bold text-green-800">¡Primer objetivo cargado! 🎉</p>
+            <p className="text-xs text-green-700 mt-0.5">
+              Tu historial profesional verificado ya empezó. Seguí registrando avances.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Cierre semanal */}
       {persona && <CierreSemanal personaId={persona.id} />}

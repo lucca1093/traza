@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import TraceIndexBar from '@/components/ui/TraceIndexBar'
 import { calcularIndiceTraza, getValidacionStyle, getEstadoClasses, formatFecha } from '@/lib/traza'
-import { CheckCircle2, Award, MessageSquare, ChevronDown, ChevronRight, Link2, Paperclip, Eye, EyeOff, Globe, Lock, Info, X, ExternalLink, Building2, ShieldCheck, ShieldAlert, Send, Loader2 } from 'lucide-react'
+import { CheckCircle2, Award, MessageSquare, ChevronDown, ChevronRight, Link2, Paperclip, Eye, EyeOff, Globe, Lock, Info, X, ExternalLink, Building2, ShieldCheck, ShieldAlert, Send, Loader2, Target } from 'lucide-react'
 import type { Objetivo, Persona, Profile } from '@/types'
 
 export default function PerfilPage() {
@@ -27,11 +27,18 @@ export default function PerfilPage() {
   const [supEmail,          setSupEmail]          = useState('')
   const [savingEmpresa,     setSavingEmpresa]     = useState(false)
   const [empresaGuardada,   setEmpresaGuardada]   = useState(false)
+  const [onboardingMode,    setOnboardingMode]    = useState(false)
   const [data, setData]             = useState<{
     persona: Persona | null
     objetivos: Objetivo[]
     avances: any[]
   }>({ persona: null, objetivos: [], avances: [] })
+
+  useEffect(() => {
+    // Detectar modo onboarding desde URL sin useSearchParams (evita Suspense)
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('onboarding') === '1') setOnboardingMode(true)
+  }, [])
 
   useEffect(() => {
     async function load() {
@@ -90,6 +97,14 @@ export default function PerfilPage() {
       if ((persona as any).empresa_actual_dominio) setEmpDominio((persona as any).empresa_actual_dominio)
       if ((persona as any).supervisor_nombre) setSupNombre((persona as any).supervisor_nombre)
       if ((persona as any).supervisor_email) setSupEmail((persona as any).supervisor_email)
+      // Auto-abrir formulario si viene del onboarding y aún no declaró empresa
+      const params = new URLSearchParams(window.location.search)
+      if (params.get('onboarding') === '1' && !(persona as any).empresa_actual_nombre) {
+        setShowEmpresaForm(true)
+        setTimeout(() => {
+          document.getElementById('empresa-section')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        }, 400)
+      }
     }
   }
 
@@ -172,6 +187,8 @@ export default function PerfilPage() {
       if (res.ok) {
         setEmpresaGuardada(true)
         setShowEmpresaForm(false)
+        // Actualizar estado local para que el checklist del dashboard se actualice
+        await fetchPersonaData(data.persona!.id)
       }
     } catch { /* silenciar */ }
     setSavingEmpresa(false)
@@ -430,7 +447,55 @@ export default function PerfilPage() {
 
           {/* Mi empresa actual — solo para independientes */}
           {(profile?.rol === 'individuo' || (profile?.rol === 'empleado' && !profile?.empresa_id)) && (
-            <div className="traza-card divide-y divide-gray-100">
+            <div id="empresa-section" className="traza-card divide-y divide-gray-100">
+
+              {/* Banner onboarding: solo si viene del onboarding y empresa no guardada */}
+              {onboardingMode && !empNombre && !empresaGuardada && (
+                <div
+                  className="px-6 py-4 flex items-start gap-3"
+                  style={{ backgroundColor: '#EDEFFD', borderBottom: '1px solid #BBC5F7' }}
+                >
+                  <div
+                    className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-black flex-shrink-0 mt-0.5"
+                    style={{ backgroundColor: '#3350D0' }}
+                  >
+                    1
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold" style={{ color: '#1C2B90' }}>Primer paso: completá esta sección</p>
+                    <p className="text-xs mt-0.5" style={{ color: '#4B5CA8' }}>
+                      Declarar tu empresa y supervisor le da contexto y peso a tu historial desde el primer día.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Banner éxito post-guardado */}
+              {empresaGuardada && (
+                <div
+                  className="px-6 py-4 flex items-start gap-3"
+                  style={{ backgroundColor: '#f0fdf4', borderBottom: '1px solid #bbf7d0' }}
+                >
+                  <CheckCircle2 size={18} style={{ color: '#16a34a' }} className="flex-shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="text-sm font-bold text-green-800">¡Paso 1 completo!</p>
+                    <p className="text-xs mt-0.5 text-green-700">
+                      Se envió el email de verificación a tu supervisor.{' '}
+                      {onboardingMode && 'Ahora cargá tu primer objetivo.'}
+                    </p>
+                  </div>
+                  {onboardingMode && (
+                    <a
+                      href="/mi-trabajo"
+                      className="flex items-center gap-1 text-xs font-semibold flex-shrink-0 mt-0.5 hover:opacity-80 transition-opacity"
+                      style={{ color: '#16a34a' }}
+                    >
+                      Ir a mis objetivos <ChevronRight size={12} />
+                    </a>
+                  )}
+                </div>
+              )}
+
               <div className="p-6">
                 <div className="flex items-center justify-between mb-1">
                   <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Mi empresa actual</p>
