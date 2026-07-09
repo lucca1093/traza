@@ -4,6 +4,7 @@ import { calcularIndiceTraza, calcularRacha, getEstadoClasses, formatFecha, dete
 import { AlertTriangle, Clock, MessageSquare, Link2, Paperclip, CheckCircle2, TrendingUp, Zap } from 'lucide-react'
 import type { Objetivo } from '@/types'
 import Link from 'next/link'
+import OnboardingChecklist from '@/components/OnboardingChecklist'
 
 const DISPLAY = "'Plus Jakarta Sans', system-ui, sans-serif"
 
@@ -81,6 +82,9 @@ export default async function DashboardPage() {
             </p>
           </div>
         </div>
+
+        {/* ── Checklist de primeros pasos (solo para nuevos) ── */}
+        <OnboardingChecklist />
 
         {sinDatos ? (
           /* ── Empty state onboarding ───────────────────────── */

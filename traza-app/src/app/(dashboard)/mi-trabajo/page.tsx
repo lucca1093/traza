@@ -460,9 +460,41 @@ export default function MiTrabajoPage() {
           </div>
 
           {activosOrdenados.length === 0 ? (
-            <div className="traza-card p-10 text-center text-gray-400 text-sm">
-              {hayFiltrosActivos ? 'Ningún objetivo coincide con los filtros.' : 'No hay objetivos activos.'}
-            </div>
+            hayFiltrosActivos ? (
+              <div className="traza-card p-10 text-center text-gray-400 text-sm">
+                Ningún objetivo coincide con los filtros.
+              </div>
+            ) : (
+              /* ── Empty state accionable ── */
+              <div
+                className="rounded-2xl p-10 text-center space-y-5"
+                style={{
+                  background:    'linear-gradient(135deg, #F8FAFC 0%, #EEF2FF 100%)',
+                  border:        '1px solid #E2E8F0',
+                }}
+              >
+                <div
+                  className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto"
+                  style={{ background: 'linear-gradient(135deg, #1C2B90, #3350D0)' }}
+                >
+                  <Plus size={24} className="text-white" />
+                </div>
+                <div className="space-y-2">
+                  <p className="text-lg font-black text-gray-900">Cargá tu primer objetivo</p>
+                  <p className="text-sm leading-relaxed max-w-xs mx-auto" style={{ color: '#64748B' }}>
+                    Cada objetivo que registrés queda en tu historial profesional verificado, para siempre.
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowForm(true)}
+                  className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-white text-sm transition-opacity hover:opacity-90"
+                  style={{ background: 'linear-gradient(135deg, #1C2B90, #3350D0)' }}
+                >
+                  <Plus size={15} />
+                  Crear mi primer objetivo
+                </button>
+              </div>
+            )
           ) : (
             <div className="space-y-2">
               {activosOrdenados.map(obj => (

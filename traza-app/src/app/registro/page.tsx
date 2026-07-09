@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase'
 import {
   ShieldCheck, ChevronRight, Eye, EyeOff,
   Building2, User, ArrowLeft, Sparkles, Users, Mail,
+  Target, ExternalLink,
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -129,32 +130,112 @@ export default function RegistroPage() {
   // ── Pantalla: Listo ────────────────────────────────────────────────────────
 
   if (step === 'listo') {
+    const proximosPasos = [
+      {
+        num:   '1',
+        icon:  <Building2 size={15} />,
+        label: 'Completá tu perfil',
+        sub:   'Declarar empresa y supervisor le da peso a tu historial.',
+        href:  '/perfil',
+        color: '#3350D0',
+        bg:    '#EDEFFD',
+      },
+      {
+        num:   '2',
+        icon:  <Target size={15} />,
+        label: 'Cargá tu primer objetivo',
+        sub:   'Cada logro registrado queda verificado para siempre.',
+        href:  '/mi-trabajo',
+        color: '#16a34a',
+        bg:    '#f0fdf4',
+      },
+      {
+        num:   '3',
+        icon:  <ExternalLink size={15} />,
+        label: 'Compartí tu credencial',
+        sub:   `traza.app/p/${trazaId}`,
+        href:  `/p/${trazaId}`,
+        color: '#d97706',
+        bg:    '#fffbeb',
+        external: true,
+      },
+    ]
+
     return (
       <Shell>
-        <div className="bg-white rounded-2xl p-8 text-center shadow-sm border border-gray-100">
-          <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-5"
-            style={{ backgroundColor: '#EDEFFD' }}>
-            <ShieldCheck size={26} style={{ color: '#3350D0' }} />
+        <div className="bg-white rounded-2xl p-7 shadow-sm border border-gray-100 space-y-6">
+
+          {/* Header */}
+          <div className="text-center">
+            <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4"
+              style={{ backgroundColor: '#EDEFFD' }}>
+              <ShieldCheck size={26} style={{ color: '#3350D0' }} />
+            </div>
+            <h2 className="text-xl font-black text-gray-900 mb-1">¡Tu cuenta está lista!</h2>
+            <p className="text-sm leading-relaxed" style={{ color: '#64748B' }}>
+              Tu historial profesional verificado empieza ahora.
+            </p>
           </div>
-          <h2 className="text-xl font-black text-gray-900 mb-2">¡Tu cuenta está lista!</h2>
-          <p className="text-sm text-gray-500 leading-relaxed mb-5">
-            Tu TRAZA ID es único y te pertenece para siempre,
-            independientemente de dónde trabajes.
-          </p>
-          <div className="rounded-xl border-2 px-4 py-3 mb-6"
+
+          {/* TRAZA ID */}
+          <div className="rounded-xl border-2 px-4 py-3 text-center"
             style={{ borderColor: '#BBC5F7', backgroundColor: '#EDEFFD' }}>
-            <p className="text-xs font-medium mb-1" style={{ color: '#3350D0' }}>Tu TRAZA ID</p>
+            <p className="text-xs font-semibold mb-1" style={{ color: '#3350D0' }}>Tu TRAZA ID</p>
             <p className="text-xl font-black font-mono tracking-widest" style={{ color: '#1C2B90' }}>
               {trazaId}
             </p>
-            <p className="text-xs mt-1" style={{ color: '#6677CC' }}>traza.app/p/{trazaId}</p>
+            <p className="text-xs mt-1" style={{ color: '#8899EE' }}>
+              traza.app/p/{trazaId}
+            </p>
           </div>
-          <button onClick={() => router.push('/dashboard')}
-            className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-white text-sm"
-            style={{ backgroundColor: '#3350D0' }}>
-            Ir a mi espacio
-            <ChevronRight size={15} />
-          </button>
+
+          {/* Próximos pasos */}
+          <div className="space-y-2">
+            <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#94A3B8' }}>
+              Próximos pasos
+            </p>
+            {proximosPasos.map(paso => (
+              <a
+                key={paso.num}
+                href={paso.href}
+                {...(paso.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+                className="flex items-center gap-3 px-3 py-3 rounded-xl transition-opacity hover:opacity-80"
+                style={{ backgroundColor: paso.bg, textDecoration: 'none' }}
+              >
+                <div
+                  className="w-7 h-7 rounded-lg flex items-center justify-center text-white flex-shrink-0"
+                  style={{ backgroundColor: paso.color }}
+                >
+                  {paso.icon}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-gray-900">{paso.label}</p>
+                  <p className="text-xs truncate" style={{ color: '#64748B' }}>{paso.sub}</p>
+                </div>
+                <ChevronRight size={14} style={{ color: paso.color }} className="flex-shrink-0" />
+              </a>
+            ))}
+          </div>
+
+          {/* CTA principal */}
+          <div className="space-y-2">
+            <button
+              onClick={() => router.push('/perfil')}
+              className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-white text-sm transition-opacity hover:opacity-90"
+              style={{ background: 'linear-gradient(135deg, #1C2B90, #3350D0)' }}
+            >
+              Empezar por el perfil
+              <ChevronRight size={15} />
+            </button>
+            <button
+              onClick={() => router.push('/dashboard')}
+              className="w-full text-center text-xs py-1.5 transition-colors"
+              style={{ color: '#94A3B8' }}
+            >
+              Ir al dashboard →
+            </button>
+          </div>
+
         </div>
       </Shell>
     )
