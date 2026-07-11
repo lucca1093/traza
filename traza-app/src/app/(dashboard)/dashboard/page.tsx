@@ -5,6 +5,7 @@ import { AlertTriangle, Clock, MessageSquare, Link2, Paperclip, CheckCircle2, Tr
 import type { Objetivo } from '@/types'
 import Link from 'next/link'
 import OnboardingChecklist from '@/components/OnboardingChecklist'
+import CareerInsightsCard from '@/components/CareerInsightsCard'
 
 const DISPLAY = "'Plus Jakarta Sans', system-ui, sans-serif"
 
@@ -150,6 +151,9 @@ export default async function DashboardPage() {
             </div>
           </div>
         )}
+
+        {/* ── Insights de carrera con IA ─────────────────────── */}
+        {!sinDatos && <CareerInsightsCard />}
       </div>
     )
   }

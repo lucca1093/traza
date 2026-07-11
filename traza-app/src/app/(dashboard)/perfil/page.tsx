@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import TraceIndexBar from '@/components/ui/TraceIndexBar'
 import { calcularIndiceTraza, getValidacionStyle, getEstadoClasses, formatFecha } from '@/lib/traza'
-import { CheckCircle2, Award, MessageSquare, ChevronDown, ChevronRight, Link2, Paperclip, Eye, EyeOff, Globe, Lock, Info, X, ExternalLink, Building2, ShieldCheck, ShieldAlert, Send, Loader2, Target } from 'lucide-react'
+import { CheckCircle2, Award, MessageSquare, ChevronDown, ChevronRight, Link2, Paperclip, Eye, EyeOff, Globe, Lock, Info, X, ExternalLink, Building2, ShieldCheck, ShieldAlert, Send, Loader2, FileDown } from 'lucide-react'
 import type { Objetivo, Persona, Profile } from '@/types'
 
 export default function PerfilPage() {
@@ -242,17 +242,30 @@ export default function PerfilPage() {
           <h1 className="traza-page-title">Perfil Profesional</h1>
           <p className="traza-page-sub">Historial de desempeño basado en objetivos y validaciones.</p>
         </div>
-        {profile?.rol !== 'empleado' && personas.length > 0 && (
-          <select
-            className="traza-input w-auto"
-            value={selected}
-            onChange={e => handleSelect(e.target.value)}
+        <div className="flex items-center gap-2">
+          {/* Botón descargar informe */}
+          <button
+            onClick={() => window.open('/imprimir', '_blank')}
+            className="flex items-center gap-2 text-sm font-semibold px-4 py-2 rounded-xl border transition-all hover:opacity-80"
+            style={{ borderColor: '#3350D0', color: '#3350D0', background: '#EDEFFD' }}
+            title="Descargar informe profesional en PDF"
           >
-            {personas.map(p => (
-              <option key={p.id} value={p.id}>{p.nombre} {p.apellido}</option>
-            ))}
-          </select>
-        )}
+            <FileDown size={15} />
+            Descargar informe
+          </button>
+
+          {profile?.rol !== 'empleado' && personas.length > 0 && (
+            <select
+              className="traza-input w-auto"
+              value={selected}
+              onChange={e => handleSelect(e.target.value)}
+            >
+              {personas.map(p => (
+                <option key={p.id} value={p.id}>{p.nombre} {p.apellido}</option>
+              ))}
+            </select>
+          )}
+        </div>
       </div>
 
       {persona && (
