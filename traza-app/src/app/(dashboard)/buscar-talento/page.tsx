@@ -193,7 +193,7 @@ export default function BuscarTalentoPage() {
             return (
               <div key={persona.id}
                 className="traza-card p-5 flex items-center gap-5 cursor-pointer hover:shadow-md transition-shadow"
-                onClick={() => router.push(`/talent-card?persona=${persona.id}`)}>
+                onClick={() => router.push(`/perfil`)}>
 
                 {/* Rank */}
                 <span className="text-sm font-bold text-gray-300 w-6 text-center flex-shrink-0">

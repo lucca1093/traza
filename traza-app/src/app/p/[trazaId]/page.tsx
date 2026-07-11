@@ -338,44 +338,53 @@ Las 3 oraciones deben cubrir: (1) quién es y dónde trabaja hoy, (2) su evoluci
       {/* ── CONTENIDO ── */}
       <div className="max-w-xl mx-auto px-4 space-y-4" style={{ marginTop: -20 }}>
 
-        {/* Índice de desempeño verificado */}
+        {/* Resumen cuantitativo verificado */}
         <div className="bg-white rounded-2xl px-5 py-4 shadow-sm">
           <div className="flex items-center gap-2 mb-4">
             <ShieldCheck size={14} style={{ color: '#3350D0' }} />
-            <span className="text-sm font-semibold text-gray-900">Índice de desempeño verificado</span>
-            <span className="ml-auto text-sm font-bold px-2.5 py-1 rounded-full"
+            <span className="text-sm font-semibold text-gray-900">Desempeño verificado</span>
+            <span className="ml-auto text-xs font-bold px-2.5 py-1 rounded-full"
               style={{ backgroundColor: scoreBg, color: scoreColor }}>
-              {scoreDisplay}/100
+              {scoreDisplay}/100 · {badge}
             </span>
           </div>
-          <div className="space-y-3.5">
+          <div className="grid grid-cols-3 gap-3 mb-4">
             {[
-              { label: 'Resultados validados', sub: 'Calificaciones de supervisores y administradores', valor: moduloA, peso: '35%', color: '#3350D0' },
-              { label: 'Cumplimiento', sub: 'Objetivos completados sobre los comprometidos', valor: moduloB, peso: '25%', color: '#16a34a' },
-              { label: 'Proactividad', sub: 'Regularidad y constancia en el seguimiento de objetivos', valor: moduloC, peso: '20%', color: '#7c3aed' },
-              { label: 'Alineación', sub: 'Coherencia entre autoevaluación y validación del supervisor', valor: indiceActual.alineacion, peso: '10%', color: '#0891b2' },
-              { label: 'Evolución', sub: 'Tendencia de desempeño respecto al período anterior', valor: indiceActual.evolucion, peso: '10%', color: '#d97706' },
-            ].map(({ label, sub, valor, peso, color }) => (
-              <div key={label}>
-                <div className="flex items-center justify-between mb-1">
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-xs font-semibold text-gray-800">{label}</span>
-                    <span className="text-xs text-gray-400">({peso})</span>
-                  </div>
-                  <span className="text-xs font-bold" style={{ color }}>{valor}/100</span>
-                </div>
-                <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                  <div className="h-full rounded-full" style={{ width: `${valor}%`, backgroundColor: color }} />
-                </div>
-                <p className="text-xs text-gray-400 mt-0.5">{sub}</p>
+              { val: totalObjGlobal,    label: 'Objetivos\ntotales' },
+              { val: completadosGlobal, label: 'Completados\nverificados' },
+              { val: positivosGlobal,   label: 'Validados\npositivamente' },
+            ].map(({ val, label }) => (
+              <div key={label} className="text-center rounded-xl py-3 px-2" style={{ background: '#F8FAFC' }}>
+                <p className="text-2xl font-black" style={{ color: '#1C2B90' }}>{val}</p>
+                <p className="text-xs text-gray-400 leading-tight mt-0.5 whitespace-pre-line">{label}</p>
               </div>
             ))}
           </div>
-          <div className="mt-4 pt-3 border-t border-gray-100">
-            <p className="text-xs text-gray-400">
-              Basado en {totalValidadosActuales} objetivo{totalValidadosActuales !== 1 ? 's' : ''} con validación supervisora · empresa actual
-            </p>
-          </div>
+          {/* Barra resumen */}
+          {totalValidadosActuales > 0 && (
+            <div>
+              <div className="flex h-2 rounded-full overflow-hidden mb-2" style={{ gap: 2 }}>
+                {positivos > 0 && <div style={{ flex: positivos, backgroundColor: '#3350D0', borderRadius: 9999 }} />}
+                {parciales > 0 && <div style={{ flex: parciales, backgroundColor: '#7c3aed' }} />}
+                {negativos > 0 && <div style={{ flex: negativos, backgroundColor: '#dc2626', borderRadius: 9999 }} />}
+              </div>
+              <div className="flex flex-wrap gap-3">
+                {[
+                  { n: positivos, label: 'Positivo',         color: '#3350D0' },
+                  { n: parciales, label: 'Con observaciones', color: '#7c3aed' },
+                  { n: negativos, label: 'A reforzar',        color: '#dc2626' },
+                ].filter(x => x.n > 0).map(({ n, label, color }) => (
+                  <div key={label} className="flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full inline-block" style={{ backgroundColor: color }} />
+                    <span className="text-xs text-gray-500">{label} <span className="font-semibold text-gray-700">{n}</span></span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          <p className="text-xs text-gray-400 mt-3 pt-3 border-t border-gray-100">
+            Datos validados por supervisores · {todasLasPersonas.length} empresa{todasLasPersonas.length !== 1 ? 's' : ''} registradas en TRAZA
+          </p>
         </div>
 
         {/* Narrativa IA */}
@@ -456,78 +465,6 @@ Las 3 oraciones deben cubrir: (1) quién es y dónde trabaja hoy, (2) su evoluci
         )}
 
 
-        {/* Distribución de validaciones (empresa actual) */}
-        {totalValidadosActuales > 0 && (
-          <div className="bg-white rounded-2xl p-5 shadow-sm">
-            <div className="flex items-center gap-2 mb-4">
-              <TrendingUp size={14} style={{ color: '#3350D0' }} strokeWidth={1.75} />
-              <h2 className="font-semibold text-gray-900 text-sm">Validaciones de supervisores</h2>
-              <span className="ml-auto text-xs text-gray-400">{totalValidadosActuales} evaluaciones</span>
-            </div>
-            {/* Porcentaje positivo destacado */}
-            {totalValidadosActuales > 0 && (
-              <div className="mb-3 flex items-center gap-3">
-                <span className="text-2xl font-bold" style={{ color: '#3350D0' }}>
-                  {Math.round((positivos / totalValidadosActuales) * 100)}%
-                </span>
-                <span className="text-xs text-gray-500 leading-tight">de objetivos evaluados<br/>con resultado positivo</span>
-              </div>
-            )}
-            <div className="flex h-2 rounded-full overflow-hidden mb-3" style={{ gap: 2 }}>
-              {positivos > 0 && <div style={{ flex: positivos, backgroundColor: '#3350D0', borderRadius: 9999 }} />}
-              {parciales > 0 && <div style={{ flex: parciales, backgroundColor: '#7c3aed' }} />}
-              {negativos > 0 && <div style={{ flex: negativos, backgroundColor: '#dc2626', borderRadius: 9999 }} />}
-            </div>
-            <div className="flex flex-wrap gap-3 mt-3">
-              {[
-                { n: positivos, label: 'Positivo', color: '#3350D0' },
-                { n: parciales, label: 'Con observaciones', color: '#7c3aed' },
-                { n: negativos, label: 'A reforzar', color: '#dc2626' },
-              ].filter(x => x.n > 0).map(({ n, label, color }) => (
-                <div key={label} className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full inline-block" style={{ backgroundColor: color }} />
-                  <span className="text-xs text-gray-500">{label} <span className="font-semibold text-gray-700">{n}</span></span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Timeline trimestral (empresa actual) */}
-        {timelineEntries.length > 0 && (
-          <div className="bg-white rounded-2xl p-5 shadow-sm">
-            <div className="flex items-center gap-2 mb-4">
-              <Calendar size={14} style={{ color: '#3350D0' }} strokeWidth={1.75} />
-              <h2 className="font-semibold text-gray-900 text-sm">Actividad trimestral</h2>
-            </div>
-            <div className="space-y-3">
-              {(() => {
-                const maxCompletados = Math.max(...timelineEntries.map(([, e]) => e.completados), 1)
-                return timelineEntries.map(([key, entry]) => {
-                  const pctPos = entry.completados > 0 ? Math.round((entry.validadosPos / entry.completados) * 100) : 0
-                  // Ancho proporcional al máximo del período (mín 20% para que siempre sea visible)
-                  const barWidth = Math.max(20, Math.round((entry.completados / maxCompletados) * 100))
-                  const barColor = pctPos >= 80 ? '#16a34a' : pctPos >= 50 ? '#3350D0' : entry.validadosPos === 0 ? '#9ca3af' : '#d97706'
-                  return (
-                    <div key={key} className="flex items-center gap-3">
-                      <span className="text-xs font-medium text-gray-400 w-20 flex-shrink-0">
-                        {formatTrimestreLabel(key)}
-                      </span>
-                      <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: '#f1f5f9' }}>
-                        <div className="h-full rounded-full transition-all"
-                          style={{ width: `${barWidth}%`, backgroundColor: barColor }} />
-                      </div>
-                      <span className="text-xs text-gray-500 flex-shrink-0 w-24 text-right">
-                        {entry.completados} completado{entry.completados !== 1 ? 's' : ''}
-                        {entry.validadosPos > 0 && ` · ${entry.validadosPos} ✓`}
-                      </span>
-                    </div>
-                  )
-                })
-              })()}
-            </div>
-          </div>
-        )}
 
         {/* Validaciones externas */}
         {valExt.length > 0 && (

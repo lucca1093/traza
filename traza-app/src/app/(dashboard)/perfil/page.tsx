@@ -298,14 +298,7 @@ export default function PerfilPage() {
                     >
                       Ver credencial traza →
                     </a>
-                    <a
-                      href="/talent-card"
-                      className="flex items-center gap-1 text-xs text-gray-400 hover:text-traza-700 transition-colors"
-                    >
-                      <ExternalLink size={11} />
-                      Talent Card
-                    </a>
-                  </div>
+                    </div>
                 </div>
               )}
             </div>
