@@ -339,7 +339,7 @@ export default function PerfilPage() {
           <div className="traza-card p-6">
             <div className="flex items-center justify-between mb-5">
               <div className="flex items-center gap-1.5">
-                <h3 className="font-semibold text-gray-900">Índice TRAZA</h3>
+                <h3 className="font-semibold text-gray-900">Índice TRAZA · empresa actual</h3>
                 <button
                   onClick={() => setShowInfo(true)}
                   className="p-0.5 rounded-full text-gray-400 hover:text-gray-600 transition-colors"
@@ -359,7 +359,7 @@ export default function PerfilPage() {
               <span className="text-5xl font-bold leading-none" style={{ color: scoreColor }}>{indice.score}</span>
               <div className="pb-1">
                 <span className="text-sm text-gray-400">/100</span>
-                <p className="text-xs text-gray-400 mt-0.5">Score verificado</p>
+                <p className="text-xs text-gray-400 mt-0.5">Empresa actual</p>
               </div>
             </div>
 

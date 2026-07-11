@@ -318,6 +318,7 @@ Las 3 oraciones deben cubrir: (1) quién es y dónde trabaja hoy, (2) su evoluci
               style={{ backgroundColor: 'rgba(255,255,255,0.12)', minWidth: 76 }}>
               <span className="text-3xl font-black text-white leading-none">{scoreDisplay}</span>
               <span className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.55)' }}>/100 · {badge}</span>
+              <span className="text-[10px] mt-1 font-medium" style={{ color: 'rgba(255,255,255,0.35)' }}>Índice global</span>
             </div>
           </div>
 
@@ -394,7 +395,7 @@ Las 3 oraciones deben cubrir: (1) quién es y dónde trabaja hoy, (2) su evoluci
             </div>
           )}
           <p className="text-xs text-gray-400 mt-3 pt-3 border-t border-gray-100">
-            Datos validados por supervisores · {todasLasPersonas.length} empresa{todasLasPersonas.length !== 1 ? 's' : ''} registradas en TRAZA
+            Índice global de carrera · {todasLasPersonas.length} empresa{todasLasPersonas.length !== 1 ? 's' : ''} registradas en TRAZA
           </p>
         </div>
 

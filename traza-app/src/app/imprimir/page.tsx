@@ -340,10 +340,10 @@ export default function ImprimirPage() {
           <div style={{ display: 'flex', gap: 24, marginBottom: 28 }}>
             {/* Score grande */}
             <div style={{ flex: '0 0 130px' }}>
-              <SecHeader title="Score global" />
+              <SecHeader title="Índice global · carrera completa" />
               <div style={{ textAlign: 'center', background: GRAY50, borderRadius: 14, padding: '20px 10px', border: `1px solid ${GRAY100}` }}>
                 <p style={{ fontSize: 52, fontWeight: 900, color, lineHeight: 1 }}>{indice.score}</p>
-                <p style={{ fontSize: 12, color: GRAY500 }}>/100</p>
+                <p style={{ fontSize: 12, color: GRAY500 }}>/100 · carrera completa</p>
                 <div style={{ background: badge.bg, borderRadius: 20, padding: '3px 10px', display: 'inline-block', marginTop: 8 }}>
                   <span style={{ color: badge.color, fontWeight: 700, fontSize: 10 }}>{badge.label}</span>
                 </div>
