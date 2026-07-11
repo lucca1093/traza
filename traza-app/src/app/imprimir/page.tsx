@@ -90,11 +90,12 @@ export default function ImprimirPage() {
   const [error,      setError]      = useState('')
   const [narrativa,  setNarrativa]  = useState('')
   const [data, setData] = useState<{
-    persona:             any
-    objetivos:           Objetivo[]
-    avances:             any[]
+    persona:              any
+    objetivos:            Objetivo[]
+    avances:              any[]
     validacionesExternas: any[]
-    reconocimientos:     any[]
+    reconocimientos:      any[]
+    empresas:             Array<{ persona: any; objetivos: Objetivo[]; avances: any[] }>
   } | null>(null)
 
   useEffect(() => {
@@ -102,38 +103,51 @@ export default function ImprimirPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { setError('No autenticado'); setLoading(false); return }
 
-      const { data: persona } = await supabase
-        .from('personas').select('*')
-        .eq('user_id', user.id).eq('empleo_activo', true).single()
-      if (!persona) { setError('No se encontró el perfil.'); setLoading(false); return }
+      // Traemos TODAS las personas del usuario (todas las empresas)
+      const { data: todasPersonas } = await supabase
+        .from('personas').select('*').eq('user_id', user.id)
+      if (!todasPersonas || todasPersonas.length === 0) {
+        setError('No se encontró el perfil.'); setLoading(false); return
+      }
+      const persona = todasPersonas.find(p => p.empleo_activo !== false) ?? todasPersonas[0]
 
-      const [{ data: objRaw }, { data: valExtRaw }, { data: reconRaw }] = await Promise.all([
-        supabase.from('objetivos').select('*').eq('persona_id', persona.id).order('created_at', { ascending: false }),
+      // Combinamos objetivos y avances de todas las empresas para score global
+      let todosObjs: Objetivo[] = []
+      let todosAvances: any[]   = []
+      // También agrupamos por empresa para mostrar en el PDF
+      const empresas: Array<{ persona: any; objetivos: Objetivo[]; avances: any[] }> = []
+
+      for (const p of todasPersonas) {
+        const [{ data: objRaw }, { data: avRaw }] = await Promise.all([
+          supabase.from('objetivos').select('*').eq('persona_id', p.id).order('created_at', { ascending: false }),
+          supabase.from('objetivo_avances').select('*').eq('persona_id', p.id),
+        ])
+        const objs = (objRaw ?? []) as Objetivo[]
+        const avs  = avRaw ?? []
+        todosObjs    = [...todosObjs, ...objs]
+        todosAvances = [...todosAvances, ...avs]
+        empresas.push({ persona: p, objetivos: objs, avances: avs })
+      }
+
+      // Validaciones externas y reconocimientos de la persona activa
+      const [{ data: valExtRaw }, { data: reconRaw }] = await Promise.all([
         supabase.from('validaciones_externas').select('*').eq('persona_id', persona.id).order('created_at', { ascending: false }),
         supabase.from('reconocimientos').select('*').eq('persona_id', persona.id).order('created_at', { ascending: false }),
       ])
 
-      const objs = (objRaw ?? []) as Objetivo[]
-      let avances: any[] = []
-      if (objs.length > 0) {
-        const { data: av } = await supabase
-          .from('objetivo_avances').select('*')
-          .in('objetivo_id', objs.map(o => o.id))
-        avances = av ?? []
-      }
-
       setData({
         persona,
-        objetivos: objs,
-        avances,
+        objetivos: todosObjs,
+        avances: todosAvances,
         validacionesExternas: valExtRaw ?? [],
         reconocimientos: reconRaw ?? [],
+        empresas,
       })
       setLoading(false)
 
       // Generar narrativa IA en paralelo
-      if (objs.length > 0) {
-        const indice = calcularIndiceTraza(objs, avances, [], persona.supervisor_verificado ?? true)
+      if (todosObjs.length > 0) {
+        const indice = calcularIndiceTraza(todosObjs, todosAvances, [], persona.supervisor_verificado ?? true)
         try {
           const res = await fetch('/api/narrativa', {
             method: 'POST',
@@ -166,7 +180,7 @@ export default function ImprimirPage() {
     </div>
   )
 
-  const { persona, objetivos, avances, validacionesExternas, reconocimientos } = data
+  const { persona, objetivos, avances, validacionesExternas, reconocimientos, empresas } = data
   const supVerificado = persona.supervisor_verificado ?? true
   const indice  = calcularIndiceTraza(objetivos, avances, [], supVerificado)
   const color   = scoreColor(indice.score)
@@ -441,102 +455,103 @@ export default function ImprimirPage() {
             </div>
           )}
 
-          {/* Historial de objetivos */}
+          {/* Historial por empresa */}
           <div>
-            <SecHeader title={`Historial completo de objetivos (${objetivos.length})`} />
-            {objetivos.length === 0 ? (
-              <p style={{ fontSize: 12, color: GRAY500 }}>Sin objetivos registrados.</p>
-            ) : (
-              objetivos.map((o, idx) => {
-                const estadoColor: Record<string, string> = {
-                  'Completado': GREEN, 'En progreso': PRIMARY, 'Pendiente': GRAY500,
-                }
-                const valColor: Record<string, { bg: string; color: string }> = {
-                  'De acuerdo':               { bg: '#dcfce7', color: '#15803d' },
-                  'Parcialmente de acuerdo':  { bg: '#fef3c7', color: '#92400e' },
-                  'En desacuerdo':            { bg: '#fee2e2', color: '#b91c1c' },
-                }
-                const ec = estadoColor[o.estado as string] ?? GRAY500
-                const vc = o.validacion ? valColor[o.validacion] : null
-                const objAvances = avances.filter(a => a.objetivo_id === o.id)
+            <SecHeader title={`Trayectoria profesional verificada · ${objetivos.length} registro${objetivos.length !== 1 ? 's' : ''}`} />
 
-                return (
-                  <div key={o.id} className="no-break" style={{
-                    padding: '14px 0',
-                    borderBottom: idx < objetivos.length - 1 ? `1px solid ${GRAY100}` : 'none',
+            {empresas.length === 0 ? (
+              <p style={{ fontSize: 12, color: GRAY500 }}>Sin registros de objetivos.</p>
+            ) : empresas.map((emp, empIdx) => {
+              const p       = emp.persona
+              const empNombre = p.empresa_actual_nombre ?? 'Empresa'
+              const periodo = (() => {
+                const fmt = (f: string) => new Date(f).toLocaleDateString('es-AR', { month: 'short', year: 'numeric' })
+                if (!p.fecha_inicio_empleo) return ''
+                return p.fecha_fin_empleo
+                  ? `${fmt(p.fecha_inicio_empleo)} – ${fmt(p.fecha_fin_empleo)}`
+                  : `${fmt(p.fecha_inicio_empleo)} – Actualidad`
+              })()
+              const empIndice = calcularIndiceTraza(emp.objetivos, emp.avances)
+              const empColor  = scoreColor(empIndice.score)
+
+              return (
+                <div key={p.id} style={{ marginBottom: empIdx < empresas.length - 1 ? 28 : 0 }}>
+                  {/* Cabecera de empresa */}
+                  <div style={{
+                    background: GRAY50, borderRadius: 12, padding: '12px 16px',
+                    border: `1px solid ${GRAY100}`, marginBottom: 12,
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                   }}>
-                    {/* Fila principal */}
-                    <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-                      <span style={{
-                        width: 22, height: 22, borderRadius: 6, background: LIGHT, color: PRIMARY,
-                        fontSize: 10, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        flexShrink: 0, marginTop: 1,
-                      }}>{idx + 1}</span>
-                      <div style={{ flex: 1 }}>
-                        <p style={{ fontSize: 13, fontWeight: 700, color: GRAY900, lineHeight: 1.3, marginBottom: 5 }}>{o.titulo}</p>
-                        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', marginBottom: 4 }}>
-                          {/* Estado */}
-                          <span style={{
-                            fontSize: 9, fontWeight: 700, padding: '2px 8px', borderRadius: 20,
-                            background: ec + '18', color: ec,
-                          }}>{o.estado}</span>
-                          {/* Validación */}
-                          {vc && (
-                            <span style={{ fontSize: 9, fontWeight: 700, padding: '2px 8px', borderRadius: 20, background: vc.bg, color: vc.color }}>
-                              {o.validacion === 'De acuerdo' ? '✓ Validado' : o.validacion}
-                            </span>
-                          )}
-                          {/* Fecha */}
-                          {o.fecha_limite && (
-                            <span style={{ fontSize: 10, color: GRAY500 }}>{formatFecha(o.fecha_limite)}</span>
-                          )}
-                          {/* Avances count */}
-                          {objAvances.length > 0 && (
-                            <span style={{ fontSize: 10, color: GRAY500 }}>{objAvances.length} avance{objAvances.length !== 1 ? 's' : ''}</span>
-                          )}
-                        </div>
-                        {/* Autoevaluación + validaciones */}
-                        {((o as any).autoevaluacion || o.validacion || (o as any).validacion_admin) && (
-                          <div style={{ display: 'flex', gap: 14, marginBottom: 4, flexWrap: 'wrap' }}>
-                            {(o as any).autoevaluacion && (
-                              <span style={{ fontSize: 10, color: GRAY500 }}>Vos: <strong style={{ color: GRAY700 }}>{(o as any).autoevaluacion}</strong></span>
-                            )}
-                            {o.validacion && (
-                              <span style={{ fontSize: 10, color: GRAY500 }}>Supervisor: <strong style={{ color: GRAY700 }}>{o.validacion}</strong></span>
-                            )}
-                            {(o as any).validacion_admin && (
-                              <span style={{ fontSize: 10, color: GRAY500 }}>Admin: <strong style={{ color: GRAY700 }}>{(o as any).validacion_admin}</strong></span>
-                            )}
-                          </div>
-                        )}
-                        {/* Comentario supervisor */}
-                        {o.comentario_supervisor?.trim() && (
-                          <div style={{ marginTop: 6, paddingLeft: 10, borderLeft: `2px solid ${GRAY100}` }}>
-                            <p style={{ fontSize: 10, color: GRAY500, fontStyle: 'italic', lineHeight: 1.55 }}>
-                              Supervisor: "{o.comentario_supervisor}"
-                            </p>
-                          </div>
-                        )}
-                        {/* Comentario empleado */}
-                        {(o as any).comentario_empleado?.trim() && (
-                          <div style={{ marginTop: 4, paddingLeft: 10, borderLeft: `2px solid ${GRAY100}` }}>
-                            <p style={{ fontSize: 10, color: GRAY500, fontStyle: 'italic', lineHeight: 1.55 }}>
-                              Tu autoevaluación: "{(o as any).comentario_empleado}"
-                            </p>
-                          </div>
-                        )}
-                        {/* Evidencia URL */}
-                        {(o as any).evidencia_url && (
-                          <p style={{ fontSize: 10, color: PRIMARY, marginTop: 4 }}>
-                            Evidencia: {(o as any).evidencia_url}
-                          </p>
-                        )}
-                      </div>
+                    <div>
+                      <p style={{ fontSize: 13, fontWeight: 800, color: GRAY900 }}>{empNombre}</p>
+                      <p style={{ fontSize: 11, color: GRAY500 }}>
+                        {[p.cargo, p.area].filter(Boolean).join(' · ')}
+                        {periodo ? ` · ${periodo}` : ''}
+                      </p>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <p style={{ fontSize: 20, fontWeight: 900, color: empColor, lineHeight: 1 }}>{empIndice.score}</p>
+                      <p style={{ fontSize: 9, color: GRAY500 }}>score en esta empresa</p>
                     </div>
                   </div>
-                )
-              })
-            )}
+
+                  {/* Objetivos de esta empresa */}
+                  {emp.objetivos.length === 0 ? (
+                    <p style={{ fontSize: 11, color: GRAY500, paddingLeft: 8 }}>Sin objetivos registrados en este período.</p>
+                  ) : emp.objetivos.map((o, idx) => {
+                    const objAvances = emp.avances.filter(a => a.objetivo_id === o.id)
+
+                    // Texto legible del resultado
+                    const resultadoTexto = (() => {
+                      if (o.validacion === 'De acuerdo')              return { text: 'Validado positivamente por el supervisor', color: GREEN   }
+                      if (o.validacion === 'Parcialmente de acuerdo') return { text: 'Supervisor señaló áreas de mejora',          color: AMBER   }
+                      if (o.validacion === 'En desacuerdo')           return { text: 'Supervisor no acordó con el resultado',      color: RED     }
+                      if (o.estado === 'Completado')                  return { text: 'Completado · pendiente de validación',       color: GRAY500 }
+                      if ((o.estado as string) === 'En progreso' || (o.estado as string) === 'En curso')
+                                                                       return { text: 'En curso',                                  color: PRIMARY }
+                      return { text: 'Pendiente',                                                                                  color: GRAY300 }
+                    })()
+
+                    return (
+                      <div key={o.id} className="no-break" style={{
+                        paddingLeft: 16, paddingTop: 10, paddingBottom: 10,
+                        borderLeft: `2px solid ${idx % 2 === 0 ? LIGHT : GRAY100}`,
+                        marginLeft: 8, marginBottom: 2,
+                      }}>
+                        <p style={{ fontSize: 12, fontWeight: 700, color: GRAY900, lineHeight: 1.3, marginBottom: 3 }}>
+                          {o.titulo}
+                        </p>
+                        <p style={{ fontSize: 10, color: resultadoTexto.color, fontWeight: 600, marginBottom: o.comentario_supervisor?.trim() ? 5 : 0 }}>
+                          {resultadoTexto.text}
+                          {o.fecha_limite ? ` · ${formatFecha(o.fecha_limite)}` : ''}
+                          {objAvances.length > 0 ? ` · ${objAvances.length} avance${objAvances.length !== 1 ? 's' : ''} registrados` : ''}
+                        </p>
+
+                        {/* Comentario del supervisor — lo más valioso para un lector externo */}
+                        {o.comentario_supervisor?.trim() && (
+                          <p style={{ fontSize: 11, color: GRAY700, fontStyle: 'italic', lineHeight: 1.6, marginTop: 3 }}>
+                            "{o.comentario_supervisor}"
+                            <span style={{ fontSize: 10, color: GRAY500, fontStyle: 'normal' }}> — supervisor</span>
+                          </p>
+                        )}
+
+                        {/* Autoevaluación del profesional */}
+                        {(o as any).comentario_empleado?.trim() && (
+                          <p style={{ fontSize: 10, color: GRAY500, lineHeight: 1.5, marginTop: 2, fontStyle: 'italic' }}>
+                            Autoevaluación: "{(o as any).comentario_empleado}"
+                          </p>
+                        )}
+
+                        {/* Evidencia */}
+                        {(o as any).evidencia_url && (
+                          <p style={{ fontSize: 9, color: PRIMARY, marginTop: 2 }}>↗ {(o as any).evidencia_url}</p>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              )
+            })}
           </div>
 
           {/* Pie de página */}

@@ -100,12 +100,8 @@ export default async function CredencialTrazaPage({ params }: { params: { trazaI
     .select('*')
     .in('objetivo_id', objsActuales.length > 0 ? objsActuales.map(o => o.id) : ['00000000-0000-0000-0000-000000000000'])
 
-  const indiceActual = calcularIndiceTraza(objsActuales, avancesRaw ?? [], validacionesExternasParaScore ?? [])
-  const { score, badge, cumplimiento, total, completados, positivos, parciales, negativos, moduloA, moduloB, moduloC } = indiceActual
-
-  const scoreDisplay = score  // score principal: TRAZA v3
-
-  // Traer objetivos de empresas anteriores (agregados)
+  // ── Score global: combinamos TODOS los objetivos y avances de toda la trayectoria ──
+  // Esto garantiza que el score sea el mismo en credencial, dashboard y PDF.
   const historialEmpresas: Array<{
     personaId: string
     empresa: string
@@ -123,49 +119,64 @@ export default async function CredencialTrazaPage({ params }: { params: { trazaI
     score: number
   }> = []
 
-  let totalObjGlobal = 0
+  // Acumuladores globales (todos los objetivos y avances de toda la carrera)
+  let todosObjsGlobal: Objetivo[] = []
+  let todosAvancesGlobal: any[]   = []
+  let todasValExtGlobal: any[]    = validacionesExternasParaScore ?? []
+
   let completadosGlobal = 0
-  let positivosGlobal = 0
-  let parcialesGlobal = 0
-  let negativosGlobal = 0
+  let positivosGlobal   = 0
+  let parcialesGlobal   = 0
+  let negativosGlobal   = 0
 
   for (const p of todasLasPersonas) {
-    const { data: objs } = await supabase
-      .from('objetivos')
-      .select('*')
-      .eq('persona_id', p.id)
+    const [{ data: objs }, { data: avs }] = await Promise.all([
+      supabase.from('objetivos').select('*').eq('persona_id', p.id),
+      supabase.from('objetivo_avances').select('*').in(
+        'objetivo_id',
+        (await supabase.from('objetivos').select('id').eq('persona_id', p.id)).data?.map((o: any) => o.id) ?? ['00000000-0000-0000-0000-000000000000']
+      ),
+    ])
 
-    const listaObjs = (objs ?? []) as Objetivo[]
-    const indice = calcularIndiceTraza(listaObjs)
+    const listaObjs  = (objs ?? []) as Objetivo[]
+    const listaAvs   = avs ?? []
+    // Score por empresa (con sus propios avances)
+    const indice = calcularIndiceTraza(listaObjs, listaAvs)
 
-    totalObjGlobal += listaObjs.length
+    todosObjsGlobal   = [...todosObjsGlobal, ...listaObjs]
+    todosAvancesGlobal = [...todosAvancesGlobal, ...listaAvs]
+
     completadosGlobal += indice.completados
-    positivosGlobal += indice.positivos
-    parcialesGlobal += indice.parciales
-    negativosGlobal += indice.negativos
+    positivosGlobal   += indice.positivos
+    parcialesGlobal   += indice.parciales
+    negativosGlobal   += indice.negativos
 
     historialEmpresas.push({
-      personaId: p.id,
-      empresa: (p as any).empresa?.nombre ?? 'Empresa desconocida',
-      rubro: (p as any).empresa?.rubro ?? null,
-      cargo: p.cargo,
-      area: p.area,
-      inicio: p.fecha_inicio_empleo ?? null,
-      fin: p.fecha_fin_empleo ?? null,
-      activo: p.empleo_activo === true,
-      totalObj: listaObjs.length,
+      personaId:      p.id,
+      empresa:        (p as any).empresa?.nombre ?? 'Empresa desconocida',
+      rubro:          (p as any).empresa?.rubro ?? null,
+      cargo:          p.cargo,
+      area:           p.area,
+      inicio:         p.fecha_inicio_empleo ?? null,
+      fin:            p.fecha_fin_empleo ?? null,
+      activo:         p.empleo_activo === true,
+      totalObj:       listaObjs.length,
       completadosObj: indice.completados,
-      positivosObj: indice.positivos,
-      parcialesObj: indice.parciales,
-      negativosObj: indice.negativos,
-      score: indice.score,
+      positivosObj:   indice.positivos,
+      parcialesObj:   indice.parciales,
+      negativosObj:   indice.negativos,
+      score:          indice.score,
     })
   }
 
-  // Score global (promedio ponderado por cantidad de objetivos)
-  const scoreGlobal = totalObjGlobal > 0
-    ? Math.round(historialEmpresas.reduce((acc, h) => acc + h.score * h.totalObj, 0) / totalObjGlobal)
-    : score
+  // Índice global: una sola pasada con todos los datos de la carrera
+  const indiceGlobal = calcularIndiceTraza(todosObjsGlobal, todosAvancesGlobal, todasValExtGlobal)
+  const { score: scoreGlobal, badge, nivel: nivelGlobal, cumplimiento, total: totalObjGlobal,
+          completados, positivos, parciales, negativos, moduloA, moduloB, moduloC } = indiceGlobal
+
+  // Compatibilidad con el resto del código
+  const indiceActual = indiceGlobal
+  const scoreDisplay = scoreGlobal
 
   const empresasAnteriores = historialEmpresas.filter(h => !h.activo)
 

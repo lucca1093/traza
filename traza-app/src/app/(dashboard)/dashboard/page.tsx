@@ -56,22 +56,31 @@ export default async function DashboardPage() {
   // Usuario independiente — fallback a datos de personas
   if (!profileData || profileData.rol === 'individuo' || !profileData.empresa_id) {
     const nombre = profileData?.nombre ?? user!.email?.split('@')[0] ?? 'Profesional'
-    const { data: persona } = await supabase
+
+    // Traemos TODAS las filas de personas del usuario (no solo empleo activo)
+    // para calcular el score global de toda su carrera, igual que la credencial.
+    const { data: todasPersonas } = await supabase
       .from('personas').select('id, nombre, apellido, traza_id')
-      .eq('user_id', user!.id).eq('empleo_activo', true).maybeSingle()
+      .eq('user_id', user!.id)
+    const personaActiva = todasPersonas?.find(p => (p as any).empleo_activo !== false)
+                          ?? todasPersonas?.[0]
+                          ?? null
 
-    const { data: misObjetivos } = persona?.id
-      ? await supabase.from('objetivos').select('*').eq('persona_id', persona.id)
-      : { data: [] }
+    // Combinamos objetivos y avances de todas las empresas
+    let todosObjs: Objetivo[]  = []
+    let todosAvances: any[]    = []
+    for (const p of (todasPersonas ?? [])) {
+      const [{ data: o }, { data: a }] = await Promise.all([
+        supabase.from('objetivos').select('*').eq('persona_id', p.id),
+        supabase.from('objetivo_avances').select('persona_id, creado_en').eq('persona_id', p.id),
+      ])
+      todosObjs    = [...todosObjs, ...(o ?? []) as Objetivo[]]
+      todosAvances = [...todosAvances, ...(a ?? [])]
+    }
 
-    const { data: avances } = persona?.id
-      ? await supabase.from('objetivo_avances').select('persona_id, creado_en')
-          .eq('persona_id', persona.id).order('creado_en', { ascending: true })
-      : { data: [] }
-
-    const objs    = (misObjetivos ?? []) as Objetivo[]
-    const indice  = calcularIndiceTraza(objs, avances ?? [])
-    const sinDatos = objs.length === 0
+    const persona  = personaActiva
+    const indice   = calcularIndiceTraza(todosObjs, todosAvances)
+    const sinDatos = todosObjs.length === 0
 
     return (
       <div className="space-y-7">
