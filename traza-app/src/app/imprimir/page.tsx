@@ -122,28 +122,21 @@ function RadarChart({ data, size = 190 }: {
 }
 
 /* ─── Barra de módulo ────────────────────────────────────────────────── */
-function ModuleBar({ label, pct, val, color, desc, icon }: {
-  label: string; pct: string; val: number; color: string; desc: string; icon: string
+function ModuleBar({ label, pct, val, desc }: {
+  label: string; pct: string; val: number; desc: string
 }) {
   return (
-    <div style={{ marginBottom: 14 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 5 }}>
-        <div style={{ width: 28, height: 28, borderRadius: 8, background: `${color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-          <span style={{ fontSize: 13 }}>{icon}</span>
-        </div>
-        <div style={{ flex: 1 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-            <span style={{ fontSize: 11, fontWeight: 700, color: GRAY700 }}>
-              {label} <span style={{ fontSize: 10, fontWeight: 400, color: GRAY400 }}>{pct} del índice</span>
-            </span>
-            <span style={{ fontSize: 16, fontWeight: 900, color, letterSpacing: '-0.02em' }}>{val}</span>
-          </div>
-          <div style={{ height: 8, borderRadius: 4, background: GRAY100, overflow: 'hidden', marginTop: 4 }}>
-            <div style={{ height: '100%', borderRadius: 4, width: `${val}%`, background: `linear-gradient(90deg, ${color}90, ${color})` }} />
-          </div>
-          <p style={{ fontSize: 9, color: GRAY400, marginTop: 3 }}>{desc}</p>
-        </div>
+    <div style={{ marginBottom: 12 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 4 }}>
+        <span style={{ fontSize: 11, fontWeight: 700, color: GRAY700 }}>
+          {label} <span style={{ fontSize: 10, fontWeight: 400, color: GRAY400 }}>{pct} del índice</span>
+        </span>
+        <span style={{ fontSize: 16, fontWeight: 900, color: BRAND, letterSpacing: '-0.02em' }}>{val}</span>
       </div>
+      <div style={{ height: 7, borderRadius: 4, background: GRAY100, overflow: 'hidden' }}>
+        <div style={{ height: '100%', borderRadius: 4, width: `${val}%`, background: `linear-gradient(90deg, ${PRIMARY}80, ${BRAND})` }} />
+      </div>
+      <p style={{ fontSize: 9, color: GRAY400, marginTop: 3 }}>{desc}</p>
     </div>
   )
 }
@@ -456,12 +449,12 @@ export default function ImprimirPage() {
 
   // Competencias para radar
   const competencias = [
-    { label: 'Resultados',    value: indice.moduloA,   color: PRIMARY },
-    { label: 'Cumplimiento',  value: indice.moduloB,   color: GREEN   },
-    { label: 'Proactividad',  value: indice.moduloC,   color: PURPLE  },
-    { label: 'Alineación',    value: indice.alineacion,color: CYAN    },
-    { label: 'Evolución',     value: indice.evolucion, color: AMBER   },
-    { label: 'Confiabilidad', value: iConfiabilidad,   color: '#e11d48' },
+    { label: 'Resultados',    value: indice.moduloA,    color: BRAND   },
+    { label: 'Cumplimiento',  value: indice.moduloB,    color: BRAND   },
+    { label: 'Proactividad',  value: indice.moduloC,    color: BRAND   },
+    { label: 'Alineación',    value: indice.alineacion, color: BRAND   },
+    { label: 'Evolución',     value: indice.evolucion,  color: BRAND   },
+    { label: 'Confiabilidad', value: iConfiabilidad,    color: BRAND   },
   ]
 
   // Fortalezas detectadas por datos
@@ -484,15 +477,15 @@ export default function ImprimirPage() {
 
   // Módulos del índice
   const modulos = [
-    { label: 'Resultados validados', pct: '35%', val: indice.moduloA, color: PRIMARY, icon: '🎯',
+    { label: 'Resultados validados', pct: '35%', val: indice.moduloA,
       desc: 'Calificaciones de supervisores y manager ponderadas por nivel de confianza' },
-    { label: 'Cumplimiento',         pct: '25%', val: indice.moduloB, color: GREEN,   icon: '✅',
+    { label: 'Cumplimiento',         pct: '25%', val: indice.moduloB,
       desc: 'Porcentaje de objetivos con fecha vencida que fueron completados exitosamente' },
-    { label: 'Proactividad',         pct: '20%', val: indice.moduloC, color: PURPLE,  icon: '⚡',
+    { label: 'Proactividad',         pct: '20%', val: indice.moduloC,
       desc: 'Regularidad de avances registrados semana a semana en la plataforma' },
-    { label: 'Alineación',           pct: '10%', val: indice.alineacion, color: CYAN,  icon: '🔗',
+    { label: 'Alineación',           pct: '10%', val: indice.alineacion,
       desc: 'Coherencia entre autoevaluación del colaborador y validación del supervisor' },
-    { label: 'Evolución',            pct: '10%', val: indice.evolucion, color: AMBER,  icon: '📈',
+    { label: 'Evolución',            pct: '10%', val: indice.evolucion,
       desc: 'Tendencia del índice comparado con los últimos 90 días de actividad' },
   ]
 
@@ -705,12 +698,12 @@ export default function ImprimirPage() {
               {/* Métricas en grid 2×3 */}
               <div style={{ flex: 1, display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
                 {[
-                  { val: `${iCumplimiento}%`,     label: 'Tasa de cumplimiento',         color: col          },
-                  { val: completados.length,       label: 'Objetivos completados',         color: GREEN        },
-                  { val: validados.length,         label: 'Validados positivamente',       color: PRIMARY      },
-                  { val: `${iConfiabilidad}%`,    label: 'Confiabilidad del resultado',   color: CYAN         },
-                  { val: semanasActivas,           label: 'Semanas con actividad',         color: PURPLE       },
-                  { val: valConf.length + reconocimientos.length, label: 'Evidencia externa acumulada', color: AMBER },
+                  { val: `${iCumplimiento}%`,     label: 'Tasa de cumplimiento',         color: col   },
+                  { val: completados.length,       label: 'Objetivos completados',         color: BRAND },
+                  { val: validados.length,         label: 'Validados positivamente',       color: BRAND },
+                  { val: `${iConfiabilidad}%`,    label: 'Confiabilidad del resultado',   color: BRAND },
+                  { val: semanasActivas,           label: 'Semanas con actividad',         color: BRAND },
+                  { val: valConf.length + reconocimientos.length, label: 'Evidencia externa acumulada', color: BRAND },
                 ].map((m, i) => (
                   <div key={i} style={{ background: GRAY50, borderRadius: 10, padding: '12px',
                     border: `1px solid ${GRAY100}`, textAlign: 'center' }} className="nb">
@@ -737,7 +730,7 @@ export default function ImprimirPage() {
             {/* Fortalezas detectadas */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 20 }}>
               <div className="nb">
-                <p style={{ fontSize: 10, fontWeight: 700, color: GREEN, letterSpacing: '0.08em',
+                <p style={{ fontSize: 10, fontWeight: 700, color: BRAND, letterSpacing: '0.08em',
                   textTransform: 'uppercase', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 5 }}>
                   <span>▲</span> Fortalezas detectadas
                 </p>
@@ -749,7 +742,7 @@ export default function ImprimirPage() {
                 ))}
               </div>
               <div className="nb">
-                <p style={{ fontSize: 10, fontWeight: 700, color: AMBER, letterSpacing: '0.08em',
+                <p style={{ fontSize: 10, fontWeight: 700, color: GRAY600, letterSpacing: '0.08em',
                   textTransform: 'uppercase', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 5 }}>
                   <span>◆</span> Áreas de desarrollo
                 </p>
@@ -800,21 +793,6 @@ export default function ImprimirPage() {
             {/* Módulos detallados */}
             <div style={{ marginBottom: 28 }}>
               {modulos.map(m => <ModuleBar key={m.label} {...m} />)}
-            </div>
-
-            {/* Cómo se calcula el índice */}
-            <div style={{ background: LIGHT, borderRadius: 10, padding: '12px 16px',
-              marginBottom: 24, border: `1px solid ${PRIMARY}20` }} className="nb">
-              <p style={{ fontSize: 9, fontWeight: 700, color: PRIMARY, letterSpacing: '0.08em',
-                textTransform: 'uppercase', marginBottom: 5 }}>Fórmula del Índice TRAZA</p>
-              <p style={{ fontSize: 10, color: GRAY700, fontFamily: 'monospace', lineHeight: 1.6 }}>
-                Score = (Resultados × 0.35) + (Cumplimiento × 0.25) + (Proactividad × 0.20) + (Alineación × 0.10) + (Evolución × 0.10)
-              </p>
-              <p style={{ fontSize: 9, color: GRAY500, marginTop: 4 }}>
-                {supVerif
-                  ? '✓ Supervisor verificado — validaciones con peso 1.0x'
-                  : '⚡ Supervisor pendiente — validaciones con peso 0.5x hasta confirmar vínculo laboral'}
-              </p>
             </div>
 
             {/* Gráficos: heatmap + evolución trimestral */}
@@ -901,49 +879,49 @@ export default function ImprimirPage() {
                   value={iCumplimiento}
                   formula="completados / total × 100"
                   desc="Porcentaje de objetivos completados sobre el total asignado"
-                  color={GREEN}
+                  color={BRAND}
                 />
                 <IndexCard
                   label="Índice de Confiabilidad"
                   value={iConfiabilidad}
                   formula="validados+ / completados × 100"
                   desc="Calidad validada: aprobación positiva sobre lo finalizado"
-                  color={PRIMARY}
+                  color={BRAND}
                 />
                 <IndexCard
                   label="Índice de Consistencia"
                   value={iConsistencia}
                   formula="semanas activas / 52 × 100"
                   desc="Regularidad semanal de actividad registrada en plataforma"
-                  color={PURPLE}
+                  color={BRAND}
                 />
                 <IndexCard
                   label="Índice de Alineación"
                   value={iAlineacion}
                   formula="coherencia autoevaluación ↔ validación"
                   desc="Qué tan alineado está el colaborador con la perspectiva del manager"
-                  color={CYAN}
+                  color={BRAND}
                 />
                 <IndexCard
                   label="Índice de Mejora Continua"
                   value={iMejora}
                   formula="(1 − negativos / completados) × 100"
                   desc="Ausencia de resultados negativos sobre lo que fue completado"
-                  color={GREEN}
+                  color={BRAND}
                 />
                 <IndexCard
                   label="Índice de Compromiso"
                   value={iCompromiso}
                   formula="avances / (objetivos × 5) × 100"
                   desc="Nivel de documentación proactiva de actividad (normalizado)"
-                  color={AMBER}
+                  color={BRAND}
                 />
                 <IndexCard
                   label="Índice de Impacto"
                   value={Math.min(100, iImpacto)}
                   formula="(val+ × 2 + parciales × 0.5) / (comp × 2)"
                   desc="Calidad ponderada de resultados según su nivel de validación"
-                  color={RED}
+                  color={BRAND}
                 />
                 <IndexCard
                   label="Índice de Evolución"
