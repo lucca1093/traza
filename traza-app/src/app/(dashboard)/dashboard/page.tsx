@@ -517,10 +517,10 @@ export default async function DashboardPage() {
 
   function explicarDimension(key: 'A' | 'B' | 'C' | 'D' | 'E', val: number): string {
     if (key === 'A') {
-      if (objs.filter(o => o.validacion).length === 0) return 'Todavía no tenés objetivos validados por el supervisor'
-      if (val >= 80) return 'Tus objetivos tienen validaciones positivas del supervisor'
+      if (objs.filter(o => o.validacion).length === 0) return 'Todavía no tenés objetivos validados por el manager'
+      if (val >= 80) return 'Tus objetivos tienen validaciones positivas del manager'
       if (val >= 50) return 'Algunos objetivos tienen validaciones parciales o negativas'
-      return 'Varios objetivos tienen validaciones negativas del supervisor'
+      return 'Varios objetivos tienen validaciones negativas del manager'
     }
     if (key === 'B') {
       const hoy = new Date()
@@ -544,9 +544,9 @@ export default async function DashboardPage() {
     }
     if (key === 'D') {
       if (objs.filter(o => o.validacion && (o as any).autoevaluacion).length === 0) return 'Sin suficientes datos para medir alineación'
-      if (val >= 80) return 'Tu autoevaluación coincide con la validación del supervisor'
-      if (val >= 50) return 'Hay algunas diferencias entre tu autoevaluación y la del supervisor'
-      return 'Hay discrepancias importantes entre tu autoevaluación y la del supervisor'
+      if (val >= 80) return 'Tu autoevaluación coincide con la validación del manager'
+      if (val >= 50) return 'Hay algunas diferencias entre tu autoevaluación y la del manager'
+      return 'Hay discrepancias importantes entre tu autoevaluación y la del manager'
     }
     if (val >= 80) return 'Tu desempeño mejoró respecto al período anterior'
     if (val >= 55) return 'Tu desempeño se mantuvo estable'
@@ -771,10 +771,10 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        {/* Feedback del supervisor */}
+        {/* Feedback del manager */}
         <div className="traza-card overflow-hidden">
           <CardHeader
-            title="Feedback del supervisor"
+            title="Feedback del manager"
             sub="Últimas validaciones de tus objetivos"
           />
           <div className="p-6">

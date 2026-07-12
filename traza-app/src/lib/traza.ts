@@ -602,13 +602,13 @@ export function generarPerfilNarrativo(input: PerfilNarrativoInput): string {
 import type { UserRole, NavItem } from '@/types'
 
 export const NAV_ITEMS: NavItem[] = [
-  { label: 'Inicio',               href: '/dashboard',       icon: 'LayoutDashboard', roles: ['super_admin', 'admin', 'supervisor', 'empleado', 'individuo'] },
+  { label: 'Dashboard',            href: '/dashboard',       icon: 'LayoutDashboard', roles: ['super_admin', 'admin', 'supervisor', 'empleado', 'individuo'] },
   { label: 'Mi Semana',            href: '/mi-semana',       icon: 'CalendarDays',    roles: ['super_admin', 'admin', 'supervisor', 'empleado', 'individuo'] },
   { label: 'Empresas',             href: '/empresas',        icon: 'Building2',       roles: ['super_admin', 'admin'] },
   { label: 'Personas',             href: '/personas',        icon: 'Users',           roles: ['super_admin', 'admin'] },
   { label: 'Mi Trabajo',           href: '/mi-trabajo',      icon: 'Target',          roles: ['super_admin', 'admin', 'supervisor', 'empleado', 'individuo'] },
   { label: 'Mi Equipo',            href: '/equipo',          icon: 'UsersRound',      roles: ['super_admin', 'admin', 'supervisor'] },
-  { label: 'Gestión de Objetivos', href: '/objetivos',       icon: 'ClipboardList',   roles: ['super_admin', 'admin', 'supervisor'] },
+  { label: 'Objetivos del equipo', href: '/objetivos',       icon: 'ClipboardList',   roles: ['super_admin', 'admin', 'supervisor'] },
   { label: 'Validación',           href: '/validacion',      icon: 'CheckSquare',     roles: ['super_admin', 'admin', 'supervisor'] },
   { label: 'Analytics',            href: '/analytics',       icon: 'BarChart2',       roles: ['super_admin', 'admin', 'supervisor'] },
   { label: 'Buscar Talento',       href: '/buscar-talento',  icon: 'Search',          roles: ['super_admin', 'admin', 'supervisor'] },

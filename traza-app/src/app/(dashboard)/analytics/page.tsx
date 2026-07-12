@@ -443,7 +443,7 @@ export default function AnalyticsPage() {
               <p>Cada persona se ordena por su <span className="font-medium text-gray-800">Score Dual</span>, que combina dos fuentes independientes de medición.</p>
               <div>
                 <p className="font-medium text-gray-800">Validado — 60%</p>
-                <p>Índice TRAZA clásico. Surge de los objetivos evaluados por supervisores: cumplimiento, calidad de validación y consistencia con el resto del equipo.</p>
+                <p>Índice TRAZA clásico. Surge de los objetivos evaluados por managers: cumplimiento, calidad de validación y consistencia con el resto del equipo.</p>
               </div>
               <div>
                 <p className="font-medium text-gray-800">Autónomo — 40%</p>
@@ -451,7 +451,7 @@ export default function AnalyticsPage() {
               </div>
               <div>
                 <p className="font-medium text-gray-800">Posible sesgo</p>
-                <p>Se marca cuando el índice autónomo supera al validado por más de 20 puntos, lo que puede indicar una evaluación por debajo del desempeño real.</p>
+                <p>Se marca cuando el índice autónomo supera al validado por más de 20 puntos, lo que puede indicar que el manager está evaluando por debajo del desempeño real.</p>
               </div>
             </InfoBtn>
           </div>
@@ -564,7 +564,7 @@ export default function AnalyticsPage() {
               {/* Card evaluaciones de supervisor */}
               {pctExcBueno !== null && (
                 <div className="rounded-xl p-4 border" style={{ backgroundColor: '#f0f9ff', borderColor: '#bae6fd' }}>
-                  <p className="font-semibold text-sm mb-1" style={{ color: '#0369a1' }}>Evaluación del supervisor</p>
+                  <p className="font-semibold text-sm mb-1" style={{ color: '#0369a1' }}>Evaluación del manager</p>
                   <p className="text-sm text-gray-600 leading-relaxed mb-3">
                     El equipo evaluó a la conducción este mes. <strong>{pctExcBueno}%</strong> de las respuestas fueron positivas ({totalEvals} evaluación{totalEvals !== 1 ? 'es' : ''} recibida{totalEvals !== 1 ? 's' : ''}).
                   </p>

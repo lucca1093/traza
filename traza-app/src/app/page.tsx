@@ -222,7 +222,7 @@ function Hero() {
           </h1>
 
           <p className="fu2" style={{ fontSize: 'clamp(15px,1.7vw,18px)', color: 'rgba(255,255,255,0.72)', lineHeight: 1.72, marginBottom: 38, maxWidth: 520 }}>
-            TRAZA centraliza OKRs, feedback estructurado, validaciones supervisadas y análisis con IA en una sola plataforma. Equipos de alto rendimiento, decisiones basadas en evidencia.
+            TRAZA centraliza objetivos verificados, feedback estructurado, validaciones supervisadas por managers y análisis con IA en una sola plataforma. Equipos de alto rendimiento, decisiones basadas en evidencia.
           </p>
 
           <div className="fu3" style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center', marginBottom: 36 }}>
@@ -363,36 +363,36 @@ function Problem() {
 ══════════════════════════════════════════════════ */
 const FEATURES_DATA = [
   {
-    tab: 'OKRs y Objetivos',
+    tab: 'Mi Trabajo',
     icon: <Target size={16} />,
-    title: 'De la estrategia al objetivo individual en minutos.',
-    desc: 'Definí OKRs a nivel empresa, equipo e individuo. Conectá cada objetivo a resultados de negocio reales. Asigná responsables, fechas y KPIs desde el primer día.',
+    title: 'Gestioná tus objetivos con evidencia real.',
+    desc: 'Registrá objetivos individuales, grupales y compartidos. Adjuntá avances con evidencia concreta: archivos, URLs y notas. Cada meta queda documentada y verificable.',
     bullets: [
-      'OKRs conectados a la estrategia organizacional',
       'Objetivos individuales, grupales y de equipo',
-      'KPIs configurables con umbrales de alerta',
-      'Evidencia adjunta: archivos, URLs y notas',
+      'Registro de avances con evidencia adjunta',
+      'Categorías: Resultado, Eficiencia, Aprendizaje, Hábito',
+      'Colaboración con compañeros y clientes externos',
     ],
     color: PRIMARY,
   },
   {
-    tab: 'Seguimiento',
-    icon: <Activity size={16} />,
-    title: 'Seguimiento continuo, sin fricciones.',
-    desc: 'El equipo registra avances periódicos con contexto real. Los managers tienen visibilidad en tiempo real sin necesidad de reuniones innecesarias.',
+    tab: 'Mi Semana',
+    icon: <Calendar size={16} />,
+    title: 'Seguimiento semanal sin fricción.',
+    desc: 'Registrá tu cierre de semana con contexto real. Indicá en qué avanzaste, qué obstáculos encontraste y qué necesitás. El manager ve el resumen sin reuniones innecesarias.',
     bullets: [
-      'Avances periódicos con descripción y evidencia',
-      'Alertas automáticas de objetivos en riesgo',
-      'Cronología completa de cada objetivo',
-      'Notificaciones inteligentes por email y Slack',
+      'Cierre semanal estructurado con 3 preguntas clave',
+      'Racha de actividad para mantener el ritmo',
+      'Evaluación del manager al cierre de cada período',
+      'Historial de semanas para identificar tendencias',
     ],
     color: '#7c3aed',
   },
   {
-    tab: 'Feedback y Validaciones',
+    tab: 'Validación',
     icon: <CheckSquare size={16} />,
-    title: 'Feedback estructurado. Validaciones verificadas.',
-    desc: 'El feedback deja de ser informal. Supervisores validan logros con firma de email. El historial queda en el perfil del empleado, portable y verificable.',
+    title: 'Feedback verificado. Validaciones con firma.',
+    desc: 'El feedback deja de ser informal. Los managers validan logros con verificación por email. El historial queda en el perfil del empleado, portable y verificable.',
     bullets: [
       'Validaciones confirmadas por email (anti-fraude)',
       'Feedback estructurado con contexto y evidencia',
@@ -402,20 +402,20 @@ const FEATURES_DATA = [
     color: '#059669',
   },
   {
-    tab: 'Dashboard e Informes',
+    tab: 'Analytics',
     icon: <BarChart3 size={16} />,
-    title: 'Información ejecutiva en tiempo real.',
-    desc: 'Dashboard con visión 360° del equipo. Reportes automáticos por período, área y persona. Exportación instantánea para comités de dirección.',
+    title: 'Visión ejecutiva del equipo en tiempo real.',
+    desc: 'Dashboard con el Índice organizacional, ranking por persona y señales automáticas del equipo. Reportes por período, área y persona. Exportación instantánea.',
     bullets: [
-      'Dashboard en tiempo real por equipo y persona',
-      'Reportes automáticos por período de evaluación',
-      'Análisis de distribución del desempeño',
+      'Índice organizacional consolidado',
+      'Ranking de desempeño con 5 dimensiones',
+      'Señales automáticas: riesgo, tendencias, alineación',
       'Exportación a PDF y Excel en un clic',
     ],
     color: '#0891b2',
   },
   {
-    tab: 'Inteligencia Artificial',
+    tab: 'IA · Insights',
     icon: <Brain size={16} />,
     title: 'IA que convierte datos en decisiones.',
     desc: 'TRAZA analiza patrones de desempeño con IA y genera insights accionables para managers: alertas de riesgo, recomendaciones de desarrollo y briefings automáticos.',
@@ -515,9 +515,9 @@ function Features() {
 function HowItWorks() {
   const { ref, visible } = useVisible()
   const steps = [
-    { n:'01', icon:<Target size={22} color={PRIMARY}/>, title:'Alineás objetivos a la estrategia', desc:'Creá OKRs a nivel empresa, equipo e individuo. Cada colaborador entiende cómo su trabajo contribuye al resultado del negocio.' },
+    { n:'01', icon:<Target size={22} color={PRIMARY}/>, title:'Alineás objetivos a la estrategia', desc:'Definí objetivos a nivel empresa, equipo e individuo. Cada colaborador entiende cómo su trabajo contribuye al resultado del negocio.' },
     { n:'02', icon:<Activity size={22} color={PRIMARY}/>, title:'El equipo registra avances con evidencia', desc:'Avances periódicos, archivos y contexto real. No hay que confiar en la memoria — queda documentado en el historial.' },
-    { n:'03', icon:<Shield size={22} color={PRIMARY}/>, title:'Los supervisores validan y dan feedback', desc:'Validaciones confirmadas por email. Feedback estructurado y trazable. Reconocimientos que quedan en el perfil.' },
+    { n:'03', icon:<Shield size={22} color={PRIMARY}/>, title:'Los managers validan y dan feedback', desc:'Validaciones confirmadas por email. Feedback estructurado y trazable. Reconocimientos que quedan en el perfil.' },
     { n:'04', icon:<Brain size={22} color={PRIMARY}/>, title:'TRAZA genera insights con IA', desc:'Análisis automáticos, alertas de riesgo, recomendaciones de desarrollo y reportes ejecutivos en segundos.' },
   ]
   return (
@@ -641,9 +641,9 @@ function Testimonials() {
 function Comparison() {
   const { ref, visible } = useVisible()
   const rows = [
-    'Gestión de OKRs y objetivos estructurados',
-    'Seguimiento continuo con evidencia',
-    'Validaciones verificadas por supervisores',
+    'Gestión de objetivos estructurados con evidencia',
+    'Seguimiento continuo sin fricción',
+    'Validaciones verificadas por managers',
     'Feedback estructurado y trazable',
     'Dashboard en tiempo real',
     'Análisis con Inteligencia Artificial',
@@ -709,7 +709,7 @@ const PLANS = [
       'Hasta 10 objetivos activos',
       'Credencial pública verificada (Índice TRAZA)',
       'Score individual basado en evidencia',
-      'Validaciones de supervisor externo',
+      'Validaciones de manager o cliente externo',
       'Historial portátil de carrera',
       'Soporte por email',
     ],
@@ -718,21 +718,21 @@ const PLANS = [
   {
     name: 'Pro',
     desc: 'Para equipos y PyMEs que quieren gestionar el desempeño con datos reales.',
-    monthly: 29, annual: 19,
+    monthly: 12, annual: 9,
     highlight: true,
     badge: 'Más popular',
     cta: 'Solicitar demo',
     ctaHref: '/registro/empresa',
     features: [
       'Hasta 100 usuarios',
-      'Objetivos y OKRs ilimitados',
+      'Objetivos ilimitados',
       'Dashboard de equipo en tiempo real',
-      'Validaciones supervisadas con email',
+      'Validaciones de manager con email',
       'Feedback estructurado y trazable',
       'Reuniones 1:1 con registro de acuerdos',
       'Análisis IA (30 créditos/mes)',
       'Reportes automáticos y exportación',
-      'Notificaciones por email y Slack',
+      'Notificaciones por email',
       'Soporte prioritario en español',
     ],
     noFeatures: [],
@@ -753,7 +753,7 @@ const PLANS = [
       'Roles y permisos granulares',
       'Períodos de evaluación personalizados',
       'Auditoría y logs completos',
-      'SLA garantizado 99.9%',
+      '99.9% de uptime garantizado',
       'Manager de cuenta dedicado',
       'Implementación guiada + capacitación',
     ],
@@ -786,7 +786,7 @@ function Pricing() {
             <button onClick={() => setAnnual(false)} style={{ padding: '7px 18px', borderRadius: 99, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 600, background: !annual ? 'white' : 'transparent', color: !annual ? '#0F172A' : '#94A3B8', boxShadow: !annual ? '0 1px 4px rgba(0,0,0,0.1)' : 'none', transition: 'all 0.2s' }}>Mensual</button>
             <button onClick={() => setAnnual(true)} style={{ padding: '7px 18px', borderRadius: 99, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 600, background: annual ? 'white' : 'transparent', color: annual ? '#0F172A' : '#94A3B8', boxShadow: annual ? '0 1px 4px rgba(0,0,0,0.1)' : 'none', transition: 'all 0.2s', display: 'flex', alignItems: 'center', gap: 6 }}>
               Anual
-              {annual && <span style={{ fontSize: 10, fontWeight: 700, color: '#16a34a', background: '#dcfce7', padding: '2px 8px', borderRadius: 99 }}>-35%</span>}
+              {annual && <span style={{ fontSize: 10, fontWeight: 700, color: '#16a34a', background: '#dcfce7', padding: '2px 8px', borderRadius: 99 }}>-25%</span>}
             </button>
           </div>
         </div>
@@ -850,83 +850,6 @@ function Pricing() {
 }
 
 /* ══════════════════════════════════════════════════
-   ROI CALCULATOR
-══════════════════════════════════════════════════ */
-function ROICalculator() {
-  const { ref, visible } = useVisible()
-  const [employees, setEmployees] = useState(50)
-  const [salary, setSalary]       = useState(1200)
-  const [hours, setHours]         = useState(8)
-
-  const hourlyCost  = salary / 160
-  const annualWaste = employees * hourlyCost * hours * 12
-  const savings     = Math.round(annualWaste * 0.7)
-  const trazaCost   = employees * 19 * 12
-  const netROI      = savings - trazaCost
-  const roiPct      = trazaCost > 0 ? Math.round((netROI / trazaCost) * 100) : 0
-
-  const fmt = (n: number) => new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n)
-
-  return (
-    <section style={{ padding: '100px 24px', background: '#F8FAFC' }} ref={ref}>
-      <div style={{ maxWidth: 960, margin: '0 auto' }}>
-        <div style={{ textAlign: 'center', marginBottom: 56, opacity: visible?1:0, transform: visible?'none':'translateY(24px)', transition: 'all 0.6s ease' }}>
-          <p style={{ fontSize: 12, fontWeight: 700, color: PRIMARY, letterSpacing: '0.09em', marginBottom: 14 }}>CALCULADORA DE ROI</p>
-          <h2 style={{ fontFamily: D, fontSize: 'clamp(28px,4vw,46px)', fontWeight: 900, color: '#0F172A', letterSpacing: '-0.025em', lineHeight: 1.1, marginBottom: 16 }}>¿Cuánto te cuesta no usar TRAZA?</h2>
-          <p style={{ fontSize: 16, color: '#64748B', lineHeight: 1.7 }}>Calculá el costo real de los procesos manuales de gestión del desempeño en tu empresa.</p>
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 40, background: 'white', borderRadius: 24, border: '1px solid #E2E8F0', padding: 40, opacity: visible?1:0, transform: visible?'none':'translateY(24px)', transition: 'all 0.6s 0.15s ease' }}>
-          {/* Inputs */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
-            <h3 style={{ fontFamily: D, fontSize: 18, fontWeight: 800, color: '#0F172A', marginBottom: -8 }}>Datos de tu empresa</h3>
-            {[
-              { label: 'Cantidad de empleados', value: employees, setter: setEmployees, min: 5, max: 1000, step: 5, unit: 'empleados' },
-              { label: 'Salario promedio mensual', value: salary, setter: setSalary, min: 500, max: 10000, step: 100, unit: 'USD/mes' },
-              { label: 'Horas mensuales en procesos manuales de RRHH', value: hours, setter: setHours, min: 1, max: 40, step: 1, unit: 'hs/empleado/mes' },
-            ].map((input, i) => (
-              <div key={i}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-                  <label style={{ fontSize: 13.5, fontWeight: 600, color: '#374151' }}>{input.label}</label>
-                  <span style={{ fontSize: 13.5, fontWeight: 800, color: PRIMARY }}>{input.value} <span style={{ fontWeight: 500, color: '#94A3B8', fontSize: 12 }}>{input.unit}</span></span>
-                </div>
-                <input type="range" min={input.min} max={input.max} step={input.step} value={input.value} onChange={e => input.setter(Number(e.target.value))}
-                  style={{ width: '100%', accentColor: PRIMARY, cursor: 'pointer' }} />
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
-                  <span style={{ fontSize: 11, color: '#CBD5E1' }}>{input.min}</span>
-                  <span style={{ fontSize: 11, color: '#CBD5E1' }}>{input.max}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Results */}
-          <div style={{ background: `linear-gradient(135deg,#F0F3FF,#EEF2FF)`, borderRadius: 16, padding: 28, display: 'flex', flexDirection: 'column', gap: 20 }}>
-            <h3 style={{ fontFamily: D, fontSize: 18, fontWeight: 800, color: '#0F172A' }}>Tu ROI estimado</h3>
-            {[
-              { label: 'Costo anual de procesos manuales', val: fmt(annualWaste), color: '#dc2626', sub: 'tiempo perdido en gestión manual' },
-              { label: 'Ahorro estimado con TRAZA', val: fmt(savings), color: '#16a34a', sub: 'recuperando el 70% del tiempo' },
-              { label: 'Costo de TRAZA Pro (anual)', val: fmt(trazaCost), color: '#64748B', sub: `${employees} usuarios × $19/mes × 12` },
-            ].map((r, i) => (
-              <div key={i} style={{ background: 'white', borderRadius: 12, padding: '14px 16px', border: '1px solid #E8ECFD' }}>
-                <div style={{ fontSize: 12, color: '#94A3B8', marginBottom: 4 }}>{r.label}</div>
-                <div style={{ fontFamily: D, fontSize: 24, fontWeight: 900, color: r.color }}>{r.val}</div>
-                <div style={{ fontSize: 11, color: '#CBD5E1', marginTop: 2 }}>{r.sub}</div>
-              </div>
-            ))}
-            <div style={{ background: `linear-gradient(135deg,${BRAND},${PRIMARY})`, borderRadius: 14, padding: '20px 22px' }}>
-              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)', marginBottom: 6 }}>Beneficio neto anual estimado</div>
-              <div style={{ fontFamily: D, fontSize: 34, fontWeight: 900, color: 'white' }}>{fmt(netROI)}</div>
-              <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.8)', marginTop: 4 }}>ROI: {roiPct}% en el primer año</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  )
-}
-
-/* ══════════════════════════════════════════════════
    SECURITY
 ══════════════════════════════════════════════════ */
 function Security() {
@@ -935,7 +858,7 @@ function Security() {
     { icon:<Lock size={18}/>, title:'Encriptación end-to-end', desc:'AES-256 en reposo, TLS 1.3 en tránsito. Tus datos nunca viajan ni se almacenan sin cifrado.' },
     { icon:<Shield size={18}/>, title:'Backups automáticos', desc:'Backups diarios automatizados con retención de 90 días. Recuperación garantizada en menos de 4 horas.' },
     { icon:<Users size={18}/>, title:'Roles y permisos granulares', desc:'Control total sobre quién ve qué. Roles personalizables por empresa, área y nivel jerárquico.' },
-    { icon:<Database size={18}/>, title:'Infraestructura cloud premium', desc:'Alojado en AWS con redundancia multi-AZ. 99.9% de uptime garantizado por SLA.' },
+    { icon:<Database size={18}/>, title:'Infraestructura cloud premium', desc:'Alojado en AWS con redundancia multi-AZ. 99.9% de uptime garantizado.' },
     { icon:<UserCheck size={18}/>, title:'Autenticación 2FA', desc:'Autenticación de dos factores disponible para todos los usuarios. SSO/SAML para Enterprise.' },
     { icon:<FileText size={18}/>, title:'Logs de auditoría completos', desc:'Registro completo de todas las acciones realizadas en la plataforma. Cumplimiento GDPR.' },
   ]
@@ -952,7 +875,7 @@ function Security() {
               TRAZA fue construido con seguridad como principio, no como afterthought. Cumplimiento GDPR, encriptación end-to-end y auditorías completas incluidas en todos los planes.
             </p>
             <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-              {['GDPR Compliant','SOC 2','99.9% SLA','AWS Hosted'].map(b => (
+              {['GDPR Compliant','SOC 2','99.9% uptime','AWS Hosted'].map(b => (
                 <div key={b} style={{ display: 'flex', alignItems: 'center', gap: 7, background: '#F0F3FF', border: '1px solid #BBC5F7', borderRadius: 20, padding: '6px 14px' }}>
                   <Shield size={11} color={PRIMARY} />
                   <span style={{ fontSize: 12, fontWeight: 700, color: PRIMARY }}>{b}</span>
@@ -981,7 +904,6 @@ function Security() {
 function Integrations() {
   const { ref, visible } = useVisible()
   const apps = [
-    { name:'Slack',             color:'#4A154B' },
     { name:'Microsoft Teams',   color:'#6264A7' },
     { name:'Google Workspace',  color:'#4285F4' },
     { name:'Microsoft 365',     color:'#D83B01' },
@@ -1027,7 +949,7 @@ function Integrations() {
    FAQ (20 preguntas)
 ══════════════════════════════════════════════════ */
 const FAQ_ITEMS = [
-  { q:'¿Qué es TRAZA y en qué se diferencia de otras plataformas de performance management?', a:'TRAZA es una plataforma de gestión del desempeño basada en evidencia objetiva y verificada. A diferencia de otras soluciones, TRAZA combina gestión de OKRs, validaciones verificadas por supervisores, historial portátil del profesional e IA nativa en una sola plataforma. El diferencial clave: el historial de desempeño pertenece al empleado, no solo a la empresa.' },
+  { q:'¿Qué es TRAZA y en qué se diferencia de otras plataformas de performance management?', a:'TRAZA es una plataforma de gestión del desempeño basada en evidencia objetiva y verificada. A diferencia de otras soluciones, TRAZA combina gestión de objetivos, validaciones verificadas por managers, historial portátil del profesional e IA nativa en una sola plataforma. El diferencial clave: el historial de desempeño pertenece al empleado, no solo a la empresa.' },
   { q:'¿Cuánto tiempo lleva implementar TRAZA en mi empresa?', a:'La configuración inicial tarda menos de 30 minutos. La adopción del equipo, en promedio, se logra en menos de una semana. No necesitás consultoras externas ni meses de implementación.' },
   { q:'¿Necesito cambiar mis procesos actuales?', a:'No necesariamente. TRAZA se adapta a tu metodología actual, ya sea OKRs, MBOs o evaluaciones por competencias. Podés empezar de a poco e incorporar funcionalidades progresivamente.' },
   { q:'¿TRAZA funciona para empresas de cualquier tamaño?', a:'Sí. Tenemos clientes desde 5 hasta más de 500 empleados. El plan Pro escala hasta 100 usuarios, y el plan Enterprise no tiene límite.' },
@@ -1036,15 +958,15 @@ const FAQ_ITEMS = [
   { q:'¿Qué pasa con los datos de mis empleados si me doy de baja?', a:'Los datos son tuyos. Al darte de baja podés exportar toda la información en formatos estándar (JSON, CSV, PDF). No retenemos datos personales después de la cancelación y cumplimos con GDPR.' },
   { q:'¿TRAZA cumple con las leyes de protección de datos?', a:'Sí. TRAZA cumple con GDPR (Europa), PDPA y las regulaciones locales de protección de datos. Todos los datos se procesan y almacenan con los más altos estándares de seguridad.' },
   { q:'¿Puedo probar TRAZA antes de contratar?', a:'Sí. El plan Starter es gratuito para siempre. Para el plan Pro, ofrecemos una prueba de 14 días sin tarjeta de crédito. Para Enterprise, coordinaremos una demo personalizada.' },
-  { q:'¿Cómo funciona la validación de supervisores?', a:'Cuando querés validar un objetivo, enviás un link por email al supervisor o cliente. Esa persona accede a una página pública, revisa el trabajo y lo valida (o rechaza) con su firma digital. La validación queda registrada con timestamp y verificación de email para evitar fraudes.' },
-  { q:'¿Qué incluye el plan gratuito exactamente?', a:'El plan Starter incluye 1 usuario, hasta 10 objetivos activos, credencial pública con Índice TRAZA, validaciones de supervisores externos e historial portátil de carrera. Es gratuito para siempre.' },
+  { q:'¿Cómo funciona la validación de managers?', a:'Cuando querés validar un objetivo, enviás un link por email al manager o cliente. Esa persona accede a una página pública, revisa el trabajo y lo valida (o rechaza) con su firma digital. La validación queda registrada con timestamp y verificación de email para evitar fraudes.' },
+  { q:'¿Qué incluye el plan gratuito exactamente?', a:'El plan Starter incluye 1 usuario, hasta 10 objetivos activos, credencial pública con Índice TRAZA, validaciones de managers o clientes externos e historial portátil de carrera. Es gratuito para siempre.' },
   { q:'¿Puedo cambiar de plan en cualquier momento?', a:'Sí. Podés subir o bajar de plan cuando quieras desde la configuración de tu cuenta. Los cambios de upgrade se aplican inmediatamente y los de downgrade al inicio del siguiente período.' },
   { q:'¿Qué tipo de soporte ofrecen?', a:'El plan Starter tiene soporte por email (72hs). El plan Pro incluye soporte prioritario en español con respuesta en menos de 24hs por email y chat. Enterprise tiene un manager de cuenta dedicado y soporte telefónico.' },
-  { q:'¿TRAZA se integra con nuestros sistemas actuales?', a:'Sí. TRAZA se integra con Slack, Microsoft Teams, Google Workspace, Outlook, Zapier y tiene una API REST completa para integraciones personalizadas. Los planes Enterprise incluyen webhooks avanzados.' },
-  { q:'¿Cómo se mide el ROI de TRAZA?', a:'El ROI típico incluye: reducción del tiempo administrativo en gestión del desempeño (70% promedio), reducción de rotación no deseada, mejora en tiempo de detección de problemas de desempeño, y aumento en la productividad de equipos con objetivos claros.' },
+  { q:'¿TRAZA se integra con nuestros sistemas actuales?', a:'Sí. TRAZA se integra con Microsoft Teams, Google Workspace, Outlook, Zapier y tiene una API REST completa para integraciones personalizadas. Los planes Enterprise incluyen webhooks avanzados.' },
+  { q:'¿Qué resultados ven las empresas al usar TRAZA?', a:'Las empresas reportan mayor claridad en los objetivos individuales, reducción del tiempo administrativo en gestión del desempeño, mejora en la detección temprana de problemas y decisiones de talento más objetivas. Los equipos adoptan rápido porque la herramienta les sirve a ellos también.' },
   { q:'¿Qué análisis realiza la IA de TRAZA?', a:'La IA de TRAZA genera: análisis narrativos de desempeño individual, alertas predictivas de riesgo de desvinculación, recomendaciones de desarrollo personalizadas, briefings semanales automáticos para managers, análisis de distribución del equipo y detección de sesgos en evaluaciones.' },
   { q:'¿Puedo personalizar los reportes?', a:'Sí. Los reportes son completamente personalizables en el plan Pro y Enterprise: elegís período, personas, métricas, y el formato de exportación (PDF o Excel). Los reportes IA se generan con un clic.' },
-  { q:'¿Cómo manejo roles y permisos dentro de TRAZA?', a:'TRAZA tiene un sistema de roles granular: Profesional, Supervisor, Manager, Admin RRHH, Super Admin y roles personalizados (Enterprise). Cada rol tiene acceso a diferentes vistas y acciones. Podés combinarlos según tu estructura organizacional.' },
+  { q:'¿Cómo manejo roles y permisos dentro de TRAZA?', a:'TRAZA tiene un sistema de roles granular: Profesional, Manager, Admin RRHH, Super Admin y roles personalizados (Enterprise). Cada rol tiene acceso a diferentes vistas y acciones. Podés combinarlos según tu estructura organizacional.' },
   { q:'¿TRAZA tiene app móvil?', a:'Actualmente TRAZA funciona como Progressive Web App (PWA), optimizada para mobile. Podés instalarla como app en iOS y Android desde el navegador. Una app nativa está en nuestra roadmap para el Q3 2026.' },
   { q:'¿Cómo migro mis datos actuales a TRAZA?', a:'Ofrecemos importación de datos desde Excel, CSV y otras plataformas de RRHH. Para planes Pro y Enterprise, nuestro equipo de onboarding te guía en la migración sin costo adicional. El proceso típico toma menos de 2 horas.' },
 ]
@@ -1128,10 +1050,10 @@ function FinalCTA() {
 ══════════════════════════════════════════════════ */
 function Footer() {
   const cols = [
-    { title:'Producto', links:['Dashboard','Gestión de OKRs','Seguimiento','Feedback','Reuniones 1:1','IA y Análisis','Reportes','Credencial pública'] },
-    { title:'Empresa', links:['Sobre TRAZA','Blog','Carreras','Prensa','Partners','Changelog','Status'] },
-    { title:'Recursos', links:['Documentación','API Reference','Guía de inicio rápido','Casos de éxito','Webinars','Comunidad','Templates'] },
-    { title:'Legal', links:['Política de privacidad','Términos de uso','Seguridad','GDPR','Cookies','Licencias'] },
+    { title:'Producto', links:['Mi Trabajo','Mi Semana','Mi Equipo','Validación','Analytics','Reuniones 1:1','IA y Análisis','Credencial pública'] },
+    { title:'Empresa', links:['Sobre TRAZA','Blog','Changelog','Status'] },
+    { title:'Recursos', links:['Documentación','API Reference','Guía de inicio rápido','Casos de éxito'] },
+    { title:'Legal', links:['Política de privacidad','Términos de uso','Seguridad','GDPR','Cookies'] },
   ]
   return (
     <footer style={{ background: '#060B1A', padding: '64px 24px 32px' }}>
@@ -1212,7 +1134,6 @@ export default function LandingPage() {
       <Testimonials />
       <Comparison />
       <Pricing />
-      <ROICalculator />
       <Security />
       <Integrations />
       <FAQ />
