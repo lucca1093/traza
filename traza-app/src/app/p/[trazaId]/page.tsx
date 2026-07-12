@@ -94,12 +94,6 @@ export default async function CredencialTrazaPage({ params }: { params: { trazaI
     .select('*')
     .in('objetivo_id', objsActuales.length > 0 ? objsActuales.map(o => o.id) : ['00000000-0000-0000-0000-000000000000'])
 
-  // Validaciones externas (fetched before this point, but need them for score)
-  const { data: validacionesExternasParaScore } = await supabase
-    .from('validaciones_externas')
-    .select('*')
-    .in('objetivo_id', objsActuales.length > 0 ? objsActuales.map(o => o.id) : ['00000000-0000-0000-0000-000000000000'])
-
   // ── Score global: combinamos TODOS los objetivos y avances de toda la trayectoria ──
   // Esto garantiza que el score sea el mismo en credencial, dashboard y PDF.
   const historialEmpresas: Array<{
@@ -119,10 +113,10 @@ export default async function CredencialTrazaPage({ params }: { params: { trazaI
     score: number
   }> = []
 
-  // Acumuladores globales (todos los objetivos y avances de toda la carrera)
+  // Acumuladores globales (todos los objetivos, avances y validaciones de toda la carrera)
   let todosObjsGlobal: Objetivo[] = []
   let todosAvancesGlobal: any[]   = []
-  let todasValExtGlobal: any[]    = validacionesExternasParaScore ?? []
+  let todasValExtGlobal: any[]    = []
 
   let completadosGlobal = 0
   let positivosGlobal   = 0
@@ -130,21 +124,22 @@ export default async function CredencialTrazaPage({ params }: { params: { trazaI
   let negativosGlobal   = 0
 
   for (const p of todasLasPersonas) {
-    const [{ data: objs }, { data: avs }] = await Promise.all([
-      supabase.from('objetivos').select('*').eq('persona_id', p.id),
-      supabase.from('objetivo_avances').select('*').in(
-        'objetivo_id',
-        (await supabase.from('objetivos').select('id').eq('persona_id', p.id)).data?.map((o: any) => o.id) ?? ['00000000-0000-0000-0000-000000000000']
-      ),
+    const { data: objsRaw } = await supabase.from('objetivos').select('*').eq('persona_id', p.id)
+    const listaObjs = (objsRaw ?? []) as Objetivo[]
+    const objIds = listaObjs.length > 0 ? listaObjs.map(o => o.id) : ['00000000-0000-0000-0000-000000000000']
+
+    const [{ data: avs }, { data: valExtP }] = await Promise.all([
+      supabase.from('objetivo_avances').select('*').in('objetivo_id', objIds),
+      supabase.from('validaciones_externas').select('*').in('objetivo_id', objIds),
     ])
 
-    const listaObjs  = (objs ?? []) as Objetivo[]
     const listaAvs   = avs ?? []
-    // Score por empresa (con sus propios avances)
+    // Score por empresa (con sus propios avances, sin externas para el breakdown por empresa)
     const indice = calcularIndiceTraza(listaObjs, listaAvs)
 
-    todosObjsGlobal   = [...todosObjsGlobal, ...listaObjs]
+    todosObjsGlobal    = [...todosObjsGlobal, ...listaObjs]
     todosAvancesGlobal = [...todosAvancesGlobal, ...listaAvs]
+    todasValExtGlobal  = [...todasValExtGlobal, ...(valExtP ?? [])]
 
     completadosGlobal += indice.completados
     positivosGlobal   += indice.positivos
@@ -170,7 +165,7 @@ export default async function CredencialTrazaPage({ params }: { params: { trazaI
   }
 
   // Índice global: una sola pasada con todos los datos de la carrera
-  const indiceGlobal = calcularIndiceTraza(todosObjsGlobal, todosAvancesGlobal, todasValExtGlobal)
+  const indiceGlobal = calcularIndiceTraza(todosObjsGlobal, todosAvancesGlobal, todasValExtGlobal, personaActual.supervisor_verificado ?? true)
   const { score: scoreGlobal, badge, nivel: nivelGlobal, cumplimiento, total: totalObjGlobal,
           completados, positivos, parciales, negativos, moduloA, moduloB, moduloC } = indiceGlobal
 

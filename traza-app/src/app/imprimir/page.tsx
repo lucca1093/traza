@@ -129,9 +129,11 @@ export default function ImprimirPage() {
         empresas.push({ persona: p, objetivos: objs, avances: avs })
       }
 
-      // Validaciones externas y reconocimientos de la persona activa
+      // Validaciones externas de TODOS los objetivos (para score global correcto)
+      // Reconocimientos solo de la persona activa (para display)
+      const allObjIds = todosObjs.length > 0 ? todosObjs.map(o => o.id) : ['00000000-0000-0000-0000-000000000000']
       const [{ data: valExtRaw }, { data: reconRaw }] = await Promise.all([
-        supabase.from('validaciones_externas').select('*').eq('persona_id', persona.id).order('created_at', { ascending: false }),
+        supabase.from('validaciones_externas').select('*').in('objetivo_id', allObjIds).order('created_at', { ascending: false }),
         supabase.from('reconocimientos').select('*').eq('persona_id', persona.id).order('created_at', { ascending: false }),
       ])
 
@@ -147,7 +149,7 @@ export default function ImprimirPage() {
 
       // Generar narrativa IA en paralelo
       if (todosObjs.length > 0) {
-        const indice = calcularIndiceTraza(todosObjs, todosAvances, [], persona.supervisor_verificado ?? true)
+        const indice = calcularIndiceTraza(todosObjs, todosAvances, valExtRaw ?? [], persona.supervisor_verificado ?? true)
         try {
           const res = await fetch('/api/narrativa', {
             method: 'POST',
@@ -182,7 +184,7 @@ export default function ImprimirPage() {
 
   const { persona, objetivos, avances, validacionesExternas, reconocimientos, empresas } = data
   const supVerificado = persona.supervisor_verificado ?? true
-  const indice  = calcularIndiceTraza(objetivos, avances, [], supVerificado)
+  const indice  = calcularIndiceTraza(objetivos, avances, validacionesExternas, supVerificado)
   const color   = scoreColor(indice.score)
   const badge   = scoreBadge(indice.nivel)
   const hoy     = new Date().toLocaleDateString('es-AR', { day: '2-digit', month: 'long', year: 'numeric' })
