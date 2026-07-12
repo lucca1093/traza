@@ -305,23 +305,23 @@ function Problem() {
     {
       icon: <AlertTriangle size={20} color="#dc2626" />,
       bg: '#FEF2F2', border: '#FECACA',
-      title: 'Las evaluaciones son subjetivas',
-      desc: 'El 78% de los empleados considera que su última evaluación no refleja su trabajo real. Sin datos objetivos, el sesgo del manager define el resultado.',
-      stat: '78%', statLabel: 'cree que su evaluación fue injusta',
+      title: 'El trabajo se evalúa de memoria',
+      desc: 'Lo que se hizo durante el año se reconstruye de memoria al momento de la evaluación. Sin registro objetivo, el resultado depende del criterio del evaluador y del recuerdo más reciente.',
+      quote: '"Mi manager no sabe la mitad de lo que hice este año."',
     },
     {
       icon: <MessageSquare size={20} color="#d97706" />,
       bg: '#FFFBEB', border: '#FDE68A',
-      title: 'El feedback se pierde entre mensajes',
-      desc: 'El feedback fluye por WhatsApp, correos y conversaciones de pasillo. Sin estructura ni registro, su impacto en el desempeño es nulo.',
-      stat: '73%', statLabel: 'del feedback nunca genera cambios',
+      title: 'El feedback no deja huella',
+      desc: 'Las conversaciones importantes pasan por WhatsApp, correos o de pasillo. No quedan registradas, no se pueden revisar y no generan ningún cambio medible en el desempeño.',
+      quote: '"Recibí feedback, pero dos semanas después nadie lo recordaba."',
     },
     {
       icon: <BarChart2 size={20} color={PRIMARY} />,
       bg: '#EFF6FF', border: '#BFDBFE',
-      title: 'Decisiones de talento sin datos',
-      desc: 'Ascensos, aumentos y bajas se deciden sin información real. El talento silencioso se va y nadie lo detectó a tiempo.',
-      stat: '58%', statLabel: 'de rotación era evitable con datos',
+      title: 'Las decisiones de talento son a ciegas',
+      desc: 'Ascensos, aumentos y desvinculaciones se deciden sin datos consistentes. El talento silencioso no se ve hasta que ya se fue. Las señales de riesgo llegan demasiado tarde.',
+      quote: '"Nos enteramos que quería irse cuando ya tenía otra oferta."',
     },
   ]
 
@@ -331,10 +331,10 @@ function Problem() {
         <div style={{ textAlign: 'center', maxWidth: 680, margin: '0 auto 64px', opacity: visible?1:0, transform: visible?'none':'translateY(24px)', transition: 'all 0.6s ease' }}>
           <p style={{ fontSize: 12, fontWeight: 700, color: PRIMARY, letterSpacing: '0.09em', marginBottom: 14 }}>EL PROBLEMA</p>
           <h2 style={{ fontFamily: D, fontSize: 'clamp(28px,4vw,46px)', fontWeight: 900, color: '#0F172A', letterSpacing: '-0.025em', lineHeight: 1.1, marginBottom: 18 }}>
-            Las evaluaciones anuales están rotas.<br />Y todos lo saben.
+            El trabajo sucede todos los días.<br />Se evalúa una vez, de memoria.
           </h2>
           <p style={{ fontSize: 17, color: '#64748B', lineHeight: 1.7 }}>
-            Los procesos de gestión del desempeño actuales generan frustración, sesgo y rotación. TRAZA los reemplaza con evidencia objetiva y continua.
+            No es que las evaluaciones estén mal diseñadas — es que no tienen datos reales para basarse. TRAZA construye ese registro de forma continua y sin fricción.
           </p>
         </div>
 
@@ -346,9 +346,8 @@ function Problem() {
               </div>
               <h3 style={{ fontFamily: D, fontSize: 17, fontWeight: 800, color: '#0F172A', marginBottom: 10, lineHeight: 1.3 }}>{p.title}</h3>
               <p style={{ fontSize: 14, color: '#64748B', lineHeight: 1.7, marginBottom: 20 }}>{p.desc}</p>
-              <div style={{ background: p.bg, border: `1px solid ${p.border}`, borderRadius: 10, padding: '10px 14px', display: 'flex', gap: 10, alignItems: 'center' }}>
-                <span style={{ fontFamily: D, fontSize: 22, fontWeight: 900, color: '#0F172A' }}>{p.stat}</span>
-                <span style={{ fontSize: 12.5, color: '#64748B', lineHeight: 1.4 }}>{p.statLabel}</span>
+              <div style={{ background: p.bg, border: `1px solid ${p.border}`, borderRadius: 10, padding: '12px 16px' }}>
+                <p style={{ fontSize: 13, color: '#374151', fontStyle: 'italic', lineHeight: 1.6 }}>{p.quote}</p>
               </div>
             </div>
           ))}
@@ -471,37 +470,167 @@ function Features() {
                 </div>
               ))}
             </div>
-            <div style={{ marginTop: 32 }}>
+            <div style={{ marginTop: 32, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
               <Link href="/registro/empresa" style={{ display: 'inline-flex', alignItems: 'center', gap: 7, background: f.color, color: 'white', fontWeight: 700, fontSize: 14, borderRadius: 10, padding: '11px 22px', textDecoration: 'none' }}>
-                Ver en acción <ArrowRight size={14} />
+                Ver demo en vivo <ArrowRight size={14} />
+              </Link>
+              <Link href="/registro" style={{ display: 'inline-flex', alignItems: 'center', gap: 7, background: 'transparent', color: f.color, fontWeight: 600, fontSize: 14, borderRadius: 10, padding: '11px 20px', textDecoration: 'none', border: `1.5px solid ${f.color}40` }}>
+                Empezar gratis
               </Link>
             </div>
           </div>
 
-          {/* Feature mockup */}
-          <div style={{ background: '#F8FAFC', borderRadius: 20, border: '1px solid #E2E8F0', padding: 24, minHeight: 320, display: 'flex', flexDirection: 'column', gap: 12, position: 'relative', overflow: 'hidden' }}>
-            <div style={{ position: 'absolute', top: 0, right: 0, width: 200, height: 200, borderRadius: '50%', background: `radial-gradient(circle, ${f.color}12 0%, transparent 70%)`, pointerEvents: 'none' }} />
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+          {/* Feature mockup — distinto por tab */}
+          <div style={{ background: '#F8FAFC', borderRadius: 20, border: '1px solid #E2E8F0', padding: 24, minHeight: 340, display: 'flex', flexDirection: 'column', gap: 10, position: 'relative', overflow: 'hidden' }}>
+            <div style={{ position: 'absolute', top: -40, right: -40, width: 180, height: 180, borderRadius: '50%', background: `radial-gradient(circle, ${f.color}10 0%, transparent 70%)`, pointerEvents: 'none' }} />
+            {/* Header */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
               <span style={{ fontSize: 13, fontWeight: 700, color: '#0F172A' }}>{f.tab}</span>
-              <span style={{ fontSize: 11, fontWeight: 600, color: f.color, background: f.color+'14', padding: '3px 10px', borderRadius: 20 }}>En vivo</span>
+              <span style={{ fontSize: 10.5, fontWeight: 700, color: f.color, background: f.color+'14', padding: '3px 10px', borderRadius: 20 }}>En vivo</span>
             </div>
-            {[
-              { label: 'Q3 · Aumentar retención al 90%', pct: 74, badge: 'En progreso' },
-              { label: 'Implementar NPS mensual en soporte', pct: 100, badge: 'Completado' },
-              { label: 'Reducir tiempo de onboarding a 2 sem.', pct: 45, badge: 'En riesgo' },
-              { label: 'Certificar al equipo en metodología OKR', pct: 60, badge: 'En progreso' },
-            ].map((item, i) => (
-              <div key={i} style={{ background: 'white', borderRadius: 10, padding: '12px 14px', border: '1px solid #E8ECFD' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 7 }}>
-                  <span style={{ fontSize: 12.5, fontWeight: 600, color: '#0F172A' }}>{item.label}</span>
-                  <span style={{ fontSize: 10.5, fontWeight: 700, color: item.pct===100?'#16a34a': item.pct<50?'#dc2626':f.color, background: item.pct===100?'#dcfce7':item.pct<50?'#FEF2F2':f.color+'12', padding: '2px 8px', borderRadius: 20 }}>{item.badge}</span>
+
+            {/* Tab 0: Mi Trabajo */}
+            {tab === 0 && <>
+              {[
+                { label: 'Lanzar campaña email Q3', cat: 'Resultado', pct: 88, color: '#16a34a', badge: 'Completado' },
+                { label: 'Certificación Google Analytics', cat: 'Aprendizaje', pct: 60, color: PRIMARY, badge: 'En progreso' },
+                { label: 'Reducir tiempo de respuesta a 2h', cat: 'Eficiencia', pct: 25, color: '#dc2626', badge: 'En riesgo' },
+              ].map((o, i) => (
+                <div key={i} style={{ background: 'white', borderRadius: 10, padding: '11px 14px', border: '1px solid #E8ECFD' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
+                    <div>
+                      <p style={{ fontSize: 12.5, fontWeight: 600, color: '#0F172A', marginBottom: 2 }}>{o.label}</p>
+                      <span style={{ fontSize: 10, color: '#94A3B8', background: '#F1F5F9', padding: '1px 7px', borderRadius: 20 }}>{o.cat}</span>
+                    </div>
+                    <span style={{ fontSize: 10, fontWeight: 700, color: o.color, background: o.color+'14', padding: '2px 8px', borderRadius: 20, flexShrink: 0 }}>{o.badge}</span>
+                  </div>
+                  <div style={{ height: 4, borderRadius: 99, background: '#F1F5F9', overflow: 'hidden', marginTop: 8 }}>
+                    <div style={{ height: '100%', width: `${o.pct}%`, background: o.color, borderRadius: 99 }} />
+                  </div>
                 </div>
-                <div style={{ height: 5, borderRadius: 99, background: '#F1F5F9', overflow: 'hidden' }}>
-                  <div style={{ height: '100%', width: `${item.pct}%`, background: item.pct===100?'#16a34a':item.pct<50?'#dc2626':f.color, borderRadius: 99, transition: 'width 0.5s ease' }} />
+              ))}
+              <button style={{ marginTop: 4, background: 'white', border: `1.5px dashed ${PRIMARY}50`, borderRadius: 10, padding: '10px', fontSize: 12, fontWeight: 600, color: PRIMARY, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
+                + Registrar avance
+              </button>
+            </>}
+
+            {/* Tab 1: Mi Semana */}
+            {tab === 1 && <>
+              <div style={{ background: 'white', borderRadius: 10, padding: '12px 14px', border: '1px solid #E8ECFD', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div>
+                  <p style={{ fontSize: 11, color: '#94A3B8', marginBottom: 1 }}>Semana 28 · Cierre</p>
+                  <p style={{ fontSize: 13, fontWeight: 700, color: '#0F172A' }}>Cierre semanal</p>
                 </div>
-                <span style={{ fontSize: 10.5, color: '#94A3B8', marginTop: 4, display: 'block' }}>{item.pct}% completado</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 5, background: '#FFF7ED', borderRadius: 20, padding: '5px 12px' }}>
+                  <Flame size={13} color="#f97316" />
+                  <span style={{ fontSize: 12, fontWeight: 800, color: '#f97316' }}>5 semanas</span>
+                </div>
               </div>
-            ))}
+              {[
+                { q: '¿En qué avancé?', a: 'Completé el módulo de Analytics y documenté las métricas clave del Q2.' },
+                { q: '¿Qué me frenó?', a: 'Esperando aprobación del cliente para la siguiente etapa del proyecto.' },
+                { q: '¿Qué necesito?', a: 'Feedback del manager sobre la propuesta enviada el martes.' },
+              ].map((item, i) => (
+                <div key={i} style={{ background: 'white', borderRadius: 10, padding: '10px 14px', border: '1px solid #E8ECFD' }}>
+                  <p style={{ fontSize: 10.5, fontWeight: 700, color: '#7c3aed', marginBottom: 4 }}>{item.q}</p>
+                  <p style={{ fontSize: 12, color: '#374151', lineHeight: 1.5 }}>{item.a}</p>
+                </div>
+              ))}
+            </>}
+
+            {/* Tab 2: Validación */}
+            {tab === 2 && <>
+              <div style={{ background: 'white', borderRadius: 12, padding: '14px 16px', border: '1px solid #E8ECFD' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+                  <div style={{ width: 34, height: 34, borderRadius: '50%', background: '#dcfce7', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <Check size={16} color="#16a34a" />
+                  </div>
+                  <div>
+                    <p style={{ fontSize: 12.5, fontWeight: 700, color: '#0F172A' }}>Andrea López validó tu objetivo</p>
+                    <p style={{ fontSize: 10.5, color: '#16a34a' }}>andrea@empresa.com · verificado ✓</p>
+                  </div>
+                </div>
+                <div style={{ background: '#F8FAFC', borderRadius: 8, padding: '8px 12px', marginBottom: 8 }}>
+                  <p style={{ fontSize: 11, color: '#64748B', marginBottom: 3 }}>Objetivo validado</p>
+                  <p style={{ fontSize: 12, fontWeight: 600, color: '#0F172A' }}>Lanzar campaña email Q3</p>
+                </div>
+                <p style={{ fontSize: 11.5, color: '#374151', fontStyle: 'italic', lineHeight: 1.55 }}>"Excelente ejecución. Los resultados superaron el objetivo planteado."</p>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: '#dcfce7', borderRadius: 20, padding: '3px 10px', marginTop: 8 }}>
+                  <span style={{ fontSize: 10.5, fontWeight: 700, color: '#16a34a' }}>De acuerdo</span>
+                </div>
+              </div>
+              <div style={{ background: 'white', borderRadius: 10, padding: '12px 14px', border: '1px solid #E8ECFD', display: 'flex', alignItems: 'center', gap: 10 }}>
+                <span style={{ fontSize: 18 }}>⭐</span>
+                <div>
+                  <p style={{ fontSize: 12, fontWeight: 700, color: '#0F172A' }}>Ignacio te dio un reconocimiento</p>
+                  <p style={{ fontSize: 11, color: '#64748B' }}>Liderazgo · "Gracias por tomar la iniciativa"</p>
+                </div>
+              </div>
+            </>}
+
+            {/* Tab 3: Analytics */}
+            {tab === 3 && <>
+              <div style={{ background: 'white', borderRadius: 10, padding: '12px 14px', border: '1px solid #E8ECFD', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div>
+                  <p style={{ fontSize: 11, color: '#94A3B8' }}>Índice organizacional</p>
+                  <p style={{ fontSize: 26, fontWeight: 900, color: PRIMARY }}>76 <span style={{ fontSize: 13, fontWeight: 500, color: '#94A3B8' }}>/100</span></p>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                  {['Resultados', 'Cumplimiento', 'Consistencia'].map((m, i) => (
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <div style={{ width: [68,85,54][i], height: 5, borderRadius: 99, background: `${PRIMARY}${['','80','50'][i]}` }} />
+                      <span style={{ fontSize: 9.5, color: '#64748B' }}>{m}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              {[
+                { name: 'Valentina Cruz', score: 88 },
+                { name: 'Luciana Ferreyra', score: 79 },
+                { name: 'Martín Aguirre', score: 74 },
+                { name: 'Diego Molina', score: 65 },
+              ].map((p, i) => (
+                <div key={i} style={{ background: 'white', borderRadius: 8, padding: '8px 12px', border: '1px solid #E8ECFD', display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <div style={{ width: 26, height: 26, borderRadius: '50%', background: LIGHT, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: PRIMARY, flexShrink: 0 }}>{p.name[0]}</div>
+                  <div style={{ flex: 1 }}>
+                    <p style={{ fontSize: 11.5, fontWeight: 600, color: '#0F172A' }}>{p.name}</p>
+                    <div style={{ height: 3, borderRadius: 99, background: '#F1F5F9', marginTop: 3, overflow: 'hidden' }}>
+                      <div style={{ height: '100%', width: `${p.score}%`, background: p.score >= 80 ? '#16a34a' : PRIMARY, borderRadius: 99 }} />
+                    </div>
+                  </div>
+                  <span style={{ fontSize: 13, fontWeight: 800, color: p.score >= 80 ? '#16a34a' : PRIMARY }}>{p.score}</span>
+                </div>
+              ))}
+            </>}
+
+            {/* Tab 4: IA · Insights */}
+            {tab === 4 && <>
+              <div style={{ background: 'white', borderRadius: 12, padding: '14px 16px', border: '1px solid #E8ECFD' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
+                  <div style={{ width: 22, height: 22, borderRadius: 6, background: '#FEF3C7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Brain size={11} color="#d97706" />
+                  </div>
+                  <span style={{ fontSize: 10.5, fontWeight: 700, color: '#d97706' }}>Análisis IA · Luciana Ferreyra</span>
+                </div>
+                <p style={{ fontSize: 12, color: '#374151', lineHeight: 1.7 }}>
+                  Luciana demuestra alta consistencia en el cumplimiento de objetivos y una tasa de validación positiva superior al 80%. Su principal área de oportunidad es aumentar la frecuencia de registro semanal para mejorar la visibilidad...
+                </p>
+                <div style={{ display: 'flex', gap: 5, marginTop: 10, flexWrap: 'wrap' }}>
+                  {['Alto cumplimiento', 'Confiabilidad verificada', 'Registro semanal bajo'].map((tag, i) => (
+                    <span key={i} style={{ fontSize: 9.5, fontWeight: 600, color: i < 2 ? '#16a34a' : '#d97706', background: i < 2 ? '#f0fdf4' : '#fef3c7', padding: '2px 8px', borderRadius: 20 }}>{tag}</span>
+                  ))}
+                </div>
+              </div>
+              <div style={{ background: 'white', borderRadius: 10, padding: '12px 14px', border: '1px solid #E8ECFD' }}>
+                <p style={{ fontSize: 10.5, fontWeight: 700, color: '#0F172A', marginBottom: 6 }}>📋 Briefing del equipo · Lunes</p>
+                {['2 personas sin avances en +15 días', 'Valentina superó objetivos de Q2', 'Diego necesita feedback urgente'].map((item, i) => (
+                  <div key={i} style={{ display: 'flex', gap: 6, alignItems: 'flex-start', marginBottom: 5 }}>
+                    <div style={{ width: 4, height: 4, borderRadius: '50%', background: ['#dc2626','#16a34a','#d97706'][i], marginTop: 5, flexShrink: 0 }} />
+                    <p style={{ fontSize: 11.5, color: '#374151' }}>{item}</p>
+                  </div>
+                ))}
+              </div>
+            </>}
           </div>
         </div>
       </div>
@@ -650,7 +779,7 @@ function Comparison() {
     'Historial portátil del profesional',
     'Alertas predictivas de riesgo',
     'Reportes automáticos y personalizables',
-    'Integraciones con herramientas existentes',
+    'Exportación estándar (PDF, Excel, JSON)',
   ]
   const cols = [
     { label: 'TRAZA', vals: [true,true,true,true,true,true,true,true,true,true], highlight: true },
@@ -713,7 +842,7 @@ const PLANS = [
       'Historial portátil de carrera',
       'Soporte por email',
     ],
-    noFeatures: ['Dashboard de equipo','Reportes automáticos','Análisis con IA','Integraciones'],
+    noFeatures: ['Dashboard de equipo','Reportes automáticos','Análisis con IA'],
   },
   {
     name: 'Pro',
