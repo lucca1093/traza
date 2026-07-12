@@ -37,7 +37,7 @@ function formatTrimestreLabel(key: string) {
 export default async function CredencialTrazaPage({ params }: { params: { trazaId: string } }) {
   const supabase = createAdminClient()
 
-  // Traer TODAS las instancias de esta persona (todas las empresas)
+  // Traer TODAS las instancias de esta persona por traza_id (toda la carrera)
   const { data: todasLasPersonas } = await supabase
     .from('personas')
     .select('*, empresa:empresas(nombre, rubro)')

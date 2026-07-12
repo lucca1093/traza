@@ -103,13 +103,31 @@ export default function ImprimirPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { setError('No autenticado'); setLoading(false); return }
 
-      // Traemos TODAS las personas del usuario (todas las empresas)
-      const { data: todasPersonas } = await supabase
+      // Traemos TODAS las personas del usuario por user_id
+      const { data: porUserId } = await supabase
         .from('personas').select('*').eq('user_id', user.id)
-      if (!todasPersonas || todasPersonas.length === 0) {
+      if (!porUserId || porUserId.length === 0) {
         setError('No se encontró el perfil.'); setLoading(false); return
       }
-      const persona = todasPersonas.find(p => p.empleo_activo !== false) ?? todasPersonas[0]
+      const persona = porUserId.find(p => p.empleo_activo !== false) ?? porUserId[0]
+
+      // También buscamos por traza_id para incluir historial completo de carrera
+      // (el seed puede tener personas sin user_id pero con el mismo traza_id)
+      let todasPersonas = porUserId
+      if (persona.traza_id) {
+        const { data: porTrazaId } = await supabase
+          .from('personas').select('*').eq('traza_id', persona.traza_id)
+          .order('fecha_inicio_empleo', { ascending: false })
+        if (porTrazaId && porTrazaId.length > 0) {
+          // Merge: todas las de traza_id + las de user_id que no estén ya
+          const merged = [...porTrazaId]
+          porUserId.forEach(p => {
+            if (!merged.find(x => x.id === p.id)) merged.push(p)
+          })
+          todasPersonas = merged.sort((a, b) =>
+            (b.fecha_inicio_empleo ?? '').localeCompare(a.fecha_inicio_empleo ?? ''))
+        }
+      }
 
       // Combinamos objetivos y avances de todas las empresas para score global
       let todosObjs: Objetivo[] = []
