@@ -2,7 +2,8 @@
 
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
-import { X, ChevronRight, ChevronLeft, ExternalLink } from 'lucide-react'
+import { X, ChevronRight, ChevronLeft } from 'lucide-react'
+import { createClient } from '@/lib/supabase'
 
 const BRAND   = '#1C2B90'
 const PRIMARY = '#3350D0'
@@ -26,38 +27,44 @@ const TOURS: Record<string, Step[]> = {
     {
       page: '/dashboard',
       selector: '#demo-indice-card',
-      title: '📊 Tu Índice TRAZA',
-      body: 'Un número de 0 a 100 que resume tu desempeño real. Se calcula con objetivos completados, validaciones externas y tu consistencia — no con opiniones subjetivas.',
+      title: 'Tu Índice TRAZA',
+      body: 'Un número de 0 a 100 que resume tu desempeño real. Se calcula combinando objetivos completados, validaciones recibidas, consistencia semanal y años de trayectoria verificada — no con opiniones subjetivas.',
     },
     {
       page: '/dashboard',
       selector: '#demo-credencial-cta',
-      title: '🔗 Tu historial es portátil',
-      body: 'Este link es tuyo para siempre. Compartilo con empleadores o clientes para mostrar tu track record verificado. No depende de ninguna empresa.',
+      title: 'Tu historial es portátil',
+      body: 'Este link es tuyo para siempre. Lo compartís con empleadores o clientes para mostrar tu track record verificado. No depende de ninguna empresa — te acompaña toda la carrera.',
     },
     {
       page: '/mi-trabajo',
       selector: '#demo-objetivos-header',
-      title: '🎯 Registrás tu trabajo con evidencia',
-      body: 'Cada objetivo tiene descripción, fecha y evidencia: comentarios, archivos, links. Todo queda trazable y verificable.',
+      title: 'Registrás tu trabajo con evidencia',
+      body: 'Cada objetivo tiene descripción, categoría, fecha límite y evidencia: comentarios, archivos o links. Todo queda trazable. Así construís un historial de desempeño real, no una autobiografía.',
     },
     {
       page: '/mi-trabajo',
       selector: '#demo-primer-objetivo',
-      title: '✅ Validaciones verificadas',
-      body: 'Cuando completás un objetivo, podés pedir validación a un cliente o colega. Ellos confirman por email — eso es lo que hace que el score sea creíble.',
+      title: 'Validaciones de clientes y colegas',
+      body: 'Cuando completás un objetivo, invitás a un cliente o colega a validarlo. Ellos confirman por email sin necesidad de crear una cuenta. Esa confirmación externa es lo que hace que tu score sea creíble.',
     },
     {
       page: '/mi-semana',
       selector: '#demo-cierre-semanal',
-      title: '📅 Cierre semanal',
-      body: '¿Qué avancé? ¿Qué me trabó? ¿Qué necesito? Tres preguntas cada viernes. Ese hábito construye tu historial y alimenta el análisis con IA.',
+      title: 'Cierre semanal — 3 preguntas',
+      body: '¿Qué avancé esta semana? ¿Qué me trabó? ¿Qué necesito para la próxima? Tres preguntas cada viernes. El registro continuo construye tu historial y alimenta el análisis de IA de tu perfil.',
+    },
+    {
+      page: '/perfil',
+      selector: '#demo-perfil-header',
+      title: 'Tu perfil profesional completo',
+      body: 'Acá ves tu historial consolidado: objetivos por empresa, score global de toda tu carrera, validaciones confirmadas y el PDF de tu informe. También controlás si tu credencial es pública o privada.',
     },
     {
       page: '/dashboard',
       isFinal: true,
-      title: '¡Eso es TRAZA! 🚀',
-      body: 'Tu historial profesional verificado, construido objetivo por objetivo. Empezá gratis hoy — siempre es tuyo, sin importar donde trabajes.',
+      title: 'Eso es TRAZA',
+      body: 'Tu historial profesional verificado, construido objetivo por objetivo. Empezá gratis hoy — siempre es tuyo, sin importar dónde trabajes.',
       ctaHref: '/registro',
       ctaLabel: 'Empezar gratis',
     },
@@ -67,37 +74,49 @@ const TOURS: Record<string, Step[]> = {
     {
       page: '/dashboard',
       selector: '#demo-indice-card',
-      title: '📊 Tu score de desempeño',
-      body: 'El Índice TRAZA resume tu trabajo real. No es una evaluación de fin de año basada en memoria — es el resultado de tus objetivos, avances y validaciones a lo largo del tiempo.',
+      title: 'Tu Índice TRAZA',
+      body: 'Un número de 0 a 100 que resume tu desempeño real en esta empresa. Se calcula con objetivos completados, validaciones del manager, consistencia semanal y tu autoevaluación — no con la memoria de nadie.',
     },
     {
       page: '/dashboard',
       selector: '#demo-credencial-cta',
-      title: '🔗 Tu historial te pertenece',
-      body: 'Cuando cambiás de trabajo, tu historial verificado viene con vos. Es tu reputación profesional — no le pertenece a la empresa.',
+      title: 'Tu historial te pertenece',
+      body: 'Cuando cambiás de trabajo, tu historial verificado viene con vos. Es tu reputación profesional — no le pertenece a la empresa. Lo compartís con quien quieras desde tu link personal.',
     },
     {
       page: '/mi-trabajo',
       selector: '#demo-objetivos-header',
-      title: '🎯 Tus objetivos con evidencia',
-      body: 'Cargás tus objetivos, registrás avances con archivos y links, y cuando terminás pedís validación a tu manager.',
-    },
-    {
-      page: '/mi-semana',
-      selector: '#demo-cierre-semanal',
-      title: '📅 Cierre semanal en 3 minutos',
-      body: 'Cada viernes respondés tres preguntas rápidas sobre tu semana. Eso construye el historial y le da contexto a tu manager sin reuniones extras.',
+      title: 'Objetivos con evidencia',
+      body: 'Acá ves todos tus objetivos: los asignados por tu empresa y los que agregaste vos. A cada uno le podés cargar avances con comentarios, archivos o links. Todo queda registrado con fecha.',
     },
     {
       page: '/mi-trabajo',
       selector: '#demo-primer-objetivo',
-      title: '✅ Validación directa del manager',
-      body: 'Al completar un objetivo, tu supervisor lo valida o pide ajustes directamente desde TRAZA. Sin formularios de evaluación, sin burocracia.',
+      title: 'Validación directa del manager',
+      body: 'Al completar un objetivo, tu supervisor lo revisa y lo valida o pide ajustes. También podés pedir validación a un cliente externo. Ese doble respaldo hace que el resultado sea confiable.',
+    },
+    {
+      page: '/mi-semana',
+      selector: '#demo-cierre-semanal',
+      title: 'Cierre semanal — 3 preguntas',
+      body: '¿Qué avancé? ¿Qué me trabó? ¿Qué necesito? Tres preguntas cada viernes. Le da contexto a tu manager sin reuniones de status. Además construye tu historial y alimenta el análisis con IA.',
+    },
+    {
+      page: '/reuniones',
+      selector: '#demo-reuniones-header',
+      title: 'Reuniones 1:1 con tu manager',
+      body: 'Acá quedan registradas tus reuniones con el manager: agenda, notas, acuerdos y fecha de la próxima. Todo vinculado a tu perfil. Nunca más "de eso no hablamos" en la evaluación.',
+    },
+    {
+      page: '/perfil',
+      selector: '#demo-perfil-header',
+      title: 'Tu perfil profesional',
+      body: 'Tu historial consolidado por empresa: objetivos, scores, validaciones confirmadas y el informe descargable en PDF. También controlás si tu credencial es pública para que empleadores te encuentren.',
     },
     {
       page: '/dashboard',
       isFinal: true,
-      title: '¡Eso es TRAZA para empleados! 🚀',
+      title: 'Eso es TRAZA para empleados',
       body: 'Registrá tu trabajo real, conseguí validaciones y construí un historial que te acompaña toda la carrera.',
       ctaHref: '/registro',
       ctaLabel: 'Empezar gratis',
@@ -108,37 +127,49 @@ const TOURS: Record<string, Step[]> = {
     {
       page: '/dashboard',
       selector: '#demo-metricas-equipo',
-      title: '📊 Tu equipo de un vistazo',
-      body: 'Colaboradores activos, objetivos en curso, completados y % de cumplimiento. Siempre actualizado — sin pedir reportes manuales.',
+      title: 'Tu equipo de un vistazo',
+      body: 'Colaboradores activos, objetivos en curso, completados en el período y % de cumplimiento. Números reales, siempre actualizados — sin pedir reportes manuales ni esperar al fin de mes.',
     },
     {
       page: '/dashboard',
       selector: '#demo-actividad-equipo',
-      title: '🔔 Actividad del equipo en tiempo real',
-      body: 'Cada avance, link o archivo que sube tu equipo aparece acá. Sabés qué está pasando sin reuniones de status innecesarias.',
+      title: 'Actividad del equipo en tiempo real',
+      body: 'Cada avance, link o archivo que sube tu equipo aparece acá. Ves qué está pasando en cada objetivo sin necesitar reuniones de status. Menos interrupciones, más contexto.',
     },
     {
       page: '/equipo',
       selector: '#demo-team-list',
-      title: '👥 Vista individual del equipo',
-      body: 'Cada colaborador tiene su Índice TRAZA. Ves quién está arriba, quién necesita atención, qué objetivos tiene en curso y cuánto avanzó esta semana.',
+      title: 'Vista individual de cada colaborador',
+      body: 'Cada persona tiene su Índice TRAZA, sus objetivos en curso y el resumen de su semana. Ves quién va bien, quién necesita atención y cuánto avanzó — todo en un solo lugar.',
     },
     {
       page: '/analytics',
       selector: '#demo-analytics-header',
-      title: '📈 Señales automáticas',
-      body: 'TRAZA detecta automáticamente: quién lleva más de 2 semanas sin registrar, discrepancias de autoevaluación, objetivos vencidos. Información que antes se perdía.',
+      title: 'Señales automáticas de riesgo',
+      body: 'TRAZA detecta automáticamente: quién lleva más de 2 semanas sin registrar avances, discrepancias entre autoevaluación y validación del supervisor, y objetivos próximos a vencer. Información que antes se perdía.',
     },
     {
       page: '/reuniones',
       selector: '#demo-reuniones-header',
-      title: '🤝 1:1s con seguimiento',
-      body: 'Agendá reuniones 1 a 1 con tu equipo, registrá acuerdos y hacé seguimiento. Todo queda vinculado al historial del colaborador.',
+      title: 'Reuniones 1:1 con seguimiento',
+      body: 'Agendás reuniones 1 a 1, registrás agenda, notas y acuerdos, y fijás la próxima fecha. Todo queda vinculado al historial del colaborador. Nunca más partís de cero en cada reunión.',
+    },
+    {
+      page: '/mi-semana',
+      selector: '#demo-cierre-semanal',
+      title: 'Tu propio cierre semanal',
+      body: 'Como manager también tenés tu historial personal. Registrás tus avances, obstáculos y necesidades cada semana. Eso alimenta tu propio Índice TRAZA y tu perfil profesional.',
+    },
+    {
+      page: '/reportes',
+      selector: '#demo-reportes-header',
+      title: 'Reportes y ciclos de evaluación',
+      body: 'Exportás datos de performance del equipo en Excel o PDF. También creás períodos formales de evaluación — mensual, trimestral o anual — y generás el cierre oficial con score consolidado por persona.',
     },
     {
       page: '/dashboard',
       isFinal: true,
-      title: '¡Eso es TRAZA para managers! 🚀',
+      title: 'Eso es TRAZA para managers',
       body: 'Gestión basada en datos reales. Evaluaciones honestas, historial verificado, y un equipo que sabe exactamente en qué trabaja.',
       ctaHref: '/registro/empresa',
       ctaLabel: 'Registrar mi empresa',
@@ -174,7 +205,6 @@ function getPopoverStyle(rect: Rect | null, popoverH: number): React.CSSProperti
   const viewH  = window.innerHeight
   const viewW  = window.innerWidth
 
-  // Prefer placing below; if not enough space, above
   let top: number
   const spaceBelow = viewH - rect.top - rect.height
   const spaceAbove = rect.top
@@ -187,7 +217,6 @@ function getPopoverStyle(rect: Rect | null, popoverH: number): React.CSSProperti
     top = Math.max(PAD, rect.top)
   }
 
-  // Horizontal: center on element, clamp to viewport
   let left = rect.left + rect.width / 2 - POP_W / 2
   left = Math.max(PAD, Math.min(left, viewW - POP_W - PAD))
 
@@ -224,38 +253,32 @@ export default function DemoTour() {
 
     const step = steps[stepIdx]
 
-    // Navigate if wrong page
     if (step.page !== pathname) {
       router.push(step.page)
       return
     }
 
-    // Activate on correct page
     activateStep(step)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname, role, stepIdx])
 
   // ── Apply highlight and position popover ──
+  // No se oculta el popover durante la navegación para evitar el parpadeo
   const activateStep = useCallback(async (step: Step) => {
-    // Remove previous highlight
     document.querySelectorAll('.traza-tour-highlight').forEach(el => {
       el.classList.remove('traza-tour-highlight')
     })
-
-    setVisible(false)
 
     if (step.selector) {
       const el = await waitForElement(step.selector)
       if (el) {
         el.classList.add('traza-tour-highlight')
-        // Scroll into view first
         el.scrollIntoView({ behavior: 'smooth', block: 'center' })
-        // Wait for scroll to settle, then measure
         setTimeout(() => {
           const r = el.getBoundingClientRect()
           setRect({ top: r.top, left: r.left, width: r.width, height: r.height })
           setVisible(true)
-        }, 450)
+        }, 400)
       } else {
         setRect(null)
         setVisible(true)
@@ -266,6 +289,7 @@ export default function DemoTour() {
     }
   }, [])
 
+  // ── Cerrar tour sin salir del demo ──
   const closeTour = useCallback(() => {
     document.querySelectorAll('.traza-tour-highlight').forEach(el => {
       el.classList.remove('traza-tour-highlight')
@@ -275,6 +299,20 @@ export default function DemoTour() {
     setVisible(false)
     setRole(null)
   }, [])
+
+  // ── Finalizar demo: cerrar sesión y volver a la landing ──
+  const finalizarDemo = useCallback(async () => {
+    document.querySelectorAll('.traza-tour-highlight').forEach(el => {
+      el.classList.remove('traza-tour-highlight')
+    })
+    sessionStorage.removeItem('demo_role')
+    sessionStorage.removeItem('demo_step')
+    setVisible(false)
+    setRole(null)
+    const supabase = createClient()
+    await supabase.auth.signOut()
+    router.push('/')
+  }, [router])
 
   const goTo = useCallback((idx: number) => {
     if (!role) return
@@ -287,9 +325,12 @@ export default function DemoTour() {
   const nextStep = useCallback(() => {
     if (!role) return
     const steps = TOURS[role]
-    if (stepIdx + 1 >= steps.length) { closeTour(); return }
+    if (stepIdx + 1 >= steps.length) {
+      finalizarDemo()
+      return
+    }
     goTo(stepIdx + 1)
-  }, [role, stepIdx, goTo, closeTour])
+  }, [role, stepIdx, goTo, finalizarDemo])
 
   const prevStep = useCallback(() => {
     goTo(stepIdx - 1)
@@ -306,7 +347,6 @@ export default function DemoTour() {
 
   return (
     <>
-      {/* Global CSS for highlight + overlay */}
       <style>{`
         .traza-tour-highlight {
           outline: 3px solid ${PRIMARY} !important;
@@ -319,16 +359,14 @@ export default function DemoTour() {
         .traza-tour-backdrop {
           position: fixed;
           inset: 0;
-          background: rgba(0, 0, 0, 0.40);
+          background: rgba(0, 0, 0, 0.38);
           z-index: 998;
           pointer-events: none;
         }
       `}</style>
 
-      {/* Backdrop */}
       <div className="traza-tour-backdrop" />
 
-      {/* Popover */}
       <div
         ref={popoverRef}
         style={{
@@ -381,6 +419,7 @@ export default function DemoTour() {
             </span>
             <button
               onClick={closeTour}
+              title="Cerrar guía"
               style={{
                 width: 24, height: 24, borderRadius: 6,
                 backgroundColor: '#F1F5F9', border: 'none', cursor: 'pointer',
@@ -417,12 +456,11 @@ export default function DemoTour() {
               }}
             >
               {step.ctaLabel}
-              <ExternalLink size={12} />
             </a>
           )}
         </div>
 
-        {/* Dots progress */}
+        {/* Dots */}
         <div className="flex justify-center gap-1.5 pb-3">
           {steps.map((_, i) => (
             <button
@@ -472,7 +510,7 @@ export default function DemoTour() {
               fontFamily: DISPLAY,
             }}
           >
-            {step.isFinal ? 'Cerrar tour' : 'Siguiente'}
+            {step.isFinal ? 'Finalizar demo' : 'Siguiente'}
             {!step.isFinal && <ChevronRight size={14} />}
           </button>
         </div>

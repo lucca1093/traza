@@ -213,7 +213,7 @@ export default function ReportesPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="traza-page-header">
+      <div id="demo-reportes-header" className="traza-page-header">
         <div>
           <h1 className="traza-page-title">Reportes</h1>
           <p className="traza-page-sub">Exportá datos de performance y gestioná los ciclos de evaluación.</p>

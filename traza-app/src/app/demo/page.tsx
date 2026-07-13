@@ -5,16 +5,47 @@ const BRAND   = '#1C2B90'
 const PRIMARY = '#3350D0'
 const LIGHT   = '#EDEFFD'
 
+// Íconos SVG en estilo app (sin emojis)
+function IconoBriefcase() {
+  return (
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke={PRIMARY} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="7" width="20" height="14" rx="2" />
+      <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2" />
+      <line x1="12" y1="12" x2="12" y2="12" />
+      <path d="M2 12h20" />
+    </svg>
+  )
+}
+
+function IconoUser() {
+  return (
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke={PRIMARY} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+      <circle cx="12" cy="7" r="4" />
+    </svg>
+  )
+}
+
+function IconoBarChart() {
+  return (
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke={PRIMARY} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="18" y1="20" x2="18" y2="10" />
+      <line x1="12" y1="20" x2="12" y2="4" />
+      <line x1="6" y1="20" x2="6" y2="14" />
+    </svg>
+  )
+}
+
 const ROLES = [
   {
     tipo: 'profesional',
-    emoji: '💼',
+    icono: <IconoBriefcase />,
     titulo: 'Profesional independiente',
     subtitulo: 'Freelancer, consultor o profesional sin empresa fija',
     puntos: [
-      'Registrás objetivos de tus proyectos',
+      'Registrás objetivos de tus proyectos con evidencia',
       'Conseguís validaciones de clientes y colegas',
-      'Tu historial verificado es portátil y público',
+      'Tu historial verificado es portátil y siempre tuyo',
     ],
     persona: 'Nicolás Romero — Consultor de Marketing',
     score: 82,
@@ -22,7 +53,7 @@ const ROLES = [
   },
   {
     tipo: 'empleado',
-    emoji: '🧑‍💻',
+    icono: <IconoUser />,
     titulo: 'Empleado en empresa',
     subtitulo: 'Trabajás en relación de dependencia con un manager',
     puntos: [
@@ -36,12 +67,12 @@ const ROLES = [
   },
   {
     tipo: 'manager',
-    emoji: '📊',
+    icono: <IconoBarChart />,
     titulo: 'Manager / Empresa',
     subtitulo: 'Gestionás un equipo y evaluás desempeño',
     puntos: [
       'Ves métricas del equipo en tiempo real',
-      'Validás objetivos y generás evaluaciones',
+      'Validás objetivos y generás evaluaciones formales',
       'Detectás señales de riesgo automáticamente',
     ],
     persona: 'Diego Sánchez — Director de RRHH',
@@ -103,10 +134,10 @@ export default function DemoPage() {
               style={{ borderBottom: '1px solid #F1F5F9' }}
             >
               <div
-                className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl mb-4"
+                className="w-11 h-11 rounded-xl flex items-center justify-center mb-4"
                 style={{ backgroundColor: LIGHT }}
               >
-                {r.emoji}
+                {r.icono}
               </div>
               <h2
                 className="text-base font-bold mb-1"
@@ -147,7 +178,7 @@ export default function DemoPage() {
               </div>
               {r.score && (
                 <div className="text-right">
-                  <p style={{ fontSize: 22, fontWeight: 900, color: '#16a34a', lineHeight: 1 }}>{r.score}</p>
+                  <p style={{ fontSize: 22, fontWeight: 900, color: PRIMARY, lineHeight: 1 }}>{r.score}</p>
                   <p className="text-xs" style={{ color: '#94A3B8' }}>{r.badge}</p>
                 </div>
               )}
@@ -156,14 +187,14 @@ export default function DemoPage() {
                   className="text-xs font-bold px-3 py-1 rounded-full"
                   style={{ backgroundColor: LIGHT, color: PRIMARY }}
                 >
-                  Equipo →
+                  Equipo
                 </div>
               )}
             </div>
 
-            {/* Hover CTA */}
+            {/* CTA */}
             <div
-              className="px-6 py-4 flex items-center justify-center gap-2 font-bold text-sm transition-colors duration-200"
+              className="px-6 py-4 flex items-center justify-center gap-2 font-bold text-sm"
               style={{ backgroundColor: PRIMARY, color: '#fff' }}
             >
               Entrar al demo

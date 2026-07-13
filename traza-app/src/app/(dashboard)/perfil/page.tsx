@@ -237,7 +237,7 @@ export default function PerfilPage() {
 
   return (
     <div className="space-y-8">
-      <div className="traza-page-header">
+      <div id="demo-perfil-header" className="traza-page-header">
         <div>
           <h1 className="traza-page-title">Perfil Profesional</h1>
           <p className="traza-page-sub">Historial de desempeño basado en objetivos y validaciones.</p>
