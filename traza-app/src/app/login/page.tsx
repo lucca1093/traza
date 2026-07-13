@@ -212,6 +212,18 @@ export default function LoginPage() {
               >
                 Ingresar
               </Button>
+
+              <div className="text-center">
+                <a
+                  href="/recuperar-contrasena"
+                  className="text-xs"
+                  style={{ color: '#94A3B8', textDecoration: 'none' }}
+                  onMouseEnter={e => (e.currentTarget.style.color = '#3350D0')}
+                  onMouseLeave={e => (e.currentTarget.style.color = '#94A3B8')}
+                >
+                  ¿Olvidaste tu contraseña?
+                </a>
+              </div>
             </form>
           </div>
 
