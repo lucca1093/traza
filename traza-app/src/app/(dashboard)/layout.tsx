@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase-server'
 import Sidebar from '@/components/layout/Sidebar'
 import NotificationBell from '@/components/layout/NotificationBell'
+import DemoTour from '@/components/DemoTour'
 import type { Profile } from '@/types'
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -75,6 +76,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
           {children}
         </div>
       </main>
+
+      {/* Demo tour overlay — solo activo si hay demo_role en sessionStorage */}
+      <DemoTour />
     </div>
   )
 }

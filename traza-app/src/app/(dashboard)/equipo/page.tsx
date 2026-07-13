@@ -456,7 +456,7 @@ export default function EquipoPage() {
       })()}
 
       {/* Tabla del equipo */}
-      <div className="traza-card overflow-hidden">
+      <div id="demo-team-list" className="traza-card overflow-hidden">
         <div className="grid grid-cols-12 gap-2 px-5 py-3 text-xs font-semibold uppercase tracking-wider" style={{ color: '#94A3B8', backgroundColor: '#F8FAFC', borderBottom: '1px solid #E2E8F0' }}>
           <div className="col-span-3">Colaborador</div>
           <div className="col-span-2 text-center">Índice Traza</div>

@@ -249,7 +249,7 @@ export default function MiSemanaPage() {
     <div className="space-y-5">
 
       {/* ── Header ─────────────────────────────────────────── */}
-      <div className="traza-page-header">
+      <div id="demo-cierre-semanal" className="traza-page-header">
         <div>
           <h1 className="traza-page-title">Mi Semana</h1>
           <p className="traza-page-sub">

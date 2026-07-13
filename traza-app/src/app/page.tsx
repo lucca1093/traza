@@ -226,11 +226,11 @@ function Hero() {
           </p>
 
           <div className="fu3" style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center', marginBottom: 36 }}>
-            <Link href="/registro/empresa" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'white', color: BRAND, fontWeight: 800, fontSize: 15, borderRadius: 12, padding: '14px 28px', textDecoration: 'none', boxShadow: '0 4px 20px rgba(255,255,255,0.2)', transition: 'transform 0.15s, box-shadow 0.15s' }}
+            <Link href="/demo" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'white', color: BRAND, fontWeight: 800, fontSize: 15, borderRadius: 12, padding: '14px 28px', textDecoration: 'none', boxShadow: '0 4px 20px rgba(255,255,255,0.2)', transition: 'transform 0.15s, box-shadow 0.15s' }}
               onMouseEnter={e => { e.currentTarget.style.transform='translateY(-2px)'; e.currentTarget.style.boxShadow='0 8px 30px rgba(255,255,255,0.3)' }}
               onMouseLeave={e => { e.currentTarget.style.transform='translateY(0)'; e.currentTarget.style.boxShadow='0 4px 20px rgba(255,255,255,0.2)' }}
             >
-              Solicitar demo gratuita <ArrowRight size={15} />
+              Ver demo interactivo <ArrowRight size={15} />
             </Link>
             <Link href="/registro" style={{ display: 'inline-flex', alignItems: 'center', gap: 7, color: 'white', fontWeight: 600, fontSize: 14, border: '1.5px solid rgba(255,255,255,0.28)', borderRadius: 12, padding: '13px 22px', textDecoration: 'none', transition: 'background 0.15s, border-color 0.15s' }}
               onMouseEnter={e => { e.currentTarget.style.background='rgba(255,255,255,0.1)'; e.currentTarget.style.borderColor='rgba(255,255,255,0.45)' }}
@@ -471,7 +471,7 @@ function Features() {
               ))}
             </div>
             <div style={{ marginTop: 32, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-              <Link href="/registro/empresa" style={{ display: 'inline-flex', alignItems: 'center', gap: 7, background: f.color, color: 'white', fontWeight: 700, fontSize: 14, borderRadius: 10, padding: '11px 22px', textDecoration: 'none' }}>
+              <Link href="/demo" style={{ display: 'inline-flex', alignItems: 'center', gap: 7, background: f.color, color: 'white', fontWeight: 700, fontSize: 14, borderRadius: 10, padding: '11px 22px', textDecoration: 'none' }}>
                 Ver demo en vivo <ArrowRight size={14} />
               </Link>
               <Link href="/registro" style={{ display: 'inline-flex', alignItems: 'center', gap: 7, background: 'transparent', color: f.color, fontWeight: 600, fontSize: 14, borderRadius: 10, padding: '11px 20px', textDecoration: 'none', border: `1.5px solid ${f.color}40` }}>

@@ -206,7 +206,7 @@ export default function MiTrabajoPage() {
       )}
 
       {/* Header */}
-      <div className="traza-page-header">
+      <div id="demo-objetivos-header" className="traza-page-header">
         <div>
           <h1 className="traza-page-title">Mi Trabajo</h1>
           <p className="traza-page-sub">Tus objetivos y avances.</p>
@@ -524,7 +524,7 @@ export default function MiTrabajoPage() {
               </div>
             )
           ) : (
-            <div className="space-y-2">
+            <div id="demo-primer-objetivo" className="space-y-2">
               {activosOrdenados.map(obj => (
                 <ObjetivoCard key={obj.id} obj={obj} saving={saving}
                   onUpdate={updateEstado} onUpdateAuto={updateAutoevaluacion}

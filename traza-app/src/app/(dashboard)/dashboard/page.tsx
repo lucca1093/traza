@@ -97,7 +97,7 @@ export default async function DashboardPage() {
         <OnboardingChecklist />
 
         {/* ── Score personal ────────────────────────────────── */}
-        <div className="traza-card overflow-hidden">
+        <div id="demo-indice-card" className="traza-card overflow-hidden">
           <CardHeader
             title="Índice Traza"
             sub="Tu desempeño profesional verificado"
@@ -141,7 +141,7 @@ export default async function DashboardPage() {
 
         {/* ── CTA credencial pública ─────────────────────────── */}
         {persona?.traza_id && !sinDatos && (
-          <div style={{ borderRadius: 16, overflow: 'hidden', background: 'linear-gradient(135deg, #1C2B90 0%, #3350D0 100%)' }}>
+          <div id="demo-credencial-cta" style={{ borderRadius: 16, overflow: 'hidden', background: 'linear-gradient(135deg, #1C2B90 0%, #3350D0 100%)' }}>
             <div style={{ padding: '20px 20px 16px' }}>
               <p style={{ color: '#ffffff', fontWeight: 700, fontSize: 15, marginBottom: 4 }}>
                 Tu historial profesional te pertenece.
@@ -236,7 +236,7 @@ export default async function DashboardPage() {
         </div>
 
         {/* ── Métricas ───────────────────────────────────── */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div id="demo-metricas-equipo" className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <MetricCard icon="Users"       label="Colaboradores activos" value={totalPersonas ?? 0} />
           <MetricCard icon="Target"      label="Objetivos activos"     value={totalObjs - completados} />
           <MetricCard icon="CheckSquare" label="Completados"           value={completados} />
@@ -404,7 +404,7 @@ export default async function DashboardPage() {
         )}
 
         {/* ── Feed de actividad ─────────────────────────── */}
-        <div className="traza-card overflow-hidden">
+        <div id="demo-actividad-equipo" className="traza-card overflow-hidden">
           <CardHeader
             title="Actividad del equipo"
             sub="Avances registrados por colaboradores, del más reciente al más antiguo"

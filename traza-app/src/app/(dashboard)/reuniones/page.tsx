@@ -160,7 +160,7 @@ export default function ReunionesPage() {
 
   if (esIndependiente) return (
     <div className="space-y-6">
-      <div className="traza-page-header">
+      <div id="demo-reuniones-header" className="traza-page-header">
         <div>
           <h1 className="traza-page-title">Reuniones 1:1</h1>
           <p className="traza-page-sub">Conversaciones entre empleados y supervisores.</p>
@@ -182,7 +182,7 @@ export default function ReunionesPage() {
     <div className="space-y-6">
 
       {/* Header */}
-      <div className="traza-page-header">
+      <div id="demo-reuniones-header" className="traza-page-header">
         <div>
           <h1 className="traza-page-title">Reuniones 1:1</h1>
           <p className="traza-page-sub">

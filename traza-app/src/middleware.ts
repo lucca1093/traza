@@ -39,6 +39,8 @@ export async function middleware(request: NextRequest) {
     || request.nextUrl.pathname.startsWith('/confirmar-validacion')
     || request.nextUrl.pathname.startsWith('/feedback-cliente')
     || request.nextUrl.pathname.startsWith('/verificar-supervisor')
+    || request.nextUrl.pathname.startsWith('/demo')
+    || request.nextUrl.pathname.startsWith('/api/demo')
 
   // Si no hay sesión y trata de acceder al dashboard → redirigir a login
   if (!user && !isAuthRoute && !isPublicRoute) {

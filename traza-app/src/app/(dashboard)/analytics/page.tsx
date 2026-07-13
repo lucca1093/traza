@@ -239,7 +239,7 @@ export default function AnalyticsPage() {
 
   return (
     <div className="space-y-8">
-      <div className="traza-page-header">
+      <div id="demo-analytics-header" className="traza-page-header">
         <div>
           <h1 className="traza-page-title">Analytics</h1>
           <p className="traza-page-sub">Indicadores consolidados de desempeño organizacional.</p>
