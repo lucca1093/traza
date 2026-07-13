@@ -303,6 +303,7 @@ export default function ImprimirPage() {
   const [loading,   setLoading]   = useState(true)
   const [error,     setError]     = useState('')
   const [narrativa, setNarrativa] = useState('')
+  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null)
   const [data, setData] = useState<{
     persona:              any
     objetivos:            Objetivo[]
@@ -384,6 +385,21 @@ export default function ImprimirPage() {
     }
     load()
   }, [])
+
+  /* ─── QR real: fetch desde API pública, convertir a data URL para impresión ─── */
+  useEffect(() => {
+    if (!data?.persona?.traza_id) return
+    const verifyUrl = `https://traza.app/p/${data.persona.traza_id}`
+    const apiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(verifyUrl)}&color=1C2B90&bgcolor=FFFFFF&qzone=1&format=png`
+    fetch(apiUrl)
+      .then(r => r.blob())
+      .then(blob => {
+        const reader = new FileReader()
+        reader.onload = () => setQrDataUrl(reader.result as string)
+        reader.readAsDataURL(blob)
+      })
+      .catch(() => { /* mantiene el placeholder si falla */ })
+  }, [data?.persona?.traza_id])
 
   /* ─── Loading / Error ─── */
   if (loading) return (
@@ -1281,22 +1297,30 @@ export default function ImprimirPage() {
                 </div>
               </div>
 
-              {/* QR placeholder */}
+              {/* QR real */}
               <div style={{ flexShrink: 0, textAlign: 'center' }}>
-                <div style={{
-                  width: 80, height: 80, background: 'rgba(255,255,255,0.12)',
-                  borderRadius: 10, border: '1px solid rgba(255,255,255,0.2)',
-                  display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 2.5,
-                  padding: 8,
-                }}>
-                  {Array.from({ length: 49 }, (_, i) => (
-                    <div key={i} style={{
-                      borderRadius: 0.5,
-                      background: [0,1,2,3,4,5,6,7,13,14,20,21,27,28,34,35,41,42,43,44,45,46,47,48,8,15,22,12,19,26,33,40,10,24,38].includes(i)
-                        ? 'rgba(255,255,255,0.85)' : 'transparent',
-                    }} />
-                  ))}
-                </div>
+                {qrDataUrl ? (
+                  <img
+                    src={qrDataUrl}
+                    alt="QR de verificación"
+                    style={{ width: 80, height: 80, borderRadius: 8, display: 'block' }}
+                  />
+                ) : (
+                  <div style={{
+                    width: 80, height: 80, background: 'rgba(255,255,255,0.12)',
+                    borderRadius: 10, border: '1px solid rgba(255,255,255,0.2)',
+                    display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 2.5,
+                    padding: 8,
+                  }}>
+                    {Array.from({ length: 49 }, (_, i) => (
+                      <div key={i} style={{
+                        borderRadius: 0.5,
+                        background: [0,1,2,3,4,5,6,7,13,14,20,21,27,28,34,35,41,42,43,44,45,46,47,48,8,15,22,12,19,26,33,40,10,24,38].includes(i)
+                          ? 'rgba(255,255,255,0.85)' : 'transparent',
+                      }} />
+                    ))}
+                  </div>
+                )}
                 <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 7, marginTop: 5 }}>Verificar en línea</p>
                 {persona.traza_id && (
                   <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 7, marginTop: 2, fontFamily: 'monospace' }}>
