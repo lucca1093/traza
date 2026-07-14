@@ -5,7 +5,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import {
   LayoutDashboard, Building2, Users, Target, ClipboardList,
   CheckSquare, BarChart2, User, Award, FileText, LogOut, CalendarDays,
-  Flame, Search, MessageSquare, UsersRound,
+  Flame, Search, MessageSquare, UsersRound, X,
   type LucideIcon
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
@@ -21,6 +21,8 @@ const ICON_MAP: Record<string, LucideIcon> = {
 interface SidebarProps {
   profile: Profile
   empresaNombre?: string | null
+  isOpen?: boolean
+  onClose?: () => void
 }
 
 /* Z-mark — símbolo de traza */
@@ -43,7 +45,7 @@ function TrazaLogo() {
   )
 }
 
-export default function Sidebar({ profile, empresaNombre }: SidebarProps) {
+export default function Sidebar({ profile, empresaNombre, isOpen = false, onClose }: SidebarProps) {
   const pathname = usePathname()
   const router   = useRouter()
   const navItems = getNavForRole(profile.rol)
@@ -59,7 +61,8 @@ export default function Sidebar({ profile, empresaNombre }: SidebarProps) {
 
   return (
     <aside
-      className="fixed inset-y-0 left-0 z-50 w-64 flex flex-col"
+      className={`fixed inset-y-0 left-0 z-50 w-64 flex flex-col transition-transform duration-300 ease-in-out
+        ${isOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}
       style={{
         backgroundColor: '#0F172A',
         borderRight: '1px solid rgba(255,255,255,0.06)',
@@ -67,10 +70,10 @@ export default function Sidebar({ profile, empresaNombre }: SidebarProps) {
     >
       {/* ── Logo ──────────────────────────────────────────────── */}
       <div
-        className="px-5 py-5 flex-shrink-0"
+        className="px-5 py-5 flex-shrink-0 flex items-center justify-between"
         style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}
       >
-        <Link href="/dashboard" className="flex items-center gap-3 group">
+        <Link href="/dashboard" className="flex items-center gap-3 group" onClick={onClose}>
           <TrazaLogo />
           <div>
             <p
@@ -91,6 +94,18 @@ export default function Sidebar({ profile, empresaNombre }: SidebarProps) {
             </p>
           </div>
         </Link>
+
+        {/* Cerrar en mobile */}
+        {onClose && (
+          <button
+            onClick={onClose}
+            className="lg:hidden p-1.5 rounded-lg"
+            style={{ color: '#475569' }}
+            aria-label="Cerrar menú"
+          >
+            <X size={18} />
+          </button>
+        )}
       </div>
 
       {/* ── Empresa activa ────────────────────────────────────── */}
@@ -132,6 +147,7 @@ export default function Sidebar({ profile, empresaNombre }: SidebarProps) {
               <li key={item.href}>
                 <Link
                   href={item.href}
+                  onClick={onClose}
                   className={cn(
                     'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150',
                     isActive

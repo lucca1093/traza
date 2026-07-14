@@ -595,6 +595,54 @@ export default async function DashboardPage() {
         </div>
       </div>
 
+      {/* ── Estado vacío — primer acceso ───────────────── */}
+      {objs.length === 0 && (
+        <div
+          className="rounded-2xl overflow-hidden"
+          style={{ background: 'linear-gradient(135deg, #1C2B90 0%, #3350D0 100%)' }}
+        >
+          <div className="px-8 py-8">
+            <div className="flex items-start gap-5">
+              {/* Ícono */}
+              <div
+                className="flex-shrink-0 w-12 h-12 rounded-2xl flex items-center justify-center"
+                style={{ backgroundColor: 'rgba(255,255,255,0.15)' }}
+              >
+                <TrendingUp size={22} strokeWidth={2} style={{ color: '#fff' }} />
+              </div>
+              <div className="flex-1">
+                <h2
+                  className="text-lg font-bold text-white mb-1"
+                  style={{ fontFamily: DISPLAY, letterSpacing: '-0.02em' }}
+                >
+                  Empezá a construir tu historial profesional
+                </h2>
+                <p className="text-sm mb-6" style={{ color: '#BBC5F7', lineHeight: 1.6 }}>
+                  Tu Índice Traza se calcula en base a tus objetivos, validaciones y avances.
+                  Cargá tu primer objetivo para que tu manager pueda validarlo y tu score empiece a crecer.
+                </p>
+                <div className="flex flex-wrap gap-3">
+                  <Link
+                    href="/objetivos"
+                    className="inline-flex items-center gap-2 text-sm font-semibold px-5 py-2.5 rounded-xl transition-opacity"
+                    style={{ backgroundColor: '#fff', color: '#1C2B90' }}
+                  >
+                    <CheckCircle2 size={15} /> Cargar primer objetivo
+                  </Link>
+                  <Link
+                    href="/onboarding"
+                    className="inline-flex items-center gap-2 text-sm font-semibold px-5 py-2.5 rounded-xl transition-opacity"
+                    style={{ backgroundColor: 'rgba(255,255,255,0.15)', color: '#fff' }}
+                  >
+                    Ver guía de inicio →
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ── Métricas ───────────────────────────────────── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <MetricCard icon="Target"      label="Mis objetivos" value={indice.total}               />
