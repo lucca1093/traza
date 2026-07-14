@@ -84,7 +84,7 @@ export default function Sidebar({ profile, empresaNombre, isOpen = false, onClos
                 letterSpacing: '-0.02em',
               }}
             >
-              traza
+              TRAZA
             </p>
             <p
               className="text-xs mt-0.5 font-medium"
@@ -222,6 +222,25 @@ export default function Sidebar({ profile, empresaNombre, isOpen = false, onClos
             </p>
           </div>
         </div>
+
+        {/* Soporte */}
+        <Link
+          href="/soporte"
+          onClick={onClose}
+          className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm transition-all duration-150"
+          style={{ color: '#475569' }}
+          onMouseEnter={e => {
+            ;(e.currentTarget as HTMLElement).style.backgroundColor = 'rgba(255,255,255,0.05)'
+            ;(e.currentTarget as HTMLElement).style.color = '#94A3B8'
+          }}
+          onMouseLeave={e => {
+            ;(e.currentTarget as HTMLElement).style.backgroundColor = 'transparent'
+            ;(e.currentTarget as HTMLElement).style.color = '#475569'
+          }}
+        >
+          <MessageSquare size={15} strokeWidth={1.75} style={{ flexShrink: 0 }} />
+          <span>Soporte</span>
+        </Link>
 
         {/* Cerrar sesión */}
         <button
