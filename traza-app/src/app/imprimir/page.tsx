@@ -510,14 +510,29 @@ export default function ImprimirPage() {
       const element = document.getElementById('a4-document')
       const filename = `informe-traza-${persona.nombre}-${persona.apellido}.pdf`
         .toLowerCase().replace(/\s+/g, '-')
-      await (window as any).html2pdf().set({
-        margin: 0,
-        filename,
-        image:      { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true, logging: false },
-        jsPDF:      { unit: 'mm', format: 'a4', orientation: 'portrait' },
-        pagebreak:  { mode: ['css', 'legacy'] },
-      }).from(element).save()
+      await (window as any).html2pdf()
+        .set({
+          margin: 0,
+          filename,
+          image:       { type: 'jpeg', quality: 0.98 },
+          html2canvas: { scale: 2, useCORS: true, logging: false, windowWidth: 794, scrollY: 0 },
+          jsPDF:       { unit: 'mm', format: 'a4', orientation: 'portrait' },
+          pagebreak:   { mode: 'css', before: '.pb' },
+        })
+        .from(element)
+        .toPdf()
+        .get('pdf')
+        .then(function(pdf: any) {
+          // Eliminar última página si quedó en blanco
+          const total = pdf.internal.getNumberOfPages()
+          if (total > 1) {
+            const lastPage = pdf.internal.pages[total]
+            if (!lastPage || lastPage.length < 15) {
+              pdf.deletePage(total)
+            }
+          }
+        })
+        .save()
     } catch {
       // Fallback al diálogo de impresión si falla la descarga
       window.print()
