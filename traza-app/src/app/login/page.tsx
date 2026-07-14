@@ -163,7 +163,7 @@ export default function LoginPage() {
               Bienvenido
             </h2>
             <p className="text-sm mb-7" style={{ color: '#64748B' }}>
-              Ingresá con tu cuenta de empresa
+              Ingresá con tu cuenta de TRAZA
             </p>
 
             <form onSubmit={handleLogin} className="space-y-5">

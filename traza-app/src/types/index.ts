@@ -101,7 +101,7 @@ export interface IndiceTraza {
   evolucion: number       // Tendencia vs período anterior (0-100)
 }
 
-export type NivelTraza = 'Elite' | 'Avanzado' | 'Profesional' | 'Inicial'
+export type NivelTraza = 'Élite' | 'Avanzado' | 'Profesional' | 'Inicial'
 
 // ── TRAZA Autónomo ───────────────────────────────────────────
 // Índice calculado 100% desde comportamiento observable.

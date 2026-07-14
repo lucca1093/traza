@@ -11,7 +11,7 @@ type NivelFiltro = 'todos' | 'elite' | 'avanzado' | 'profesional' | 'inicial'
 
 const NIVEL_TABS: { key: NivelFiltro; label: string; color: string; min: number; max: number }[] = [
   { key: 'todos',       label: 'Todos',         color: '#6b7280', min: 0,  max: 100 },
-  { key: 'elite',       label: 'Elite  85+',    color: '#d97706', min: 85, max: 100 },
+  { key: 'elite',       label: 'Élite  85+',    color: '#d97706', min: 85, max: 100 },
   { key: 'avanzado',    label: 'Avanzado 65+',  color: '#3350D0', min: 65, max: 84  },
   { key: 'profesional', label: 'Profesional',   color: '#16a34a', min: 40, max: 64  },
   { key: 'inicial',     label: 'En desarrollo', color: '#9ca3af', min: 0,  max: 39  },

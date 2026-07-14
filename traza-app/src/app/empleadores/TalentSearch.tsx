@@ -29,7 +29,7 @@ export interface CandidatoPublico {
 
 // ── Helpers ───────────────────────────────────────────────────
 const NIVEL_COLOR: Record<string, { accent: string; bg: string; border: string; text: string }> = {
-  Elite:        { accent: '#f59e0b', bg: '#fffbeb', border: '#fde68a', text: '#92400e' },
+  Élite:        { accent: '#f59e0b', bg: '#fffbeb', border: '#fde68a', text: '#92400e' },
   Avanzado:     { accent: '#3350D0', bg: '#EDEFFD', border: '#BBC5F7', text: '#1C2B90' },
   Profesional:  { accent: '#16a34a', bg: '#f0fdf4', border: '#bbf7d0', text: '#14532d' },
   Inicial:      { accent: '#9ca3af', bg: '#f9fafb', border: '#e5e7eb', text: '#4b5563' },
@@ -37,7 +37,7 @@ const NIVEL_COLOR: Record<string, { accent: string; bg: string; border: string; 
 
 const SCORE_TABS = [
   { key: 'todos',       label: 'Todos',          min: 0,  max: 100 },
-  { key: 'elite',       label: 'Elite  85+',     min: 85, max: 100 },
+  { key: 'elite',       label: 'Élite  85+',     min: 85, max: 100 },
   { key: 'avanzado',    label: 'Avanzado 65+',   min: 65, max: 84  },
   { key: 'profesional', label: 'Profesional',    min: 40, max: 64  },
   { key: 'inicial',     label: 'En desarrollo',  min: 0,  max: 39  },
@@ -96,7 +96,7 @@ function PoolDistribution({ candidatos, onFilter }: { candidatos: CandidatoPubli
   const buckets = SCORE_TABS.filter(t => t.key !== 'todos').map(t => ({
     ...t,
     count: candidatos.filter(c => c.score >= t.min && c.score <= t.max).length,
-    color: NIVEL_COLOR[t.key === 'elite' ? 'Elite' : t.key === 'avanzado' ? 'Avanzado' : t.key === 'profesional' ? 'Profesional' : 'Inicial']?.accent ?? '#9ca3af',
+    color: NIVEL_COLOR[t.key === 'elite' ? 'Élite' : t.key === 'avanzado' ? 'Avanzado' : t.key === 'profesional' ? 'Profesional' : 'Inicial']?.accent ?? '#9ca3af',
   }))
   const max = Math.max(...buckets.map(b => b.count), 1)
 
@@ -372,7 +372,7 @@ export default function TalentSearch({ candidatos, areas, rubros }: { candidatos
         {SCORE_TABS.map(t => {
           const count  = t.key === 'todos' ? candidatos.length : candidatos.filter(c => c.score >= t.min && c.score <= t.max).length
           const active = tabKey === t.key
-          const color  = NIVEL_COLOR[t.key === 'elite' ? 'Elite' : t.key === 'avanzado' ? 'Avanzado' : t.key === 'profesional' ? 'Profesional' : 'Inicial']?.accent ?? '#6b7280'
+          const color  = NIVEL_COLOR[t.key === 'elite' ? 'Élite' : t.key === 'avanzado' ? 'Avanzado' : t.key === 'profesional' ? 'Profesional' : 'Inicial']?.accent ?? '#6b7280'
           return (
             <button key={t.key} onClick={() => setTabKey(t.key)}
               className="px-4 py-2 rounded-xl text-sm font-medium transition-all border"

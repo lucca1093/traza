@@ -309,7 +309,7 @@ export default async function EmpleadoresPage() {
             <div className="h-6 w-px bg-gray-200 hidden sm:block" />
             <div>
               <span className="text-2xl font-black" style={{ color: '#3350D0' }}>{pctAltoDesempeno}%</span>
-              <span className="text-sm text-gray-400 ml-2">con score Avanzado o Elite</span>
+              <span className="text-sm text-gray-400 ml-2">con score Avanzado o Élite</span>
             </div>
             <div className="ml-auto hidden lg:flex items-center gap-1.5 text-xs text-gray-400">
               <ShieldCheck size={12} className="text-blue-400" />

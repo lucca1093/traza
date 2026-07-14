@@ -194,7 +194,7 @@ export function calcularIndiceTraza(objetivos: Objetivo[], avances: any[] = [], 
 }
 
 function getNivel(score: number): NivelTraza {
-  if (score >= 85) return 'Elite'
+  if (score >= 85) return 'Élite'
   if (score >= 65) return 'Avanzado'
   if (score >= 40) return 'Profesional'
   return 'Inicial'
@@ -202,7 +202,7 @@ function getNivel(score: number): NivelTraza {
 
 function getBadge(nivel: NivelTraza): string {
   const badges: Record<NivelTraza, string> = {
-    Elite:        'Elite Performer',
+    Élite:        'Élite Performer',
     Avanzado:     'High Performer',
     Profesional:  'Growth Professional',
     Inicial:      'En Desarrollo',
@@ -216,7 +216,7 @@ function getBadge(nivel: NivelTraza): string {
 
 export function getNivelClasses(nivel: NivelTraza): string {
   const map: Record<NivelTraza, string> = {
-    Elite:       'bg-yellow-50 text-yellow-700 border-yellow-200',
+    Élite:       'bg-yellow-50 text-yellow-700 border-yellow-200',
     Avanzado:    'bg-traza-50 text-traza-700 border-traza-100',
     Profesional: 'bg-green-50 text-green-700 border-green-200',
     Inicial:     'bg-slate-50 text-slate-500 border-slate-200',
