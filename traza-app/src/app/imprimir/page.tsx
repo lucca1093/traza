@@ -300,9 +300,10 @@ function QuarterlyBars({ objetivos }: { objetivos: Objetivo[] }) {
 
 /* ─── Main ───────────────────────────────────────────────────────────── */
 export default function ImprimirPage() {
-  const [loading,   setLoading]   = useState(true)
-  const [error,     setError]     = useState('')
-  const [narrativa, setNarrativa] = useState('')
+  const [loading,     setLoading]     = useState(true)
+  const [error,       setError]       = useState('')
+  const [narrativa,   setNarrativa]   = useState('')
+  const [downloading, setDownloading] = useState(false)
   const [data, setData] = useState<{
     persona:              any
     objetivos:            Objetivo[]
@@ -492,6 +493,39 @@ export default function ImprimirPage() {
 
   const nombreCompleto = `${persona.nombre} ${persona.apellido}`
 
+  /* ─── Descarga directa de PDF ─── */
+  async function handleDownload() {
+    setDownloading(true)
+    try {
+      // Cargar html2pdf.js desde CDN si no está disponible
+      if (!(window as any).html2pdf) {
+        await new Promise<void>((resolve, reject) => {
+          const s = document.createElement('script')
+          s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js'
+          s.onload  = () => resolve()
+          s.onerror = () => reject(new Error('No se pudo cargar html2pdf'))
+          document.head.appendChild(s)
+        })
+      }
+      const element = document.getElementById('a4-document')
+      const filename = `informe-traza-${persona.nombre}-${persona.apellido}.pdf`
+        .toLowerCase().replace(/\s+/g, '-')
+      await (window as any).html2pdf().set({
+        margin: 0,
+        filename,
+        image:      { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true, logging: false },
+        jsPDF:      { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        pagebreak:  { mode: ['css', 'legacy'] },
+      }).from(element).save()
+    } catch {
+      // Fallback al diálogo de impresión si falla la descarga
+      window.print()
+    } finally {
+      setDownloading(false)
+    }
+  }
+
   /* ─── RENDER ─── */
   return (
     <>
@@ -530,16 +564,19 @@ export default function ImprimirPage() {
             color: 'rgba(255,255,255,0.8)', borderRadius: 8, padding: '6px 14px',
             fontSize: 12, cursor: 'pointer', fontFamily: 'inherit', fontWeight: 500,
           }}>← Volver</button>
-          <button onClick={() => window.print()} style={{
+          <button onClick={handleDownload} disabled={downloading} style={{
             background: '#fff', border: 'none', color: BRAND,
             borderRadius: 8, padding: '7px 18px', fontSize: 12, fontWeight: 800,
-            cursor: 'pointer', fontFamily: 'inherit',
-          }}>⬇ Descargar PDF</button>
+            cursor: downloading ? 'wait' : 'pointer', fontFamily: 'inherit',
+            opacity: downloading ? 0.7 : 1,
+          }}>
+            {downloading ? '⏳ Generando PDF…' : '⬇ Descargar PDF'}
+          </button>
         </div>
       </div>
 
       {/* ── Documento A4 ─────────────────────────────────────────────── */}
-      <div style={{
+      <div id="a4-document" style={{
         width: 794, margin: '52px auto 48px',
         fontFamily: "'Plus Jakarta Sans', Inter, system-ui, sans-serif",
         boxShadow: '0 8px 48px rgba(0,0,0,0.18)',

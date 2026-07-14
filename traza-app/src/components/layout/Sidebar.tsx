@@ -84,8 +84,8 @@ export default function Sidebar({ profile, empresaNombre, isOpen = false, onClos
                 letterSpacing: '-0.02em',
               }}
             >
-              TRAZA
-            </p>
+              traza
+</p>
             <p
               className="text-xs mt-0.5 font-medium"
               style={{ color: '#334155', letterSpacing: '0.02em' }}
