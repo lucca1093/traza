@@ -233,6 +233,12 @@ export default function LoginPage() {
               Registrarse
             </a>
           </p>
+
+          <p className="text-center text-xs mt-4" style={{ color: '#64748B' }}>
+            <a href="/politica-de-privacidad" style={{ color: '#64748B' }}>Privacidad</a>
+            {' · '}
+            <a href="/terminos-y-condiciones" style={{ color: '#64748B' }}>Términos</a>
+          </p>
         </div>
       </div>
     </div>

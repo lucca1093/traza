@@ -43,6 +43,8 @@ export async function middleware(request: NextRequest) {
     || request.nextUrl.pathname.startsWith('/api/demo')
     || request.nextUrl.pathname.startsWith('/recuperar-contrasena')
     || request.nextUrl.pathname.startsWith('/nueva-contrasena')
+    || request.nextUrl.pathname.startsWith('/politica-de-privacidad')
+    || request.nextUrl.pathname.startsWith('/terminos-y-condiciones')
 
   // Si no hay sesión y trata de acceder al dashboard → redirigir a login
   if (!user && !isAuthRoute && !isPublicRoute) {
