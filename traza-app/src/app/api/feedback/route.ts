@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase-server'
+import { requireAuth } from '@/lib/auth-helpers'
 
 export async function POST(req: NextRequest) {
+  const { error } = await requireAuth(['supervisor', 'admin', 'super_admin'])
+  if (error) return error
+
   try {
     const body = await req.json()
     const { action, ...data } = body
@@ -111,6 +115,9 @@ Redactá un párrafo de feedback constructivo, profesional y específico en espa
 }
 
 export async function GET(req: NextRequest) {
+  const { error } = await requireAuth()
+  if (error) return error
+
   try {
     const { searchParams } = new URL(req.url)
     const persona_id = searchParams.get('persona_id')

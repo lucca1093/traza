@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient, createClient } from '@/lib/supabase-server'
+import { requireAuth } from '@/lib/auth-helpers'
 
 function generarToken(len = 32): string {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789'
@@ -9,6 +10,9 @@ function generarToken(len = 32): string {
 }
 
 export async function POST(request: NextRequest) {
+  const { error: authError } = await requireAuth(['admin', 'super_admin'])
+  if (authError) return authError
+
   try {
     const userClient = createClient()
     const { data: { user } } = await userClient.auth.getUser()

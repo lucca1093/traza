@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { requireAuth } from '@/lib/auth-helpers'
 
 export async function POST(req: NextRequest) {
+  const { error } = await requireAuth()
+  if (error) return error
+
   try {
     const { nombre, apellido, cargo, area, score, moduloA, moduloB, moduloC, autonomo, cumplimiento, total, completados, positivos } = await req.json()
 

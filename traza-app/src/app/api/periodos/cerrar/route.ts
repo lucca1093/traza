@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient as createServerClient } from '@/lib/supabase-server'
 import { createClient } from '@supabase/supabase-js'
+import { requireAuth } from '@/lib/auth-helpers'
 
 function admin() {
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -35,6 +36,9 @@ function estadoGeneral(score: number, total: number): string {
 }
 
 export async function POST(req: NextRequest) {
+  const { error: authError } = await requireAuth(['admin', 'super_admin'])
+  if (authError) return authError
+
   const supabaseAuth = createServerClient()
   const { data: { user } } = await supabaseAuth.auth.getUser()
   if (!user) return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
