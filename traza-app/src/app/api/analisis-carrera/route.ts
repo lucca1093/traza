@@ -8,7 +8,7 @@ export async function POST(req: NextRequest) {
   try {
     const {
       nombre, cargo, area,
-      score, moduloA, moduloB, moduloC, alineacion, evolucion,
+      score, moduloA, moduloB, moduloC, alineacion, proactividad,
       total, completados, positivos, racha,
       objetivosRecientes,
     } = await req.json()
@@ -34,7 +34,7 @@ Datos del profesional:
 - Cumplimiento (Módulo B): ${moduloB}/100
 - Proactividad / constancia (Módulo C): ${moduloC}/100
 - Alineación autoevaluación-supervisor (Módulo D): ${alineacion}/100
-- Tendencia evolución (Módulo E): ${evolucion}/100
+- Proactividad / objetivos propios (Módulo E): ${proactividad}/100
 - Total objetivos: ${total} | Completados: ${completados} | Validados positivos: ${positivos}
 - Racha actual de semanas activas: ${racha ?? 0}
 

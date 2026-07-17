@@ -225,9 +225,9 @@ export default function BuscarTalentoPage() {
                       <span className="text-xs font-semibold text-gray-600 w-6 text-right">{indice.moduloC}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-xs text-gray-400 w-20 flex-shrink-0">Evolución</span>
-                      <MiniBar val={indice.evolucion} color="#d97706" />
-                      <span className="text-xs font-semibold text-gray-600 w-6 text-right">{indice.evolucion}</span>
+                      <span className="text-xs text-gray-400 w-20 flex-shrink-0">Proactividad</span>
+                      <MiniBar val={indice.proactividad} color="#d97706" />
+                      <span className="text-xs font-semibold text-gray-600 w-6 text-right">{indice.proactividad}</span>
                     </div>
                   </div>
                 </div>

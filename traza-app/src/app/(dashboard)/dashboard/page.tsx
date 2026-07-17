@@ -555,11 +555,11 @@ export default async function DashboardPage() {
   }
 
   const dimensiones = [
-    { key: 'A' as const, label: 'Validaciones', peso: 35, val: indice.moduloA    },
-    { key: 'B' as const, label: 'Cumplimiento', peso: 25, val: indice.moduloB    },
-    { key: 'C' as const, label: 'Regularidad',  peso: 20, val: indice.moduloC    },
-    { key: 'D' as const, label: 'Alineación',   peso: 10, val: indice.alineacion },
-    { key: 'E' as const, label: 'Tendencia',    peso: 10, val: indice.evolucion  },
+    { key: 'A' as const, label: 'Validación de Superiores', peso: 35, val: indice.moduloA      },
+    { key: 'B' as const, label: 'Cumplimiento',             peso: 25, val: indice.moduloB      },
+    { key: 'C' as const, label: 'Regularidad',              peso: 20, val: indice.moduloC      },
+    { key: 'D' as const, label: 'Alineación',               peso: 10, val: indice.alineacion   },
+    { key: 'E' as const, label: 'Proactividad',             peso: 10, val: indice.proactividad },
   ]
 
   const hoy14 = new Date(); hoy14.setDate(hoy14.getDate() + 14)

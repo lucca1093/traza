@@ -54,7 +54,7 @@ export default function CareerInsightsCard() {
           moduloB:   indice.moduloB,
           moduloC:   indice.moduloC,
           alineacion: indice.alineacion,
-          evolucion:  indice.evolucion,
+          proactividad: indice.proactividad,
           total:      indice.total,
           completados: indice.completados,
           positivos:  indice.positivos,

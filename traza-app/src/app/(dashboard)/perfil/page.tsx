@@ -366,11 +366,11 @@ export default function PerfilPage() {
             {/* Barras */}
             <div className="space-y-3">
               {[
-                { label: 'Resultados',   pct: '35%', val: indice.moduloA,   color: '#3350D0' },
-                { label: 'Cumplimiento', pct: '25%', val: indice.moduloB,   color: '#3350D0' },
-                { label: 'Proactividad', pct: '20%', val: indice.moduloC,   color: '#3350D0' },
-                { label: 'Alineación',   pct: '10%', val: indice.alineacion, color: '#0891b2' },
-                { label: 'Evolución',    pct: '10%', val: indice.evolucion,  color: '#d97706' },
+                { label: 'Validación de Superiores', pct: '35%', val: indice.moduloA,      color: '#3350D0' },
+                { label: 'Cumplimiento',             pct: '25%', val: indice.moduloB,      color: '#3350D0' },
+                { label: 'Regularidad',              pct: '20%', val: indice.moduloC,      color: '#3350D0' },
+                { label: 'Alineación',               pct: '10%', val: indice.alineacion,   color: '#0891b2' },
+                { label: 'Proactividad',             pct: '10%', val: indice.proactividad, color: '#d97706' },
               ].map(m => (
                 <div key={m.label}>
                   <div className="flex items-center justify-between mb-1">

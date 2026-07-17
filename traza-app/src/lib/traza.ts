@@ -42,7 +42,7 @@ export function cn(...inputs: ClassValue[]) {
 export function calcularIndiceTraza(objetivos: Objetivo[], avances: any[] = [], validacionesExternas: any[] = [], supervisorVerificado: boolean = true): IndiceTraza {
   // Sin objetivos → score 0 (no mostrar valores ficticios)
   if (objetivos.length === 0) {
-    return { score: 0, nivel: 'Inicial', badge: 'Sin datos', total: 0, completados: 0, positivos: 0, parciales: 0, negativos: 0, cumplimiento: 0, moduloA: 0, moduloB: 0, moduloC: 0, alineacion: 0, evolucion: 0 }
+    return { score: 0, nivel: 'Inicial', badge: 'Sin datos', total: 0, completados: 0, positivos: 0, parciales: 0, negativos: 0, cumplimiento: 0, moduloA: 0, moduloB: 0, moduloC: 0, alineacion: 0, proactividad: 0 }
   }
 
   const total       = objetivos.length
@@ -136,50 +136,23 @@ export function calcularIndiceTraza(objetivos: Objetivo[], avances: any[] = [], 
     alineacion = Math.round((alineados / conAmbas.length) * 100)
   }
 
-  // ── Módulo E: Evolución / tendencia (0–100) — peso 10% ────
-  const hoyMs   = hoy.getTime()
-  const hace90  = hoyMs - 90  * 24 * 60 * 60 * 1000
-  const hace180 = hoyMs - 180 * 24 * 60 * 60 * 1000
-
-  const miniScore = (objs: Objetivo[]) => {
-    if (objs.length === 0) return null
-    const comp = objs.filter(o => o.estado === 'Completado').length / objs.length
-    const pos  = objs.filter(o => o.validacion === 'De acuerdo').length / objs.length
-    return Math.round((comp * 0.5 + pos * 0.5) * 100)
-  }
-
-  const recientes  = objetivos.filter(o => {
-    const ref = o.fecha_limite ?? (o as any).created_at
-    if (!ref) return false
-    const t = new Date(ref).getTime()
-    return t >= hace90 && t <= hoyMs
-  })
-  const anteriores = objetivos.filter(o => {
-    const ref = o.fecha_limite ?? (o as any).created_at
-    if (!ref) return false
-    const t = new Date(ref).getTime()
-    return t >= hace180 && t < hace90
-  })
-
-  let evolucion = 50
-  const sReciente  = miniScore(recientes)
-  const sAnterior  = miniScore(anteriores)
-  if (sReciente !== null && sAnterior !== null && recientes.length >= 2 && anteriores.length >= 2) {
-    const delta = sReciente - sAnterior
-    if (delta >= 15)      evolucion = 100
-    else if (delta >= 5)  evolucion = 80
-    else if (delta >= -5) evolucion = 60
-    else if (delta >= -15) evolucion = 35
-    else                  evolucion = 15
+  // ── Módulo E: Proactividad (0–100) — peso 10% ─────────────
+  // Mide la capacidad del empleado de proponerse objetivos propios
+  // (tipo === 'Personal') en lugar de solo ejecutar los asignados.
+  const personales = objetivos.filter(o => o.tipo === 'Personal').length
+  let proactividad = 0
+  if (total > 0) {
+    // Recompensa tener al menos el 40% de objetivos propios = score 100
+    proactividad = Math.min(100, Math.round((personales / total) * 250))
   }
 
   // ── Score final ───────────────────────────────────────────
   let score = Math.round(
-    moduloA * 0.35 +
-    moduloB * 0.25 +
-    moduloC * 0.20 +
+    moduloA    * 0.35 +
+    moduloB    * 0.25 +
+    moduloC    * 0.20 +
     alineacion * 0.10 +
-    evolucion  * 0.10
+    proactividad * 0.10
   )
   score = Math.max(0, Math.min(100, score))
 
@@ -189,7 +162,7 @@ export function calcularIndiceTraza(objetivos: Objetivo[], avances: any[] = [], 
     score, nivel, badge: getBadge(nivel), cumplimiento,
     total, completados, positivos, parciales, negativos,
     moduloA, moduloB, moduloC,
-    alineacion, evolucion,
+    alineacion, proactividad,
   }
 }
 

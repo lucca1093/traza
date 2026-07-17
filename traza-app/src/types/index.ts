@@ -94,11 +94,11 @@ export interface IndiceTraza {
   parciales: number
   negativos: number
   // Módulos del Índice v3
-  moduloA: number         // Resultados validados (supervisores + admin + autoevaluación)
+  moduloA: number         // Validación de Superiores (supervisores + admin + autoevaluación)
   moduloB: number         // Cumplimiento (% objetivos vencidos completados)
-  moduloC: number         // Proactividad (regularidad de avances en plataforma)
+  moduloC: number         // Regularidad (constancia semanal de avances en plataforma)
   alineacion: number      // Alineación autoevaluación ↔ supervisor (0-100)
-  evolucion: number       // Tendencia vs período anterior (0-100)
+  proactividad: number    // Proactividad (% de objetivos propuestos por el empleado)
 }
 
 export type NivelTraza = 'Élite' | 'Avanzado' | 'Profesional' | 'Inicial'
