@@ -136,11 +136,11 @@ export default async function ValidarTokenPage({ params }: { params: { token: st
           <div className="px-5 pb-5 border-t border-gray-50 pt-4">
             <p className="text-sm text-gray-600 leading-relaxed">
               Te está pidiendo que valides el cumplimiento de uno de sus objetivos de trabajo.
-              Tu evaluación quedará registrada en su credencial traza con tu nombre y cargo.
+              Tu evaluación quedará registrada en su credencial TRAZA con tu nombre y cargo.
             </p>
             <p className="text-xs text-gray-400 mt-2 flex items-center gap-1.5">
               <ShieldCheck size={11} />
-              No necesitás tener cuenta en traza para validar.
+              No necesitás tener cuenta en TRAZA para validar.
             </p>
           </div>
         </div>

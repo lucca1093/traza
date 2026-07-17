@@ -95,7 +95,7 @@ export default function PoliticaPrivacidadPage() {
             <p>Utilizamos los datos recopilados para:</p>
             <ul className="list-disc pl-5 space-y-1">
               <li>Proveer y mantener la plataforma TRAZA.</li>
-              <li>Calcular tu Índice Traza y mostrarte tu historial de desempeño.</li>
+              <li>Calcular tu Índice TRAZA y mostrarte tu historial de desempeño.</li>
               <li>Permitir que supervisores y managers validen tus objetivos.</li>
               <li>Enviarte notificaciones relacionadas con tu cuenta y tus objetivos.</li>
               <li>Mejorar la experiencia de uso de la plataforma.</li>

@@ -78,7 +78,7 @@ export default function TerminosPage() {
             <ul className="list-disc pl-5 space-y-1">
               <li>Registrar objetivos profesionales y hacer seguimiento de su cumplimiento.</li>
               <li>Solicitar y recibir validaciones de supervisores y terceros.</li>
-              <li>Calcular un Índice Traza que refleja el desempeño verificado.</li>
+              <li>Calcular un Índice TRAZA que refleja el desempeño verificado.</li>
               <li>Generar y compartir una credencial profesional portátil.</li>
             </ul>
           </Section>
