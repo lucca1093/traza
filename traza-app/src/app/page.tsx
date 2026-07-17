@@ -78,11 +78,12 @@ function Navbar() {
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px', height: 68, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         {/* Logo */}
         <a href="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}>
-          <div style={{ width: 36, height: 36, borderRadius: 10, background: `linear-gradient(135deg,${BRAND},${PRIMARY})`, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 10px rgba(51,80,208,0.32)' }}>
-            <svg width="17" height="17" viewBox="0 0 17 17" fill="none">
-              <path d="M3 5.5h11M8.5 5.5V14" stroke="white" strokeWidth="2.3" strokeLinecap="round"/>
-            </svg>
-          </div>
+          <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="40" height="40" rx="10" fill="#1C2B90" />
+            <rect x="10" y="11.5" width="20" height="3" rx="1.5" fill="white" />
+            <path d="M 28 14.5 L 12 25.5" stroke="white" strokeWidth="2.5" strokeLinecap="round" />
+            <rect x="10" y="25.5" width="20" height="3" rx="1.5" fill="white" />
+          </svg>
           <span style={{ fontFamily: D, fontSize: 21, fontWeight: 900, color: scrolled ? BRAND : 'white', letterSpacing: '-0.5px', transition: 'color 0.22s' }}>traza</span>
         </a>
 
