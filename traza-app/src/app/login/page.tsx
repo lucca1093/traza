@@ -173,7 +173,7 @@ export default function LoginPage() {
                   type="email"
                   value={email}
                   onChange={e => setEmail(e.target.value)}
-                  placeholder="tu@empresa.com"
+                  placeholder="tu@mail.com"
                   required
                   className="traza-input"
                 />
