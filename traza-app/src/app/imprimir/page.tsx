@@ -891,7 +891,9 @@ export default function ImprimirPage() {
           {empresas.map((emp, empIdx) => {
             const p = emp.persona
             const empNom = p.empresa?.nombre ?? p.empresa_actual_nombre ?? 'Empresa'
-            const eIndice = calcularIndiceTraza(emp.objetivos, emp.avances)
+            const empObjIds = new Set(emp.objetivos.map(o => o.id))
+            const empValExt = validacionesExternas.filter((v: any) => empObjIds.has(v.objetivo_id))
+            const eIndice = calcularIndiceTraza(emp.objetivos, emp.avances, empValExt, p.supervisor_verificado ?? true)
             const activo  = p.empleo_activo === true
 
             return (
