@@ -56,10 +56,12 @@ export async function POST(req: NextRequest) {
     // Enviar email al supervisor
     const enlaceVerificacion = `${baseUrl}/verificar-supervisor/${token}`
 
+    const fromEmail = process.env.RESEND_FROM_EMAIL ?? 'TRAZA <noreply@traza.app>'
     await resend.emails.send({
-      from:    'TRAZA <noreply@traza.app>',
+      from:    fromEmail,
       to:      supervisor_email,
-      subject: `${nombreEmpleado} declaró que sos su supervisor en TRAZA`,
+      subject: `${nombreEmpleado} te agregó como supervisor en TRAZA`,
+      text:    `Hola${supervisor_nombre ? ` ${supervisor_nombre}` : ''},\n\n${nombreEmpleado} te declaró como su supervisor en TRAZA.\n\nConfirmá haciendo clic acá:\n${enlaceVerificacion}\n\nSi no conocés a esta persona, ignorá este mensaje. El link expira en 30 días.\n\n— TRAZA`,
       html: `
         <div style="font-family:Arial,sans-serif;max-width:520px;margin:0 auto;color:#0F172A">
           <div style="background:#1C2B90;padding:24px 32px;border-radius:12px 12px 0 0">

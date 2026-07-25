@@ -47,10 +47,12 @@ export async function POST(req: NextRequest) {
       const enlace = `${baseUrl}/feedback-cliente/${token}`
       const nombreEmpleado = persona ? `${persona.nombre} ${persona.apellido}` : 'tu colaborador'
 
+      const fromEmail = process.env.RESEND_FROM_EMAIL ?? 'TRAZA <noreply@traza.app>'
       await resend.emails.send({
-        from:    'TRAZA <noreply@traza.app>',
+        from:    fromEmail,
         to:      email_cliente,
-        subject: `${nombreEmpleado} te pide feedback sobre un objetivo`,
+        subject: `${nombreEmpleado} quiere saber tu opinión`,
+        text:    `Hola${nombre_cliente ? ` ${nombre_cliente}` : ''},\n\n${nombreEmpleado} te pide tu opinión sobre:\n"${objetivo?.titulo ?? 'un objetivo'}"\n\nSolo toma 1 minuto:\n${enlace}\n\nEl link expira en 30 días.\n\n— TRAZA`,
         html: `
           <div style="font-family:Arial,sans-serif;max-width:520px;margin:0 auto;color:#0F172A">
             <div style="background:#1C2B90;padding:24px 32px;border-radius:12px 12px 0 0">

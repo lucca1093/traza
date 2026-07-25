@@ -105,39 +105,60 @@ export async function POST(
         const urlConfirmacion = `${baseUrl}/api/confirmar-validacion/${tokenConfirmacion}`
         const tituloObjetivo = (tokenData.objetivo as any)?.titulo ?? 'un objetivo'
 
+        const fromEmail = process.env.RESEND_FROM_EMAIL ?? 'TRAZA <noreply@traza.app>'
         await resend.emails.send({
-          from: 'Traza <noreply@traza.app>',
+          from: fromEmail,
           to: email.trim(),
-          subject: 'Confirmá tu validación en Traza',
-          html: `
-            <div style="font-family: Arial, sans-serif; max-width: 560px; margin: 0 auto; padding: 40px 24px; color: #1a1a2e;">
-              <div style="margin-bottom: 32px;">
-                <span style="font-size: 22px; font-weight: 700; color: #1C2B90;">Z traza</span>
-              </div>
-
-              <h2 style="font-size: 20px; font-weight: 700; margin: 0 0 12px;">Confirmá tu validación</h2>
-              <p style="color: #4b5563; margin: 0 0 8px;">
-                Recibimos tu validación sobre <strong>${tituloObjetivo}</strong>.
-              </p>
-              <p style="color: #4b5563; margin: 0 0 32px;">
-                Para que sea verificada y cuente en el registro profesional de la persona, necesitamos confirmar que este email te pertenece.
-              </p>
-
-              <a href="${urlConfirmacion}"
-                style="display: inline-block; background: #1C2B90; color: #ffffff; text-decoration: none;
-                       padding: 14px 28px; border-radius: 8px; font-weight: 600; font-size: 15px;">
-                Confirmar mi validación
-              </a>
-
-              <p style="color: #9ca3af; font-size: 12px; margin-top: 40px;">
-                Si no realizaste esta validación podés ignorar este email. El link expira en 7 días.
-              </p>
-              <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;" />
-              <p style="color: #9ca3af; font-size: 11px; margin: 0;">
-                Traza · Performance Intelligence
-              </p>
-            </div>
-          `,
+          subject: `Confirmá tu evaluación sobre "${tituloObjetivo}"`,
+          text: `Hola,\n\nRecibimos tu evaluación sobre "${tituloObjetivo}".\n\nPara que quede registrada y verificada, hacé clic en el siguiente link:\n${urlConfirmacion}\n\nEl link expira en 7 días. Si no realizaste esta evaluación, podés ignorar este mensaje.\n\n— TRAZA`,
+          html: `<!DOCTYPE html>
+<html lang="es">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#F8FAFC;font-family:Arial,Helvetica,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#F8FAFC;padding:40px 16px;">
+  <tr><td align="center">
+    <table width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;border:1px solid #E2E8F0;overflow:hidden;max-width:560px;width:100%;">
+      <!-- Header -->
+      <tr><td style="background:#1C2B90;padding:24px 32px;">
+        <table cellpadding="0" cellspacing="0"><tr>
+          <td style="width:32px;height:32px;background:#ffffff;border-radius:7px;text-align:center;vertical-align:middle;">
+            <span style="font-size:18px;font-weight:900;color:#1C2B90;line-height:32px;">Z</span>
+          </td>
+          <td style="padding-left:10px;font-size:18px;font-weight:700;color:#ffffff;letter-spacing:-0.5px;">traza</td>
+        </tr></table>
+      </td></tr>
+      <!-- Body -->
+      <tr><td style="padding:36px 32px 28px;">
+        <p style="margin:0 0 6px;font-size:12px;font-weight:700;color:#3350D0;letter-spacing:0.08em;text-transform:uppercase;">Confirmación pendiente</p>
+        <h1 style="margin:0 0 16px;font-size:22px;font-weight:800;color:#0F172A;line-height:1.2;">Confirmá tu evaluación</h1>
+        <p style="margin:0 0 12px;font-size:15px;color:#475569;line-height:1.6;">
+          Recibimos tu evaluación sobre <strong style="color:#0F172A;">"${tituloObjetivo}"</strong>.
+        </p>
+        <p style="margin:0 0 28px;font-size:15px;color:#475569;line-height:1.6;">
+          Para que quede registrada y cuente en el historial profesional de la persona, necesitamos confirmar que este email te pertenece.
+        </p>
+        <table cellpadding="0" cellspacing="0"><tr><td>
+          <a href="${urlConfirmacion}" style="display:inline-block;background:#1C2B90;color:#ffffff;text-decoration:none;padding:14px 28px;border-radius:8px;font-size:15px;font-weight:700;">
+            Confirmar mi evaluación →
+          </a>
+        </td></tr></table>
+        <p style="margin:28px 0 0;font-size:13px;color:#94A3B8;line-height:1.5;">
+          O copiá este link en tu navegador:<br>
+          <span style="color:#3350D0;word-break:break-all;">${urlConfirmacion}</span>
+        </p>
+      </td></tr>
+      <!-- Footer -->
+      <tr><td style="padding:20px 32px;border-top:1px solid #F1F5F9;">
+        <p style="margin:0;font-size:12px;color:#94A3B8;line-height:1.6;">
+          Si no realizaste esta evaluación, ignorá este mensaje. El link expira en 7 días.<br>
+          <strong style="color:#64748B;">TRAZA</strong> · Performance Intelligence
+        </p>
+      </td></tr>
+    </table>
+  </td></tr>
+</table>
+</body>
+</html>`,
         })
       } catch (emailErr) {
         // El email falló pero la validación ya se guardó — no romper el flujo
