@@ -851,8 +851,8 @@ const PLANS = [
     monthly: 12, annual: 9,
     highlight: true,
     badge: 'Más popular',
-    cta: 'Solicitar demo',
-    ctaHref: '/registro/empresa',
+    cta: 'Contratar ahora',
+    ctaHref: '/checkout?plan=pro&period=annual',
     features: [
       'Hasta 100 usuarios',
       'Objetivos ilimitados',
