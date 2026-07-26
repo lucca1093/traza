@@ -132,28 +132,35 @@ function Navbar() {
         </button>
       </div>
 
-      {/* Mobile menu */}
-      <div className="lp-mobile-menu" style={{
-        display: 'none', flexDirection: 'column',
-        padding: '12px 24px 24px', gap: 4,
-        borderTop: '1px solid #E2E8F0',
-        background: 'rgba(255,255,255,0.97)',
-        ...(open ? {} : { display: 'none' }),
-      }}>
-        {links.map(n => (
-          <a key={n.label} href={n.href} onClick={() => setOpen(false)}
-            style={{ fontSize: 15, fontWeight: 500, color: '#374151', textDecoration: 'none', padding: '12px 4px', borderBottom: '1px solid #F1F5F9' }}
-          >{n.label}</a>
-        ))}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 12 }}>
-          <Link href="/login" onClick={() => setOpen(false)}
-            style={{ fontSize: 14, fontWeight: 600, color: '#374151', textDecoration: 'none', padding: '12px 16px', borderRadius: 10, border: '1.5px solid #E2E8F0', textAlign: 'center' }}
-          >Ingresar</Link>
-          <Link href="/registro/empresa" onClick={() => setOpen(false)}
-            style={{ fontSize: 14, fontWeight: 700, color: 'white', background: `linear-gradient(135deg,${BRAND},${PRIMARY})`, borderRadius: 10, padding: '13px 16px', textDecoration: 'none', textAlign: 'center' }}
-          >Solicitar demo</Link>
-        </div>
-      </div>
+      {/* Mobile menu + fondo oscuro */}
+      {open && (
+        <>
+          <div onClick={() => setOpen(false)} style={{
+            position: 'fixed', inset: 0, top: 68, zIndex: -1,
+            background: 'rgba(0,0,0,0.55)',
+          }} />
+          <div style={{
+            display: 'flex', flexDirection: 'column',
+            padding: '12px 24px 24px', gap: 4,
+            borderTop: '1px solid #E2E8F0',
+            background: 'white',
+          }}>
+            {links.map(n => (
+              <a key={n.label} href={n.href} onClick={() => setOpen(false)}
+                style={{ fontSize: 15, fontWeight: 500, color: '#374151', textDecoration: 'none', padding: '12px 4px', borderBottom: '1px solid #F1F5F9' }}
+              >{n.label}</a>
+            ))}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 12 }}>
+              <Link href="/login" onClick={() => setOpen(false)}
+                style={{ fontSize: 14, fontWeight: 600, color: '#374151', textDecoration: 'none', padding: '12px 16px', borderRadius: 10, border: '1.5px solid #E2E8F0', textAlign: 'center' }}
+              >Ingresar</Link>
+              <Link href="/registro/empresa" onClick={() => setOpen(false)}
+                style={{ fontSize: 14, fontWeight: 700, color: 'white', background: `linear-gradient(135deg,${BRAND},${PRIMARY})`, borderRadius: 10, padding: '13px 16px', textDecoration: 'none', textAlign: 'center' }}
+              >Solicitar demo</Link>
+            </div>
+          </div>
+        </>
+      )}
     </nav>
   )
 }
