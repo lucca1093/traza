@@ -362,7 +362,7 @@ export default async function DashboardPage() {
                   >
                     {c.persona?.nombre} {c.persona?.apellido}
                   </p>
-                  <div className="grid grid-cols-3 gap-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                     {c.que_avance && (
                       <div>
                         <p

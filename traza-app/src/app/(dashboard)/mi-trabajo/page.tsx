@@ -270,7 +270,7 @@ export default function MiTrabajoPage() {
               <label className="traza-label">Descripción</label>
               <textarea className="traza-input min-h-[80px] resize-none" value={form.descripcion} onChange={e => setForm(f => ({ ...f, descripcion: e.target.value }))} placeholder="Detalles del objetivo..." />
             </div>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
                 <label className="traza-label">Categoría</label>
                 <select className="traza-input" value={form.categoria} onChange={e => setForm(f => ({ ...f, categoria: e.target.value as CategoriaObjetivo }))}>
@@ -300,7 +300,7 @@ export default function MiTrabajoPage() {
             </div>
 
             {/* Evidencia + colaborador externo */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="traza-label flex items-center gap-1.5">
                   <Link2 size={12} className="text-gray-400" /> Evidencia (link)
@@ -384,7 +384,7 @@ export default function MiTrabajoPage() {
                     </p>
                   </div>
                   {dims.length > 0 && (
-                    <div className="grid grid-cols-5 gap-2">
+                    <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
                       {dims.map(d => (
                         <div key={d.label} className="text-center">
                           <p className="text-xs text-gray-400 mb-1">{d.label}</p>

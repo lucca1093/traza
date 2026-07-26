@@ -46,6 +46,19 @@ const CSS_ANIM = `
 .fu4 { animation: fadeUp 0.6s 0.38s ease both }
 .fu5 { animation: fadeUp 0.6s 0.48s ease both }
 .float{ animation: float 4.5s ease-in-out infinite }
+/* ── responsive ─────────────────────────────────── */
+.lp-hamburger { display:none }
+@media (max-width:767px) {
+  .lp-nav-desktop { display:none !important }
+  .lp-hamburger   { display:flex !important }
+  .lp-mobile-menu { display:flex !important }
+  .lp-mockup      { display:none !important }
+  .lp-2col        { grid-template-columns:1fr !important; gap:32px !important }
+  .lp-2col-inner  { grid-template-columns:1fr 1fr !important; gap:12px !important }
+  .lp-footer-cols { grid-template-columns:repeat(2,1fr) !important; gap:32px !important }
+  .lp-hero-copy   { min-width:100% !important; max-width:100% !important }
+  .lp-comparison  { overflow-x:auto }
+}
 `
 
 /* ══════════════════════════════════════════════════
@@ -70,9 +83,9 @@ function Navbar() {
   return (
     <nav style={{
       position: 'fixed', top: 0, left: 0, right: 0, zIndex: 300,
-      background: scrolled ? 'rgba(255,255,255,0.96)' : 'transparent',
-      backdropFilter: scrolled ? 'blur(18px)' : 'none',
-      borderBottom: scrolled ? '1px solid #E2E8F0' : 'none',
+      background: scrolled || open ? 'rgba(255,255,255,0.97)' : 'transparent',
+      backdropFilter: scrolled || open ? 'blur(18px)' : 'none',
+      borderBottom: scrolled || open ? '1px solid #E2E8F0' : 'none',
       transition: 'all 0.22s ease',
     }}>
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px', height: 68, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -84,11 +97,11 @@ function Navbar() {
             <path d="M 28 14.5 L 12 25.5" stroke="white" strokeWidth="2.5" strokeLinecap="round" />
             <rect x="10" y="25.5" width="20" height="3" rx="1.5" fill="white" />
           </svg>
-          <span style={{ fontFamily: D, fontSize: 21, fontWeight: 900, color: scrolled ? BRAND : 'white', letterSpacing: '-0.5px', transition: 'color 0.22s' }}>traza</span>
+          <span style={{ fontFamily: D, fontSize: 21, fontWeight: 900, color: scrolled || open ? BRAND : 'white', letterSpacing: '-0.5px', transition: 'color 0.22s' }}>traza</span>
         </a>
 
         {/* Desktop links */}
-        <div style={{ display: 'flex', gap: 30, alignItems: 'center' }}>
+        <div className="lp-nav-desktop" style={{ display: 'flex', gap: 30, alignItems: 'center' }}>
           {links.map(n => (
             <a key={n.label} href={n.href} style={{ fontSize: 14, fontWeight: 500, color: scrolled ? '#374151' : 'rgba(255,255,255,0.82)', textDecoration: 'none', transition: 'color 0.15s' }}
               onMouseEnter={e => (e.currentTarget.style.color = scrolled ? PRIMARY : 'white')}
@@ -97,8 +110,8 @@ function Navbar() {
           ))}
         </div>
 
-        {/* CTAs */}
-        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+        {/* Desktop CTAs */}
+        <div className="lp-nav-desktop" style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
           <Link href="/login" style={{ fontSize: 14, fontWeight: 500, color: scrolled ? '#374151' : 'rgba(255,255,255,0.82)', textDecoration: 'none', padding: '8px 14px', borderRadius: 8, transition: 'background 0.15s, color 0.15s' }}
             onMouseEnter={e => { e.currentTarget.style.background = scrolled ? '#F1F5F9' : 'rgba(255,255,255,0.1)' }}
             onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
@@ -106,6 +119,39 @@ function Navbar() {
           <Link href="/registro/empresa" style={{ fontSize: 14, fontWeight: 700, color: 'white', background: `linear-gradient(135deg,${BRAND},${PRIMARY})`, borderRadius: 10, padding: '9px 20px', textDecoration: 'none', boxShadow: '0 2px 10px rgba(51,80,208,0.3)', display: 'flex', alignItems: 'center', gap: 5 }}>
             Solicitar demo <ChevronRight size={13} />
           </Link>
+        </div>
+
+        {/* Hamburger — solo mobile */}
+        <button className="lp-hamburger" onClick={() => setOpen(o => !o)}
+          style={{ alignItems: 'center', justifyContent: 'center', width: 40, height: 40, borderRadius: 10, border: '1.5px solid', borderColor: open ? '#E2E8F0' : 'rgba(255,255,255,0.3)', background: 'transparent', cursor: 'pointer', color: open ? '#374151' : 'white', flexDirection: 'column', gap: 5 }}
+          aria-label="Menú"
+        >
+          <span style={{ display: 'block', width: 18, height: 2, background: 'currentColor', borderRadius: 2, transition: 'all 0.2s', transform: open ? 'rotate(45deg) translate(5px,5px)' : 'none' }} />
+          <span style={{ display: 'block', width: 18, height: 2, background: 'currentColor', borderRadius: 2, transition: 'all 0.2s', opacity: open ? 0 : 1 }} />
+          <span style={{ display: 'block', width: 18, height: 2, background: 'currentColor', borderRadius: 2, transition: 'all 0.2s', transform: open ? 'rotate(-45deg) translate(5px,-5px)' : 'none' }} />
+        </button>
+      </div>
+
+      {/* Mobile menu */}
+      <div className="lp-mobile-menu" style={{
+        display: 'none', flexDirection: 'column',
+        padding: '12px 24px 24px', gap: 4,
+        borderTop: '1px solid #E2E8F0',
+        background: 'rgba(255,255,255,0.97)',
+        ...(open ? {} : { display: 'none' }),
+      }}>
+        {links.map(n => (
+          <a key={n.label} href={n.href} onClick={() => setOpen(false)}
+            style={{ fontSize: 15, fontWeight: 500, color: '#374151', textDecoration: 'none', padding: '12px 4px', borderBottom: '1px solid #F1F5F9' }}
+          >{n.label}</a>
+        ))}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 12 }}>
+          <Link href="/login" onClick={() => setOpen(false)}
+            style={{ fontSize: 14, fontWeight: 600, color: '#374151', textDecoration: 'none', padding: '12px 16px', borderRadius: 10, border: '1.5px solid #E2E8F0', textAlign: 'center' }}
+          >Ingresar</Link>
+          <Link href="/registro/empresa" onClick={() => setOpen(false)}
+            style={{ fontSize: 14, fontWeight: 700, color: 'white', background: `linear-gradient(135deg,${BRAND},${PRIMARY})`, borderRadius: 10, padding: '13px 16px', textDecoration: 'none', textAlign: 'center' }}
+          >Solicitar demo</Link>
         </div>
       </div>
     </nav>
@@ -209,7 +255,7 @@ function Hero() {
 
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '80px 24px', display: 'flex', alignItems: 'center', gap: 64, flexWrap: 'wrap', width: '100%' }}>
         {/* Copy */}
-        <div style={{ flex: '1 1 480px', maxWidth: 580 }}>
+        <div className="lp-hero-copy" style={{ flex: '1 1 480px', maxWidth: 580 }}>
           <div className="fu" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.16)', borderRadius: 20, padding: '6px 14px', marginBottom: 28 }}>
             <Sparkles size={12} color="#A5B4FC" />
             <span style={{ fontSize: 12.5, fontWeight: 600, color: '#A5B4FC' }}>Performance Management · IA nativa · Nuevo</span>
@@ -251,8 +297,8 @@ function Hero() {
           </div>
         </div>
 
-        {/* Mockup */}
-        <div className="fu4 float" style={{ flex: '1 1 380px', display: 'flex', justifyContent: 'center' }}>
+        {/* Mockup — oculto en mobile */}
+        <div className="fu4 float lp-mockup" style={{ flex: '1 1 380px', display: 'flex', justifyContent: 'center' }}>
           <DashboardMock />
         </div>
       </div>
@@ -454,7 +500,7 @@ function Features() {
         </div>
 
         {/* Feature content */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 56, alignItems: 'center' }}>
+        <div className="lp-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 56, alignItems: 'center' }}>
           <div>
             <div style={{ width: 48, height: 48, borderRadius: 14, background: f.color+'14', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 22, color: f.color }}>
               {f.icon}
@@ -690,7 +736,7 @@ function AISection() {
     <section style={{ padding: '100px 24px', background: `linear-gradient(135deg, #0A0F2E 0%, ${BRAND} 50%, #1a3460 100%)`, position: 'relative', overflow: 'hidden' }} ref={ref}>
       <div style={{ position: 'absolute', top: '-20%', right: '-5%', width: 500, height: 500, borderRadius: '50%', background: 'radial-gradient(circle,rgba(51,80,208,0.2) 0%,transparent 70%)', pointerEvents: 'none' }} />
       <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 72, alignItems: 'center' }}>
+        <div className="lp-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 72, alignItems: 'center' }}>
           <div style={{ opacity: visible?1:0, transform: visible?'none':'translateY(24px)', transition: 'all 0.6s ease' }}>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(165,180,252,0.12)', border: '1px solid rgba(165,180,252,0.25)', borderRadius: 20, padding: '6px 14px', marginBottom: 24 }}>
               <Sparkles size={12} color="#A5B4FC" />
@@ -995,7 +1041,7 @@ function Security() {
   return (
     <section style={{ padding: '100px 24px', background: 'white' }} ref={ref}>
       <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 72, alignItems: 'center' }}>
+        <div className="lp-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 72, alignItems: 'center' }}>
           <div style={{ opacity: visible?1:0, transform: visible?'none':'translateY(24px)', transition: 'all 0.6s ease' }}>
             <p style={{ fontSize: 12, fontWeight: 700, color: PRIMARY, letterSpacing: '0.09em', marginBottom: 14 }}>SEGURIDAD</p>
             <h2 style={{ fontFamily: D, fontSize: 'clamp(28px,4vw,42px)', fontWeight: 900, color: '#0F172A', letterSpacing: '-0.025em', lineHeight: 1.1, marginBottom: 18 }}>
@@ -1183,12 +1229,15 @@ function Footer() {
     { title:'Producto', links:['Mi Trabajo','Mi Semana','Mi Equipo','Validación','Analytics','Reuniones 1:1','IA y Análisis','Credencial pública'] },
     { title:'Empresa', links:['Sobre TRAZA','Blog','Changelog','Status'] },
     { title:'Recursos', links:['Documentación','API Reference','Guía de inicio rápido','Casos de éxito'] },
-    { title:'Legal', links:['Política de privacidad','Términos de uso','Seguridad','GDPR','Cookies'] },
+    { title:'Legal', links:[
+      { label:'Política de privacidad', href:'/politica-de-privacidad' },
+      { label:'Términos de uso',        href:'/terminos-y-condiciones' },
+    ]},
   ]
   return (
     <footer style={{ background: '#060B1A', padding: '64px 24px 32px' }}>
       <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr 1fr 1fr 1fr', gap: 40, marginBottom: 56 }}>
+        <div className="lp-footer-cols" style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr 1fr 1fr 1fr', gap: 40, marginBottom: 56 }}>
           {/* Brand */}
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
@@ -1220,12 +1269,16 @@ function Footer() {
           {cols.map(col => (
             <div key={col.title}>
               <p style={{ fontSize: 11, fontWeight: 700, color: '#374151', letterSpacing: '0.07em', marginBottom: 18 }}>{col.title.toUpperCase()}</p>
-              {col.links.map(l => (
-                <a key={l} href="#" style={{ display: 'block', fontSize: 13.5, color: '#475569', textDecoration: 'none', marginBottom: 10, transition: 'color 0.15s' }}
-                  onMouseEnter={e => (e.currentTarget.style.color='white')}
-                  onMouseLeave={e => (e.currentTarget.style.color='#475569')}
-                >{l}</a>
-              ))}
+              {col.links.map((l: any) => {
+                const label = typeof l === 'string' ? l : l.label
+                const href  = typeof l === 'string' ? '#' : l.href
+                return (
+                  <a key={label} href={href} style={{ display: 'block', fontSize: 13.5, color: '#475569', textDecoration: 'none', marginBottom: 10, transition: 'color 0.15s' }}
+                    onMouseEnter={e => (e.currentTarget.style.color='white')}
+                    onMouseLeave={e => (e.currentTarget.style.color='#475569')}
+                  >{label}</a>
+                )
+              })}
             </div>
           ))}
         </div>
@@ -1233,11 +1286,15 @@ function Footer() {
         <div style={{ borderTop: '1px solid #111827', paddingTop: 24, display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, alignItems: 'center' }}>
           <p style={{ fontSize: 12.5, color: '#334155' }}>© 2026 TRAZA. Todos los derechos reservados.</p>
           <div style={{ display: 'flex', gap: 20 }}>
-            {['Privacidad','Términos','Cookies'].map(l => (
-              <a key={l} href="#" style={{ fontSize: 12.5, color: '#334155', textDecoration: 'none', transition: 'color 0.15s' }}
+            {[
+              { label:'Privacidad', href:'/politica-de-privacidad' },
+              { label:'Términos',   href:'/terminos-y-condiciones' },
+              { label:'Cookies',    href:'#' },
+            ].map(l => (
+              <a key={l.label} href={l.href} style={{ fontSize: 12.5, color: '#334155', textDecoration: 'none', transition: 'color 0.15s' }}
                 onMouseEnter={e => (e.currentTarget.style.color='white')}
                 onMouseLeave={e => (e.currentTarget.style.color='#334155')}
-              >{l}</a>
+              >{l.label}</a>
             ))}
           </div>
           <p style={{ fontSize: 12, color: '#1E293B' }}>Construido en Argentina. Para equipos de todo el mundo.</p>
