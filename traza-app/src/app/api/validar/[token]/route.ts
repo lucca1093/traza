@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase-server'
 import { Resend } from 'resend'
+import { checkRateLimit, getIP } from '@/lib/rate-limit'
 
 const DOMINIOS_PERSONALES = new Set([
   'gmail.com','hotmail.com','yahoo.com','outlook.com','live.com','icloud.com',
@@ -24,6 +25,11 @@ export async function POST(
   request: NextRequest,
   { params }: { params: { token: string } }
 ) {
+  // Máx 5 validaciones por IP por hora
+  if (!checkRateLimit(getIP(request), 'validar', 5, 60 * 60 * 1000)) {
+    return NextResponse.json({ error: 'Demasiadas solicitudes. Intentá de nuevo en un rato.' }, { status: 429 })
+  }
+
   try {
     const admin = createAdminClient()
     const { token } = params

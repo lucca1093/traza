@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { checkRateLimit, getIP } from '@/lib/rate-limit'
 import { MercadoPagoConfig, Preference } from 'mercadopago'
 
 const client = new MercadoPagoConfig({ accessToken: process.env.MP_ACCESS_TOKEN! })
@@ -16,6 +17,11 @@ const LABELS: Record<string, Record<string, string>> = {
 }
 
 export async function POST(req: NextRequest) {
+  // Máx 10 intentos de pago por IP por hora
+  if (!checkRateLimit(getIP(req), 'checkout', 10, 60 * 60 * 1000)) {
+    return NextResponse.json({ error: 'Demasiadas solicitudes. Intentá de nuevo en un rato.' }, { status: 429 })
+  }
+
   try {
     const { plan, period, empresa, email, seats } = await req.json()
 

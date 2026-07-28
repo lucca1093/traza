@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { checkRateLimit, getIP } from '@/lib/rate-limit'
 
 function admin() {
   // Usa service role si está disponible (bypassa RLS), si no usa anon key
@@ -75,6 +76,11 @@ export async function GET(_req: NextRequest, { params }: { params: { token: stri
 
 // POST /api/colaborar/[token] — agrega un avance
 export async function POST(req: NextRequest, { params }: { params: { token: string } }) {
+  // Máx 20 avances por IP por hora
+  if (!checkRateLimit(getIP(req), 'colaborar', 20, 60 * 60 * 1000)) {
+    return NextResponse.json({ error: 'Demasiadas solicitudes. Intentá de nuevo en un rato.' }, { status: 429 })
+  }
+
   const supabase = admin()
   const { contenido, tipo } = await req.json()
 
