@@ -3,115 +3,88 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import Button from '@/components/ui/Button'
-import { Mail } from 'lucide-react'
-import type { Persona, Empresa } from '@/types'
+import { Mail, UserCheck, UserX, ShieldCheck, ChevronDown } from 'lucide-react'
+
+const ROL_LABEL: Record<string, string> = {
+  empleado:    'Empleado',
+  supervisor:  'Supervisor',
+  admin:       'Admin',
+  super_admin: 'Super Admin',
+}
+
+const ROL_COLOR: Record<string, string> = {
+  empleado:    '#64748B',
+  supervisor:  '#3350D0',
+  admin:       '#7C3AED',
+  super_admin: '#B91C1C',
+}
 
 export default function PersonasPage() {
-  const [personas, setPersonas]   = useState<Persona[]>([])
-  const [empresas, setEmpresas]   = useState<Empresa[]>([])
-  const [loading, setLoading]     = useState(false)
-  const [success, setSuccess]     = useState(false)
-  const [editId, setEditId]       = useState<string | null>(null)
-  const [error, setError]         = useState<string | null>(null)
-  const [myEmpresaId, setMyEmpresaId] = useState<string>('')
-
-  // Formulario persona
-  const [form, setForm] = useState({
-    empresa_id: '',
-    nombre: '',
-    apellido: '',
-    cargo: '',
-    area: '',
-  })
+  const [personas,    setPersonas]    = useState<any[]>([])
+  const [profiles,    setProfiles]    = useState<Record<string, string>>({}) // user_id → rol
+  const [myRol,       setMyRol]       = useState('')
+  const [myEmpresaId, setMyEmpresaId] = useState('')
+  const [loading,     setLoading]     = useState(true)
 
   // Formulario invitación
-  const [showInvite, setShowInvite]     = useState(false)
+  const [showInvite,    setShowInvite]    = useState(false)
   const [inviteLoading, setInviteLoading] = useState(false)
   const [inviteSuccess, setInviteSuccess] = useState(false)
-  const [inviteError, setInviteError]   = useState<string | null>(null)
+  const [inviteError,   setInviteError]   = useState<string | null>(null)
   const [invite, setInvite] = useState({
-    email: '',
-    nombre: '',
-    apellido: '',
-    cargo: '',
-    area: '',
-    rol: 'empleado',
+    email: '', nombre: '', apellido: '', cargo: '', area: '', rol: 'empleado',
   })
+
+  // Acciones inline
+  const [accionando, setAccionando] = useState<string | null>(null)
+  const [tab, setTab] = useState<'activos' | 'bajas'>('activos')
 
   async function fetchData() {
     const { data: { user } } = await supabase.auth.getUser()
-    const { data: profile } = await supabase.from('profiles').select('empresa_id, rol').eq('id', user!.id).single()
-    const miEmpresaId = profile?.empresa_id ?? ''
-    setMyEmpresaId(miEmpresaId)
+    const { data: profile }  = await supabase.from('profiles').select('empresa_id, rol').eq('id', user!.id).single()
+    const empresaId = profile?.empresa_id ?? ''
+    setMyEmpresaId(empresaId)
+    setMyRol(profile?.rol ?? 'empleado')
 
-    const [{ data: ps }, { data: es }] = await Promise.all([
-      supabase.from('personas').select('*').order('apellido'),
-      supabase.from('empresas').select('*').order('nombre'),
-    ])
-    if (ps) setPersonas(ps)
-    if (es) setEmpresas(es)
-    setForm(f => ({ ...f, empresa_id: miEmpresaId || es?.[0]?.id || '' }))
+    // Personas de la empresa (todas, activas e inactivas)
+    const { data: ps } = await supabase
+      .from('personas')
+      .select('*')
+      .eq('empresa_id', empresaId)
+      .order('apellido')
+
+    setPersonas(ps ?? [])
+
+    // Roles actuales de los que tienen acceso
+    const conAcceso = (ps ?? []).filter(p => p.user_id).map(p => p.user_id)
+    if (conAcceso.length > 0) {
+      const { data: profs } = await supabase
+        .from('profiles')
+        .select('id, rol')
+        .in('id', conAcceso)
+      const map: Record<string, string> = {}
+      ;(profs ?? []).forEach(p => { map[p.id] = p.rol })
+      setProfiles(map)
+    }
+
+    setLoading(false)
   }
 
   useEffect(() => { fetchData() }, [])
-
-  function resetForm() {
-    setForm({ empresa_id: empresas[0]?.id ?? '', nombre: '', apellido: '', cargo: '', area: '' })
-    setEditId(null)
-  }
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    if (!form.nombre.trim() || !form.apellido.trim()) return
-    setLoading(true)
-    setError(null)
-
-    const empresaId = myEmpresaId || form.empresa_id
-    const payload = {
-      empresa_id: empresaId,
-      nombre:     form.nombre.trim(),
-      apellido:   form.apellido.trim(),
-      cargo:      form.cargo.trim() || null,
-      area:       form.area.trim() || null,
-    }
-
-    let err = null
-    if (editId) {
-      const { error: e } = await supabase.from('personas').update(payload).eq('id', editId)
-      err = e
-    } else {
-      const { error: e } = await supabase.from('personas').insert(payload)
-      err = e
-    }
-
-    if (err) { setError(`Error: ${err.message}`); setLoading(false); return }
-
-    setSuccess(true)
-    setTimeout(() => setSuccess(false), 3000)
-    resetForm()
-    await fetchData()
-    setLoading(false)
-  }
 
   async function handleInvite(e: React.FormEvent) {
     e.preventDefault()
     setInviteLoading(true)
     setInviteError(null)
-    setInviteSuccess(false)
 
-    const res = await fetch('/api/invite', {
-      method: 'POST',
+    const res  = await fetch('/api/invite', {
+      method:  'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(invite),
+      body:    JSON.stringify(invite),
     })
-
     const data = await res.json()
 
-    if (!res.ok) {
-      setInviteError(data.error ?? 'Error al enviar la invitación')
-      setInviteLoading(false)
-      return
-    }
+    if (!res.ok) { setInviteError(data.error ?? 'Error al enviar la invitación'); setInviteLoading(false); return }
 
     setInviteSuccess(true)
     setInvite({ email: '', nombre: '', apellido: '', cargo: '', area: '', rol: 'empleado' })
@@ -120,164 +93,238 @@ export default function PersonasPage() {
     setInviteLoading(false)
   }
 
-  function handleEdit(p: Persona) {
-    setForm({ empresa_id: p.empresa_id, nombre: p.nombre, apellido: p.apellido, cargo: p.cargo ?? '', area: p.area ?? '' })
-    setEditId(p.id)
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+  async function accion(personaId: string, action: string, nuevoRol?: string) {
+    setAccionando(personaId + action)
+    const res = await fetch('/api/admin/persona', {
+      method:  'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ action, persona_id: personaId, nuevo_rol: nuevoRol }),
+    })
+    if (res.ok) await fetchData()
+    else {
+      const d = await res.json()
+      alert(d.error ?? 'Error')
+    }
+    setAccionando(null)
   }
 
-  async function handleDelete(id: string) {
-    if (!confirm('¿Eliminar esta persona?')) return
-    await supabase.from('personas').delete().eq('id', id)
-    fetchData()
-  }
+  const activos = personas.filter(p => p.empleo_activo !== false)
+  const inactivos = personas.filter(p => p.empleo_activo === false)
+  const lista = tab === 'activos' ? activos : inactivos
 
-  if (empresas.length === 0) {
-    return (
-      <div className="traza-card p-12 text-center text-gray-400">
-        <p>Primero creá una empresa en la sección <strong>Empresas</strong>.</p>
-      </div>
-    )
-  }
+  if (loading) return <div className="py-16 text-center text-sm text-gray-400">Cargando...</div>
+
+  const esAdmin = ['admin', 'super_admin'].includes(myRol)
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <div className="traza-page-header">
         <div>
-          <h1 className="traza-page-title">Personas</h1>
-          <p className="traza-page-sub">Administrá los colaboradores de cada empresa.</p>
+          <h1 className="traza-page-title">Mi Equipo</h1>
+          <p className="traza-page-sub">Gestioná roles y accesos de tu empresa.</p>
         </div>
-        <Button onClick={() => setShowInvite(!showInvite)}>
-          <Mail size={15} strokeWidth={1.75} className="mr-2" />
-          {showInvite ? 'Cancelar' : 'Invitar usuario'}
-        </Button>
+        {esAdmin && (
+          <Button onClick={() => setShowInvite(!showInvite)}>
+            <Mail size={15} strokeWidth={1.75} className="mr-2" />
+            {showInvite ? 'Cancelar' : 'Invitar persona'}
+          </Button>
+        )}
       </div>
 
       {/* Formulario invitación */}
-      {showInvite && (
-        <div className="traza-card p-6 border-traza-200">
-          <h2 className="text-base font-semibold text-gray-900 mb-1">Invitar nuevo usuario</h2>
-          <p className="text-sm text-gray-500 mb-5">Le llegará un email con link para crear su contraseña.</p>
+      {showInvite && esAdmin && (
+        <div className="traza-card p-6">
+          <h2 className="text-base font-semibold text-gray-900 mb-1">Invitar nueva persona</h2>
+          <p className="text-sm text-gray-500 mb-5">Le va a llegar un email con un link para crear su contraseña.</p>
           <form onSubmit={handleInvite} className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="md:col-span-2">
               <label className="traza-label">Email *</label>
-              <input
-                type="email"
-                className="traza-input"
-                value={invite.email}
+              <input type="email" className="traza-input" value={invite.email}
                 onChange={e => setInvite(f => ({ ...f, email: e.target.value }))}
-                placeholder="usuario@empresa.com"
-                required
-              />
+                placeholder="usuario@empresa.com" required />
             </div>
             <div>
               <label className="traza-label">Nombre *</label>
-              <input className="traza-input" value={invite.nombre} onChange={e => setInvite(f => ({ ...f, nombre: e.target.value }))} placeholder="Nombre" required />
+              <input className="traza-input" value={invite.nombre}
+                onChange={e => setInvite(f => ({ ...f, nombre: e.target.value }))} placeholder="Nombre" required />
             </div>
             <div>
               <label className="traza-label">Apellido *</label>
-              <input className="traza-input" value={invite.apellido} onChange={e => setInvite(f => ({ ...f, apellido: e.target.value }))} placeholder="Apellido" required />
+              <input className="traza-input" value={invite.apellido}
+                onChange={e => setInvite(f => ({ ...f, apellido: e.target.value }))} placeholder="Apellido" required />
             </div>
             <div>
               <label className="traza-label">Cargo</label>
-              <input className="traza-input" value={invite.cargo} onChange={e => setInvite(f => ({ ...f, cargo: e.target.value }))} placeholder="Analista, Gerente..." />
+              <input className="traza-input" value={invite.cargo}
+                onChange={e => setInvite(f => ({ ...f, cargo: e.target.value }))} placeholder="Analista, Gerente..." />
             </div>
             <div>
               <label className="traza-label">Área</label>
-              <input className="traza-input" value={invite.area} onChange={e => setInvite(f => ({ ...f, area: e.target.value }))} placeholder="RRHH, Tecnología..." />
+              <input className="traza-input" value={invite.area}
+                onChange={e => setInvite(f => ({ ...f, area: e.target.value }))} placeholder="RRHH, Tecnología..." />
             </div>
             <div>
-              <label className="traza-label">Rol *</label>
-              <select className="traza-input" value={invite.rol} onChange={e => setInvite(f => ({ ...f, rol: e.target.value }))}>
+              <label className="traza-label">Rol inicial</label>
+              <select className="traza-input" value={invite.rol}
+                onChange={e => setInvite(f => ({ ...f, rol: e.target.value }))}>
                 <option value="empleado">Empleado</option>
                 <option value="supervisor">Supervisor</option>
                 <option value="admin">Admin</option>
               </select>
             </div>
-            <div className="md:col-span-2 flex items-center gap-3 flex-wrap">
+            <div className="md:col-span-2 flex items-center gap-3">
               <Button type="submit" loading={inviteLoading}>Enviar invitación</Button>
-              {inviteSuccess && <p className="text-green-600 text-sm">Invitación enviada correctamente</p>}
-              {inviteError && <p className="text-red-600 text-sm">{inviteError}</p>}
+              {inviteSuccess && <p className="text-green-600 text-sm">Invitación enviada</p>}
+              {inviteError   && <p className="text-red-600   text-sm">{inviteError}</p>}
             </div>
           </form>
         </div>
       )}
 
-      {/* Formulario persona */}
-      <div className="traza-card p-6">
-        <h2 className="text-base font-semibold text-gray-900 mb-5">
-          {editId ? 'Editar persona' : 'Nueva persona (sin acceso al sistema)'}
-        </h2>
-        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="traza-label">Empresa *</label>
-            <select className="traza-input" value={form.empresa_id} onChange={e => setForm(f => ({ ...f, empresa_id: e.target.value }))} required>
-              {empresas.map(e => <option key={e.id} value={e.id}>{e.nombre}</option>)}
-            </select>
-          </div>
-          <div>
-            <label className="traza-label">Nombre *</label>
-            <input className="traza-input" value={form.nombre} onChange={e => setForm(f => ({ ...f, nombre: e.target.value }))} placeholder="Nombre" required />
-          </div>
-          <div>
-            <label className="traza-label">Apellido *</label>
-            <input className="traza-input" value={form.apellido} onChange={e => setForm(f => ({ ...f, apellido: e.target.value }))} placeholder="Apellido" required />
-          </div>
-          <div>
-            <label className="traza-label">Cargo</label>
-            <input className="traza-input" value={form.cargo} onChange={e => setForm(f => ({ ...f, cargo: e.target.value }))} placeholder="Gerente, Analista..." />
-          </div>
-          <div>
-            <label className="traza-label">Área</label>
-            <input className="traza-input" value={form.area} onChange={e => setForm(f => ({ ...f, area: e.target.value }))} placeholder="RRHH, Tecnología..." />
-          </div>
-          <div className="md:col-span-2 flex items-center gap-3 flex-wrap">
-            <Button type="submit" loading={loading}>{editId ? 'Guardar cambios' : 'Guardar persona'}</Button>
-            {editId && <Button type="button" variant="ghost" onClick={resetForm}>Cancelar</Button>}
-            {success && <p className="text-green-600 text-sm">Guardado correctamente</p>}
-            {error && <p className="text-red-600 text-sm">{error}</p>}
-          </div>
-        </form>
+      {/* Stats */}
+      <div className="grid grid-cols-3 gap-3">
+        <div className="traza-card p-4 text-center">
+          <p className="text-2xl font-bold text-gray-900">{activos.length}</p>
+          <p className="text-xs text-gray-500 mt-0.5">Activos</p>
+        </div>
+        <div className="traza-card p-4 text-center">
+          <p className="text-2xl font-bold text-gray-900">{activos.filter(p => p.user_id).length}</p>
+          <p className="text-xs text-gray-500 mt-0.5">Con acceso</p>
+        </div>
+        <div className="traza-card p-4 text-center">
+          <p className="text-2xl font-bold" style={{ color: inactivos.length > 0 ? '#EF4444' : '#CBD5E1' }}>{inactivos.length}</p>
+          <p className="text-xs text-gray-500 mt-0.5">Dados de baja</p>
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <div className="traza-tabs w-fit">
+        <button onClick={() => setTab('activos')} className={`traza-tab ${tab === 'activos' ? 'active' : ''}`}>
+          Activos <span className="ml-1 text-xs text-gray-400">({activos.length})</span>
+        </button>
+        <button onClick={() => setTab('bajas')} className={`traza-tab ${tab === 'bajas' ? 'active' : ''}`}>
+          Dados de baja <span className="ml-1 text-xs text-gray-400">({inactivos.length})</span>
+        </button>
       </div>
 
       {/* Tabla */}
       <div className="traza-card overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-100">
-          <h2 className="text-base font-semibold text-gray-900">Colaboradores registrados ({personas.length})</h2>
-        </div>
-        {personas.length === 0 ? (
-          <div className="px-6 py-12 text-center text-gray-400">
-            <p>Todavía no hay personas registradas.</p>
+        {lista.length === 0 ? (
+          <div className="py-12 text-center text-sm text-gray-400">
+            {tab === 'activos' ? 'No hay personas activas.' : 'No hay personas dadas de baja.'}
           </div>
         ) : (
           <table className="w-full">
-            <thead className="bg-gray-50 text-xs text-gray-500 uppercase">
-              <tr>
-                <th className="px-6 py-3 text-left">Nombre</th>
-                <th className="px-6 py-3 text-left">Cargo</th>
-                <th className="px-6 py-3 text-left">Área</th>
-                <th className="px-6 py-3 text-left">Acceso</th>
-                <th className="px-6 py-3 text-right">Acciones</th>
+            <thead style={{ backgroundColor: '#F8FAFC', borderBottom: '1px solid #E2E8F0' }}>
+              <tr className="text-xs font-semibold uppercase tracking-wider text-gray-400">
+                <th className="px-5 py-3 text-left">Persona</th>
+                <th className="px-5 py-3 text-left">Cargo / Área</th>
+                <th className="px-5 py-3 text-left">Acceso</th>
+                {esAdmin && <th className="px-5 py-3 text-left">Rol</th>}
+                {esAdmin && <th className="px-5 py-3 text-right">Acciones</th>}
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
-              {personas.map(p => (
-                <tr key={p.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 font-medium text-gray-900">{p.nombre} {p.apellido}</td>
-                  <td className="px-6 py-4 text-gray-500">{p.cargo ?? '—'}</td>
-                  <td className="px-6 py-4 text-gray-500">{p.area ?? '—'}</td>
-                  <td className="px-6 py-4">
-                    {p.user_id
-                      ? <span className="text-xs px-2 py-0.5 rounded-md border border-green-200 text-green-700 bg-green-50 font-medium">Con acceso</span>
-                      : <span className="text-xs px-2 py-0.5 rounded-md border border-gray-200 text-gray-400 bg-white">Sin acceso</span>
-                    }
-                  </td>
-                  <td className="px-6 py-4 text-right space-x-2">
-                    <button onClick={() => handleEdit(p)} className="text-xs text-traza-700 hover:underline">Editar</button>
-                    <button onClick={() => handleDelete(p.id)} className="text-xs text-red-500 hover:underline">Eliminar</button>
-                  </td>
-                </tr>
-              ))}
+            <tbody className="divide-y divide-gray-50">
+              {lista.map(p => {
+                const rolActual = p.user_id ? (profiles[p.user_id] ?? 'empleado') : null
+                const bajando   = accionando === p.id + 'dar_de_baja'
+                const reactivando = accionando === p.id + 'reactivar'
+
+                return (
+                  <tr key={p.id} className="hover:bg-gray-50 transition-colors"
+                    style={{ opacity: p.empleo_activo === false ? 0.6 : 1 }}>
+
+                    {/* Persona */}
+                    <td className="px-5 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-traza-100 flex items-center justify-center flex-shrink-0">
+                          <span className="text-traza-700 text-xs font-bold">
+                            {p.nombre?.[0]}{p.apellido?.[0]}
+                          </span>
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold text-gray-900">{p.nombre} {p.apellido}</p>
+                        </div>
+                      </div>
+                    </td>
+
+                    {/* Cargo / Área */}
+                    <td className="px-5 py-4">
+                      <p className="text-sm text-gray-600">{p.cargo ?? '—'}</p>
+                      {p.area && <p className="text-xs text-gray-400">{p.area}</p>}
+                    </td>
+
+                    {/* Acceso */}
+                    <td className="px-5 py-4">
+                      {p.user_id
+                        ? <span className="flex items-center gap-1 text-xs font-medium text-green-700 bg-green-50 border border-green-200 rounded-md px-2 py-0.5 w-fit">
+                            <UserCheck size={11} /> Con acceso
+                          </span>
+                        : <span className="text-xs text-gray-400 bg-gray-50 border border-gray-200 rounded-md px-2 py-0.5">
+                            Sin acceso
+                          </span>
+                      }
+                    </td>
+
+                    {/* Rol (editable si tiene acceso) */}
+                    {esAdmin && (
+                      <td className="px-5 py-4">
+                        {rolActual ? (
+                          <div className="relative inline-block">
+                            <select
+                              value={rolActual}
+                              onChange={e => accion(p.id, 'cambiar_rol', e.target.value)}
+                              disabled={!!accionando || rolActual === 'super_admin'}
+                              className="appearance-none text-xs font-semibold pl-2 pr-6 py-1 rounded-md border cursor-pointer focus:outline-none disabled:cursor-default"
+                              style={{
+                                color:           ROL_COLOR[rolActual] ?? '#64748B',
+                                borderColor:     '#E2E8F0',
+                                backgroundColor: 'white',
+                              }}
+                            >
+                              <option value="empleado">Empleado</option>
+                              <option value="supervisor">Supervisor</option>
+                              <option value="admin">Admin</option>
+                              {rolActual === 'super_admin' && <option value="super_admin">Super Admin</option>}
+                            </select>
+                            <ChevronDown size={10} className="absolute right-1.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                          </div>
+                        ) : (
+                          <span className="text-xs text-gray-300">—</span>
+                        )}
+                      </td>
+                    )}
+
+                    {/* Acciones */}
+                    {esAdmin && (
+                      <td className="px-5 py-4 text-right">
+                        {p.empleo_activo === false ? (
+                          <button
+                            onClick={() => accion(p.id, 'reactivar')}
+                            disabled={!!accionando}
+                            className="flex items-center gap-1.5 text-xs font-medium text-green-700 hover:text-green-900 transition-colors ml-auto disabled:opacity-40"
+                          >
+                            <UserCheck size={13} />
+                            {reactivando ? 'Reactivando...' : 'Reactivar'}
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => {
+                              if (!confirm(`¿Dar de baja a ${p.nombre} ${p.apellido}? Va a perder acceso al sistema.`)) return
+                              accion(p.id, 'dar_de_baja')
+                            }}
+                            disabled={!!accionando}
+                            className="flex items-center gap-1.5 text-xs font-medium text-red-500 hover:text-red-700 transition-colors ml-auto disabled:opacity-40"
+                          >
+                            <UserX size={13} />
+                            {bajando ? 'Procesando...' : 'Dar de baja'}
+                          </button>
+                        )}
+                      </td>
+                    )}
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
         )}
