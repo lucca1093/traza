@@ -287,9 +287,10 @@ export default function EquipoPage() {
 
       const { data: personas } = await supabase
         .from('personas')
-        .select('*')
+        .select('id, nombre, apellido, cargo, area, traza_id, empleo_activo')
         .eq('empresa_id', empresaId)
         .order('apellido')
+        .limit(200)
 
       if (!personas?.length) { setLoading(false); return }
 
@@ -297,8 +298,9 @@ export default function EquipoPage() {
 
       const { data: todosObjetivos } = await supabase
         .from('objetivos')
-        .select('*')
+        .select('id, titulo, estado, validacion, autoevaluacion, prioridad, persona_id, fecha_limite, created_at')
         .in('persona_id', personaIds)
+        .limit(2000)
 
       const hace90 = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString()
       const { data: todosAvances } = await supabase

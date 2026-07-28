@@ -93,12 +93,17 @@ export default function AnalyticsPage() {
     setLoading(true)
 
     // Objetivos
-    let obsQuery = supabase.from('objetivos').select('*')
+    let obsQuery = supabase.from('objetivos')
+      .select('id, estado, validacion, autoevaluacion, persona_id, categoria, empresa_id')
+      .limit(3000)
     if (empresaId !== 'todas') obsQuery = obsQuery.eq('empresa_id', empresaId)
     const { data: objetivos } = await obsQuery
 
     // Personas — solo empleo activo para evitar duplicados por historial multi-empresa
-    let persQuery = supabase.from('personas').select('*').eq('empleo_activo', true)
+    let persQuery = supabase.from('personas')
+      .select('id, nombre, apellido, cargo, area, empresa_id')
+      .eq('empleo_activo', true)
+      .limit(500)
     if (empresaId !== 'todas') persQuery = persQuery.eq('empresa_id', empresaId)
     const { data: personas } = await persQuery
 
@@ -117,8 +122,9 @@ export default function AnalyticsPage() {
     if (objIds.length > 0) {
       const { data: av } = await supabase
         .from('objetivo_avances')
-        .select('*')
+        .select('id, objetivo_id, persona_id, creado_en, respondido_en')
         .in('objetivo_id', objIds)
+        .limit(5000)
       avancesData = av ?? []
     }
     const allAvances = avancesData

@@ -181,8 +181,10 @@ export default async function DashboardPage() {
       .eq('empleo_activo', true)
 
     const { data: objetivos } = await supabase
-      .from('objetivos').select('*')
+      .from('objetivos')
+      .select('id, estado, validacion, autoevaluacion')
       .eq('empresa_id', empresaId)
+      .limit(2000)
 
     const objs        = (objetivos ?? []) as Objetivo[]
     const totalObjs   = objs.length

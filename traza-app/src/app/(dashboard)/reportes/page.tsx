@@ -96,7 +96,7 @@ export default function ReportesPage() {
   // ── reportes ─────────────────────────────────────────────
   async function fetchReportes(eid = filtroEmpresa) {
     setLoading(true)
-    let q = supabase.from('objetivos').select('*, persona:personas(id, nombre, apellido, cargo, area)').order('created_at', { ascending: false })
+    let q = supabase.from('objetivos').select('*, persona:personas(id, nombre, apellido, cargo, area)').order('created_at', { ascending: false }).limit(500)
     if (filtroEstado !== 'todos') q = q.eq('estado', filtroEstado)
     if (eid !== 'todas') q = q.eq('empresa_id', eid)
     const { data } = await q
