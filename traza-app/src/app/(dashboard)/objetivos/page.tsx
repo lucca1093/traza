@@ -843,6 +843,8 @@ function ObjetivoRow({ obj, autoExpand, onEdit, onDelete, onRefresh }: {
             {obj.es_continuo ? 'Continuo' : formatFecha(obj.fecha_limite)}
             {obj.estado ? ` · ${obj.estado}` : ''}
             {obj.categoria ? ` · ${getCategoriaStyle(obj.categoria).label}` : ''}
+            {obj.created_at ? ` · Creado ${new Date(obj.created_at).toLocaleDateString('es-AR', { day: '2-digit', month: 'short', year: 'numeric' })}` : ''}
+            {obj.completado_en ? ` · Completado ${new Date(obj.completado_en).toLocaleDateString('es-AR', { day: '2-digit', month: 'short', year: 'numeric' })}` : ''}
           </p>
         </div>
         <div className="flex items-center gap-3 flex-shrink-0">
@@ -873,13 +875,22 @@ function ObjetivoRow({ obj, autoExpand, onEdit, onDelete, onRefresh }: {
                     {a.tipo === 'archivo'    && <Paperclip size={13} className="text-orange-400" />}
                   </div>
                   <div className="flex-1 min-w-0">
-                    {(a.tipo === 'link' || a.tipo === 'archivo') ? (
-                      <a href={a.contenido} target="_blank" rel="noopener noreferrer"
-                        className="text-traza-700 hover:underline break-all text-xs">{a.contenido}</a>
-                    ) : (
-                      <p className="text-sm text-gray-700">{a.contenido}</p>
+                    <div className="flex items-start gap-2">
+                      <div className="flex-1 min-w-0">
+                        {(a.tipo === 'link' || a.tipo === 'archivo') ? (
+                          <a href={a.contenido} target="_blank" rel="noopener noreferrer"
+                            className="text-traza-700 hover:underline break-all text-xs">{a.contenido}</a>
+                        ) : (
+                          <p className="text-sm text-gray-700">{a.contenido}</p>
+                        )}
+                      </div>
+                      <span className="text-[10px] text-gray-300 flex-shrink-0 whitespace-nowrap" style={{ lineHeight: '1.5rem' }}>
+                        {formatDT(a.creado_en)}
+                      </span>
+                    </div>
+                    {a.aprobado_en && (
+                      <p className="text-[10px] text-gray-300 mt-0.5">✓ Aprobado · {formatDT(a.aprobado_en)}</p>
                     )}
-                    <p className="text-xs text-gray-400 mt-0.5">{formatDT(a.creado_en)}</p>
                   </div>
                   {/* Controles de estado */}
                   <div className="flex-shrink-0 flex items-center gap-1" onClick={e => e.stopPropagation()}>

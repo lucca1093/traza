@@ -147,8 +147,13 @@ export default function MiTrabajoPage() {
 
   async function updateEstado(id: string, estado: string) {
     setSaving(id)
-    await supabase.from('objetivos').update({ estado }).eq('id', id)
-    setObjetivos(prev => prev.map(o => o.id === id ? { ...o, estado: estado as any } : o))
+    const updateData: any = { estado }
+    if (estado === 'Completado') updateData.completado_en = new Date().toISOString()
+    await supabase.from('objetivos').update(updateData).eq('id', id)
+    setObjetivos(prev => prev.map(o => o.id === id
+      ? { ...o, estado: estado as any, ...(estado === 'Completado' ? { completado_en: updateData.completado_en } : {}) }
+      : o
+    ))
     setSaving(null)
   }
 
@@ -595,9 +600,21 @@ function HistorialCard({ obj, valExt = [] }: { obj: Objetivo; valExt?: any[] }) 
           <CheckCircle2 size={15} className="text-gray-300 flex-shrink-0" />
           <div className="min-w-0">
             <p className="text-sm font-medium text-gray-700 truncate">{obj.titulo}</p>
-            {obj.fecha_limite && (
-              <p className="text-xs text-gray-400 mt-0.5">{formatFecha(obj.fecha_limite)}</p>
-            )}
+            <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+              {obj.fecha_limite && (
+                <p className="text-xs text-gray-400">{formatFecha(obj.fecha_limite)}</p>
+              )}
+              {(obj as any).completado_en && (
+                <p className="text-[10px] text-gray-300">
+                  · Completado {new Date((obj as any).completado_en).toLocaleDateString('es-AR', { day: '2-digit', month: 'short', year: 'numeric' })}
+                </p>
+              )}
+              {!(obj as any).completado_en && (obj as any).created_at && (
+                <p className="text-[10px] text-gray-300">
+                  Creado {new Date((obj as any).created_at).toLocaleDateString('es-AR', { day: '2-digit', month: 'short', year: 'numeric' })}
+                </p>
+              )}
+            </div>
           </div>
         </div>
         <div className="flex items-center gap-3 ml-4 flex-shrink-0">
@@ -951,7 +968,7 @@ function ObjetivoCard({ obj, saving, onUpdate, onUpdateAuto, onDelete, autoExpan
               )
             })()}
           </div>
-          <div className="flex items-center gap-3 mt-0.5">
+          <div className="flex items-center gap-3 mt-0.5 flex-wrap">
             {obj.fecha_limite && <p className="text-xs text-gray-400">{formatFecha(obj.fecha_limite)}</p>}
             {vencido && (
               <span className="flex items-center gap-1 text-xs text-red-500 font-medium">
@@ -962,6 +979,11 @@ function ObjetivoCard({ obj, saving, onUpdate, onUpdateAuto, onDelete, autoExpan
               <span className="text-xs text-gray-400">{estadoLabel}</span>
             )}
             {obj.categoria && <span className="text-xs text-gray-300">{obj.categoria}</span>}
+            {(obj as any).created_at && (
+              <span className="text-[10px] text-gray-300 ml-auto">
+                Creado {new Date((obj as any).created_at).toLocaleDateString('es-AR', { day: '2-digit', month: 'short', year: 'numeric' })}
+              </span>
+            )}
           </div>
         </div>
         <div className="ml-4 flex-shrink-0">
@@ -1104,12 +1126,21 @@ function ObjetivoCard({ obj, saving, onUpdate, onUpdateAuto, onDelete, autoExpan
                               </div>
                             </div>
                           ) : (
-                            <>
-                              {(a.tipo === 'link' || a.tipo === 'archivo')
-                                ? <a href={a.contenido} target="_blank" rel="noopener noreferrer" className="text-traza-700 hover:underline break-all text-xs">{a.contenido}</a>
-                                : <p className="text-sm text-gray-700">{a.contenido}</p>}
-                              <p className="text-xs text-gray-400 mt-0.5">{formatDT(a.creado_en)}</p>
-                            </>
+                            <div>
+                              <div className="flex items-start gap-2">
+                                <div className="flex-1 min-w-0">
+                                  {(a.tipo === 'link' || a.tipo === 'archivo')
+                                    ? <a href={a.contenido} target="_blank" rel="noopener noreferrer" className="text-traza-700 hover:underline break-all text-xs">{a.contenido}</a>
+                                    : <p className="text-sm text-gray-700">{a.contenido}</p>}
+                                </div>
+                                <span className="text-[10px] text-gray-300 flex-shrink-0 whitespace-nowrap" style={{ lineHeight: '1.5rem' }}>
+                                  {formatDT(a.creado_en)}
+                                </span>
+                              </div>
+                              {a.aprobado_en && (
+                                <p className="text-[10px] text-gray-300 mt-0.5">✓ Aprobado · {formatDT(a.aprobado_en)}</p>
+                              )}
+                            </div>
                           )}
                         </div>
                         <div className="flex-shrink-0 flex items-center gap-2 ml-2">
