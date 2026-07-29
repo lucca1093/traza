@@ -2,26 +2,21 @@
 
 import { useEffect, useRef } from 'react'
 import { usePathname, useSearchParams } from 'next/navigation'
-import { initPostHog, identifyUser } from '@/lib/posthog'
+import { initPostHog, identifyUser, pageview } from '@/lib/posthog'
 import { supabase } from '@/lib/supabase'
-import posthog from 'posthog-js'
 
 export default function PostHogProvider({ children }: { children: React.ReactNode }) {
   const pathname     = usePathname()
   const searchParams = useSearchParams()
   const identified   = useRef(false)
 
-  // Inicializar una sola vez
   useEffect(() => { initPostHog() }, [])
 
-  // Registrar cada cambio de página
   useEffect(() => {
-    if (typeof window === 'undefined' || !posthog.__loaded) return
     const url = pathname + (searchParams.toString() ? `?${searchParams}` : '')
-    posthog.capture('$pageview', { $current_url: url })
+    pageview(url)
   }, [pathname, searchParams])
 
-  // Identificar al usuario cuando hay sesión activa
   useEffect(() => {
     if (identified.current) return
     supabase.auth.getUser().then(({ data: { user } }) => {
