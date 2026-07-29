@@ -83,6 +83,7 @@ function Navbar() {
   return (
     <nav style={{
       position: 'fixed', top: 0, left: 0, right: 0, zIndex: 300,
+      paddingTop: 'env(safe-area-inset-top)',
       background: scrolled || open ? 'rgba(255,255,255,0.97)' : 'transparent',
       backdropFilter: scrolled || open ? 'blur(18px)' : 'none',
       borderBottom: scrolled || open ? '1px solid #E2E8F0' : 'none',
