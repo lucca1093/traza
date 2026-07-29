@@ -1,6 +1,9 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import './globals.css'
 import CookieBanner from '@/components/CookieBanner'
+import PostHogProvider from '@/components/PostHogProvider'
+import PWAInstall from '@/components/PWAInstall'
+import { Suspense } from 'react'
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://traza-three.vercel.app'
 
@@ -36,14 +39,32 @@ export const metadata: Metadata = {
     description: 'Registrá objetivos, validá resultados y construí un historial de desempeño verificado y portátil.',
     images:      ['/og-image.png'],
   },
-  themeColor: '#1C2B90',
+  appleWebApp: {
+    capable:        true,
+    title:          'TRAZA',
+    statusBarStyle: 'black-translucent',
+  },
+  formatDetection: { telephone: false },
+}
+
+export const viewport: Viewport = {
+  themeColor:    '#1C2B90',
+  width:         'device-width',
+  initialScale:  1,
+  minimumScale:  1,
+  viewportFit:   'cover',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="es" suppressHydrationWarning>
       <body>
-        {children}
+        <Suspense>
+          <PostHogProvider>
+            {children}
+          </PostHogProvider>
+        </Suspense>
+        <PWAInstall />
         <CookieBanner />
       </body>
     </html>

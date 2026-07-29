@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
+import { track } from '@/lib/posthog'
 import {
   CheckCircle2, Users, Target, Building2,
   Copy, CheckCheck, ArrowRight, Sparkles,
@@ -105,6 +106,7 @@ export default function OnboardingPage() {
   }
 
   function irAlDashboard() {
+    track('onboarding_completed')
     sessionStorage.removeItem('traza_onboarding')
     router.push('/dashboard')
   }

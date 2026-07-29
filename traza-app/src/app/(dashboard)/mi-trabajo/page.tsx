@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Button from '@/components/ui/Button'
 import { detectarDiscrepancia, isVencido, formatFecha, cn } from '@/lib/traza'
+import { track } from '@/lib/posthog'
 import { AlertTriangle, ArrowLeft, MessageSquare, Link2, Paperclip, Plus, CheckCircle2, Star, Share2, Copy, Check, ChevronDown, ChevronUp, Users, Pencil } from 'lucide-react'
 import type { Objetivo, Persona, CategoriaObjetivo } from '@/types'
 
@@ -133,6 +134,7 @@ export default function MiTrabajoPage() {
       grupo_id:     grupoId,
     })
     const eraPrimero = objetivos.length === 0
+    track('objective_created', { categoria: form.categoria, prioridad: form.prioridad, es_primero: eraPrimero })
     setForm({ titulo: '', descripcion: '', prioridad: 'Media', categoria: 'Resultado', es_continuo: false, fecha_limite: '', evidencia_url: '', con_externo: false })
     setShowForm(false)
     const { data: obs } = await supabase.from('objetivos').select('*, grupo:objetivo_grupos(tipo)').eq('persona_id', persona.id)
@@ -861,6 +863,7 @@ function ObjetivoCard({ obj, saving, onUpdate, onUpdateAuto, onDelete, autoExpan
     setSavingAvance(true)
     const { data: { user } } = await supabase.auth.getUser()
     await supabase.from('objetivo_avances').insert({ empresa_id: (obj as any).empresa_id, objetivo_id: obj.id, persona_id: (obj as any).persona_id, tipo: addingType, contenido: addingContent.trim(), creado_por: user!.id })
+    track('advance_added', { tipo: addingType })
     setAddingContent(''); setAddingType(null)
     await loadAvances()
     setSavingAvance(false)
