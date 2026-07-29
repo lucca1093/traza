@@ -285,12 +285,28 @@ export default function EquipoPage() {
 
       const empresaId = prof.empresa_id
 
-      const { data: personas } = await supabase
+      // Si es supervisor, traer solo su equipo asignado
+      let personasQuery = supabase
         .from('personas')
         .select('id, nombre, apellido, cargo, area, traza_id, empleo_activo')
         .eq('empresa_id', empresaId)
+        .eq('empleo_activo', true)
         .order('apellido')
         .limit(200)
+
+      if (prof.rol === 'supervisor') {
+        // Obtener el persona.id del supervisor logueado
+        const { data: miPersona } = await supabase
+          .from('personas')
+          .select('id')
+          .eq('user_id', user.id)
+          .single()
+        if (miPersona?.id) {
+          personasQuery = personasQuery.eq('supervisor_id', miPersona.id)
+        }
+      }
+
+      const { data: personas } = await personasQuery
 
       if (!personas?.length) { setLoading(false); return }
 

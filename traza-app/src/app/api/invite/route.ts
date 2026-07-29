@@ -24,7 +24,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Sin permisos' }, { status: 403 })
   }
 
-  const { email, nombre, apellido, cargo, area, rol } = await request.json()
+  const { email, nombre, apellido, cargo, area, rol, supervisor_id } = await request.json()
 
   if (!email || !nombre || !apellido || !rol) {
     return NextResponse.json({ error: 'Faltan campos requeridos' }, { status: 400 })
@@ -54,12 +54,13 @@ export async function POST(request: Request) {
   await supabaseAdmin
     .from('personas')
     .insert({
-      empresa_id: profile.empresa_id,
-      user_id: newUserId,
+      empresa_id:   profile.empresa_id,
+      user_id:      newUserId,
       nombre,
       apellido,
-      cargo: cargo || null,
-      area: area || null,
+      cargo:        cargo        || null,
+      area:         area         || null,
+      supervisor_id: supervisor_id || null,
     })
 
   return NextResponse.json({ success: true })

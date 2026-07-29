@@ -12,7 +12,7 @@ function admin() {
 // Acciones: cambiar_rol | dar_de_baja | reactivar
 export async function PATCH(req: NextRequest) {
   const supabase = admin()
-  const { action, persona_id, nuevo_rol } = await req.json()
+  const { action, persona_id, nuevo_rol, supervisor_id } = await req.json()
 
   if (!persona_id || !action) {
     return NextResponse.json({ error: 'Faltan parámetros' }, { status: 400 })
@@ -64,6 +64,17 @@ export async function PATCH(req: NextRequest) {
     const { error } = await supabase
       .from('personas')
       .update({ empleo_activo: true })
+      .eq('id', persona_id)
+
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ ok: true })
+  }
+
+  // ── Asignar supervisor ───────────────────────────────────────
+  if (action === 'asignar_supervisor') {
+    const { error } = await supabase
+      .from('personas')
+      .update({ supervisor_id: supervisor_id ?? null })
       .eq('id', persona_id)
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })

@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
     // 1. Crear la empresa
     const { data: empresa, error: empresaError } = await admin
       .from('empresas')
-      .insert({ nombre: empresaNombre.trim(), rubro: rubro ?? null })
+      .insert({ nombre: empresaNombre.trim(), rubro: rubro ?? null, tamano: tamano ?? null })
       .select('id, nombre')
       .single()
 

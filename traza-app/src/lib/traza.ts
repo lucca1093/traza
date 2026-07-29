@@ -577,7 +577,8 @@ import type { UserRole, NavItem } from '@/types'
 export const NAV_ITEMS: NavItem[] = [
   { label: 'Dashboard',            href: '/dashboard',       icon: 'LayoutDashboard', roles: ['super_admin', 'admin', 'supervisor', 'empleado', 'individuo'] },
   { label: 'Mi Semana',            href: '/mi-semana',       icon: 'CalendarDays',    roles: ['super_admin', 'admin', 'supervisor', 'empleado', 'individuo'] },
-  { label: 'Empresas',             href: '/empresas',        icon: 'Building2',       roles: ['super_admin', 'admin'] },
+  { label: 'Empresas',             href: '/empresas',        icon: 'Building2',       roles: ['super_admin'] },
+  { label: 'Mi empresa',           href: '/mi-empresa',      icon: 'Building2',       roles: ['admin'] },
   { label: 'Personas',             href: '/personas',        icon: 'Users',           roles: ['super_admin', 'admin'] },
   { label: 'Mi Trabajo',           href: '/mi-trabajo',      icon: 'Target',          roles: ['super_admin', 'admin', 'supervisor', 'empleado', 'individuo'] },
   { label: 'Mi Equipo',            href: '/equipo',          icon: 'UsersRound',      roles: ['super_admin', 'admin', 'supervisor'] },

@@ -3,14 +3,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import Button from '@/components/ui/Button'
-import { Mail, UserCheck, UserX, ShieldCheck, ChevronDown } from 'lucide-react'
-
-const ROL_LABEL: Record<string, string> = {
-  empleado:    'Empleado',
-  supervisor:  'Supervisor',
-  admin:       'Admin',
-  super_admin: 'Super Admin',
-}
+import { Mail, UserCheck, UserX, ChevronDown } from 'lucide-react'
 
 const ROL_COLOR: Record<string, string> = {
   empleado:    '#64748B',
@@ -21,21 +14,21 @@ const ROL_COLOR: Record<string, string> = {
 
 export default function PersonasPage() {
   const [personas,    setPersonas]    = useState<any[]>([])
+  const [supervisores, setSupervisores] = useState<any[]>([]) // personas con rol supervisor/admin
   const [profiles,    setProfiles]    = useState<Record<string, string>>({}) // user_id → rol
   const [myRol,       setMyRol]       = useState('')
   const [myEmpresaId, setMyEmpresaId] = useState('')
   const [loading,     setLoading]     = useState(true)
 
-  // Formulario invitación
   const [showInvite,    setShowInvite]    = useState(false)
   const [inviteLoading, setInviteLoading] = useState(false)
   const [inviteSuccess, setInviteSuccess] = useState(false)
   const [inviteError,   setInviteError]   = useState<string | null>(null)
   const [invite, setInvite] = useState({
-    email: '', nombre: '', apellido: '', cargo: '', area: '', rol: 'empleado',
+    email: '', nombre: '', apellido: '', cargo: '', area: '',
+    rol: 'empleado', supervisor_id: '',
   })
 
-  // Acciones inline
   const [accionando, setAccionando] = useState<string | null>(null)
   const [tab, setTab] = useState<'activos' | 'bajas'>('activos')
 
@@ -46,7 +39,6 @@ export default function PersonasPage() {
     setMyEmpresaId(empresaId)
     setMyRol(profile?.rol ?? 'empleado')
 
-    // Personas de la empresa (todas, activas e inactivas)
     const { data: ps } = await supabase
       .from('personas')
       .select('*')
@@ -55,7 +47,7 @@ export default function PersonasPage() {
 
     setPersonas(ps ?? [])
 
-    // Roles actuales de los que tienen acceso
+    // Roles actuales
     const conAcceso = (ps ?? []).filter(p => p.user_id).map(p => p.user_id)
     if (conAcceso.length > 0) {
       const { data: profs } = await supabase
@@ -65,6 +57,14 @@ export default function PersonasPage() {
       const map: Record<string, string> = {}
       ;(profs ?? []).forEach(p => { map[p.id] = p.rol })
       setProfiles(map)
+
+      // Supervisores = personas con rol supervisor o admin
+      const supIds = new Set(
+        Object.entries(map)
+          .filter(([, rol]) => ['supervisor', 'admin'].includes(rol))
+          .map(([id]) => id)
+      )
+      setSupervisores((ps ?? []).filter(p => p.user_id && supIds.has(p.user_id)))
     }
 
     setLoading(false)
@@ -87,41 +87,44 @@ export default function PersonasPage() {
     if (!res.ok) { setInviteError(data.error ?? 'Error al enviar la invitación'); setInviteLoading(false); return }
 
     setInviteSuccess(true)
-    setInvite({ email: '', nombre: '', apellido: '', cargo: '', area: '', rol: 'empleado' })
+    setInvite({ email: '', nombre: '', apellido: '', cargo: '', area: '', rol: 'empleado', supervisor_id: '' })
     setTimeout(() => { setInviteSuccess(false); setShowInvite(false) }, 3000)
     await fetchData()
     setInviteLoading(false)
   }
 
-  async function accion(personaId: string, action: string, nuevoRol?: string) {
+  async function accion(personaId: string, action: string, extra?: Record<string, any>) {
     setAccionando(personaId + action)
     const res = await fetch('/api/admin/persona', {
       method:  'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ action, persona_id: personaId, nuevo_rol: nuevoRol }),
+      body:    JSON.stringify({ action, persona_id: personaId, ...extra }),
     })
     if (res.ok) await fetchData()
-    else {
-      const d = await res.json()
-      alert(d.error ?? 'Error')
-    }
+    else { const d = await res.json(); alert(d.error ?? 'Error') }
     setAccionando(null)
   }
 
-  const activos = personas.filter(p => p.empleo_activo !== false)
+  const activos   = personas.filter(p => p.empleo_activo !== false)
   const inactivos = personas.filter(p => p.empleo_activo === false)
-  const lista = tab === 'activos' ? activos : inactivos
+  const lista     = tab === 'activos' ? activos : inactivos
 
   if (loading) return <div className="py-16 text-center text-sm text-gray-400">Cargando...</div>
 
   const esAdmin = ['admin', 'super_admin'].includes(myRol)
+
+  function nombreSupervisor(supervisorId: string | null) {
+    if (!supervisorId) return null
+    const s = supervisores.find(p => p.id === supervisorId)
+    return s ? `${s.nombre} ${s.apellido}` : null
+  }
 
   return (
     <div className="space-y-6">
       <div className="traza-page-header">
         <div>
           <h1 className="traza-page-title">Mi Equipo</h1>
-          <p className="traza-page-sub">Gestioná roles y accesos de tu empresa.</p>
+          <p className="traza-page-sub">Gestioná roles, supervisores y accesos.</p>
         </div>
         {esAdmin && (
           <Button onClick={() => setShowInvite(!showInvite)}>
@@ -135,7 +138,7 @@ export default function PersonasPage() {
       {showInvite && esAdmin && (
         <div className="traza-card p-6">
           <h2 className="text-base font-semibold text-gray-900 mb-1">Invitar nueva persona</h2>
-          <p className="text-sm text-gray-500 mb-5">Le va a llegar un email con un link para crear su contraseña.</p>
+          <p className="text-sm text-gray-500 mb-5">Le llega un email para crear su contraseña y acceder a la app.</p>
           <form onSubmit={handleInvite} className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="md:col-span-2">
               <label className="traza-label">Email *</label>
@@ -146,12 +149,12 @@ export default function PersonasPage() {
             <div>
               <label className="traza-label">Nombre *</label>
               <input className="traza-input" value={invite.nombre}
-                onChange={e => setInvite(f => ({ ...f, nombre: e.target.value }))} placeholder="Nombre" required />
+                onChange={e => setInvite(f => ({ ...f, nombre: e.target.value }))} required />
             </div>
             <div>
               <label className="traza-label">Apellido *</label>
               <input className="traza-input" value={invite.apellido}
-                onChange={e => setInvite(f => ({ ...f, apellido: e.target.value }))} placeholder="Apellido" required />
+                onChange={e => setInvite(f => ({ ...f, apellido: e.target.value }))} required />
             </div>
             <div>
               <label className="traza-label">Cargo</label>
@@ -164,17 +167,30 @@ export default function PersonasPage() {
                 onChange={e => setInvite(f => ({ ...f, area: e.target.value }))} placeholder="RRHH, Tecnología..." />
             </div>
             <div>
-              <label className="traza-label">Rol inicial</label>
+              <label className="traza-label">Rol *</label>
               <select className="traza-input" value={invite.rol}
-                onChange={e => setInvite(f => ({ ...f, rol: e.target.value }))}>
+                onChange={e => setInvite(f => ({ ...f, rol: e.target.value, supervisor_id: e.target.value !== 'empleado' ? '' : f.supervisor_id }))}>
                 <option value="empleado">Empleado</option>
                 <option value="supervisor">Supervisor</option>
                 <option value="admin">Admin</option>
               </select>
             </div>
-            <div className="md:col-span-2 flex items-center gap-3">
+            {/* Supervisor solo aplica a empleados */}
+            {invite.rol === 'empleado' && (
+              <div>
+                <label className="traza-label">Supervisor a cargo</label>
+                <select className="traza-input" value={invite.supervisor_id}
+                  onChange={e => setInvite(f => ({ ...f, supervisor_id: e.target.value }))}>
+                  <option value="">— Sin asignar —</option>
+                  {supervisores.map(s => (
+                    <option key={s.id} value={s.id}>{s.nombre} {s.apellido}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+            <div className={`flex items-center gap-3 ${invite.rol === 'empleado' ? '' : 'md:col-span-2'}`}>
               <Button type="submit" loading={inviteLoading}>Enviar invitación</Button>
-              {inviteSuccess && <p className="text-green-600 text-sm">Invitación enviada</p>}
+              {inviteSuccess && <p className="text-green-600 text-sm">Invitación enviada ✓</p>}
               {inviteError   && <p className="text-red-600   text-sm">{inviteError}</p>}
             </div>
           </form>
@@ -221,14 +237,16 @@ export default function PersonasPage() {
                 <th className="px-5 py-3 text-left">Cargo / Área</th>
                 <th className="px-5 py-3 text-left">Acceso</th>
                 {esAdmin && <th className="px-5 py-3 text-left">Rol</th>}
+                {esAdmin && <th className="px-5 py-3 text-left">Supervisor</th>}
                 {esAdmin && <th className="px-5 py-3 text-right">Acciones</th>}
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
               {lista.map(p => {
-                const rolActual = p.user_id ? (profiles[p.user_id] ?? 'empleado') : null
-                const bajando   = accionando === p.id + 'dar_de_baja'
+                const rolActual  = p.user_id ? (profiles[p.user_id] ?? 'empleado') : null
+                const bajando    = accionando === p.id + 'dar_de_baja'
                 const reactivando = accionando === p.id + 'reactivar'
+                const supNombre  = nombreSupervisor(p.supervisor_id)
 
                 return (
                   <tr key={p.id} className="hover:bg-gray-50 transition-colors"
@@ -242,9 +260,7 @@ export default function PersonasPage() {
                             {p.nombre?.[0]}{p.apellido?.[0]}
                           </span>
                         </div>
-                        <div>
-                          <p className="text-sm font-semibold text-gray-900">{p.nombre} {p.apellido}</p>
-                        </div>
+                        <p className="text-sm font-semibold text-gray-900">{p.nombre} {p.apellido}</p>
                       </div>
                     </td>
 
@@ -266,26 +282,47 @@ export default function PersonasPage() {
                       }
                     </td>
 
-                    {/* Rol (editable si tiene acceso) */}
+                    {/* Rol */}
                     {esAdmin && (
                       <td className="px-5 py-4">
                         {rolActual ? (
                           <div className="relative inline-block">
                             <select
                               value={rolActual}
-                              onChange={e => accion(p.id, 'cambiar_rol', e.target.value)}
+                              onChange={e => accion(p.id, 'cambiar_rol', { nuevo_rol: e.target.value })}
                               disabled={!!accionando || rolActual === 'super_admin'}
                               className="appearance-none text-xs font-semibold pl-2 pr-6 py-1 rounded-md border cursor-pointer focus:outline-none disabled:cursor-default"
-                              style={{
-                                color:           ROL_COLOR[rolActual] ?? '#64748B',
-                                borderColor:     '#E2E8F0',
-                                backgroundColor: 'white',
-                              }}
+                              style={{ color: ROL_COLOR[rolActual] ?? '#64748B', borderColor: '#E2E8F0', backgroundColor: 'white' }}
                             >
                               <option value="empleado">Empleado</option>
                               <option value="supervisor">Supervisor</option>
                               <option value="admin">Admin</option>
                               {rolActual === 'super_admin' && <option value="super_admin">Super Admin</option>}
+                            </select>
+                            <ChevronDown size={10} className="absolute right-1.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                          </div>
+                        ) : (
+                          <span className="text-xs text-gray-300">—</span>
+                        )}
+                      </td>
+                    )}
+
+                    {/* Supervisor */}
+                    {esAdmin && (
+                      <td className="px-5 py-4">
+                        {rolActual === 'empleado' || !rolActual ? (
+                          <div className="relative inline-block">
+                            <select
+                              value={p.supervisor_id ?? ''}
+                              onChange={e => accion(p.id, 'asignar_supervisor', { supervisor_id: e.target.value || null })}
+                              disabled={!!accionando}
+                              className="appearance-none text-xs pl-2 pr-6 py-1 rounded-md border cursor-pointer focus:outline-none text-gray-600 disabled:cursor-default"
+                              style={{ borderColor: '#E2E8F0', backgroundColor: 'white', minWidth: '120px' }}
+                            >
+                              <option value="">— Sin asignar —</option>
+                              {supervisores.map(s => (
+                                <option key={s.id} value={s.id}>{s.nombre} {s.apellido}</option>
+                              ))}
                             </select>
                             <ChevronDown size={10} className="absolute right-1.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
                           </div>
@@ -310,7 +347,7 @@ export default function PersonasPage() {
                         ) : (
                           <button
                             onClick={() => {
-                              if (!confirm(`¿Dar de baja a ${p.nombre} ${p.apellido}? Va a perder acceso al sistema.`)) return
+                              if (!confirm(`¿Dar de baja a ${p.nombre} ${p.apellido}? Pierde acceso al sistema.`)) return
                               accion(p.id, 'dar_de_baja')
                             }}
                             disabled={!!accionando}
