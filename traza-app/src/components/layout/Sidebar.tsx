@@ -60,14 +60,14 @@ const SECTION_GROUPS: Record<string, { label: string; hrefs: string[] }[]> = {
     { label: 'Analytics', hrefs: ['/analytics'] },
   ],
   empleado: [
-    { label: 'General',   hrefs: ['/dashboard'] },
-    { label: 'Mi trabajo', hrefs: ['/mi-trabajo', '/mi-semana', '/objetivos'] },
-    { label: 'Carrera',   hrefs: ['/perfil'] },
+    { label: 'General',  hrefs: ['/dashboard'] },
+    { label: 'Trabajo',  hrefs: ['/mi-trabajo', '/mi-semana', '/objetivos'] },
+    { label: 'Carrera',  hrefs: ['/perfil'] },
   ],
   individuo: [
-    { label: 'General',   hrefs: ['/dashboard'] },
-    { label: 'Mi trabajo', hrefs: ['/mi-trabajo', '/mi-semana', '/objetivos'] },
-    { label: 'Carrera',   hrefs: ['/perfil'] },
+    { label: 'General',  hrefs: ['/dashboard'] },
+    { label: 'Trabajo',  hrefs: ['/mi-trabajo', '/mi-semana', '/objetivos'] },
+    { label: 'Carrera',  hrefs: ['/perfil'] },
   ],
 }
 
