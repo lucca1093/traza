@@ -1,3 +1,5 @@
+'use client'
+
 import {
   Users, Target, CheckSquare, TrendingUp, Trophy,
   Building2, BarChart2, FileText, Award, User,
