@@ -5,7 +5,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import {
   LayoutDashboard, Building2, Users, Target, ClipboardList,
   CheckSquare, BarChart2, User, Award, FileText, LogOut, CalendarDays,
-  Flame, Search, MessageSquare, UsersRound, X,
+  Flame, Search, MessageSquare, UsersRound, X, Settings,
   type LucideIcon
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
@@ -15,7 +15,7 @@ import type { Profile } from '@/types'
 const ICON_MAP: Record<string, LucideIcon> = {
   LayoutDashboard, Building2, Users, Target, ClipboardList,
   CheckSquare, BarChart2, User, Award, FileText, CalendarDays,
-  Flame, Search, MessageSquare, UsersRound,
+  Flame, Search, MessageSquare, UsersRound, Settings,
 }
 
 interface SidebarProps {
@@ -25,24 +25,50 @@ interface SidebarProps {
   onClose?: () => void
 }
 
-/* Z-mark — símbolo de traza */
-function TrazaLogo() {
+/* ── Logo ─────────────────────────────────────────────────── */
+function TrazaLogo({ size = 34 }: { size?: number }) {
   return (
-    <svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect width="36" height="36" rx="9" fill="#1C2B90" />
-      {/* Barra superior del Z */}
-      <rect x="9" y="10" width="18" height="3" rx="1.5" fill="white" />
-      {/* Diagonal del Z */}
-      <path
-        d="M 25 13 L 11 23"
-        stroke="white"
-        strokeWidth="2.5"
-        strokeLinecap="round"
-      />
-      {/* Barra inferior del Z */}
-      <rect x="9" y="23" width="18" height="3" rx="1.5" fill="white" />
+    <svg width={size} height={size} viewBox="0 0 40 40" fill="none">
+      <rect width="40" height="40" rx="10" fill="#1C2B90"/>
+      <rect x="10" y="11.5" width="20" height="3" rx="1.5" fill="white"/>
+      <path d="M 28 14.5 L 12 25.5" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
+      <rect x="10" y="25.5" width="20" height="3" rx="1.5" fill="white"/>
     </svg>
   )
+}
+
+/* ── Section group definitions ────────────────────────────── */
+const SECTION_GROUPS: Record<string, { label: string; hrefs: string[] }[]> = {
+  super_admin: [
+    { label: 'General',   hrefs: ['/dashboard'] },
+    { label: 'Trabajo',   hrefs: ['/mi-trabajo', '/mi-semana', '/objetivos', '/reuniones', '/validacion'] },
+    { label: 'Equipo',    hrefs: ['/equipo', '/personas', '/calendario', '/periodos'] },
+    { label: 'Analytics', hrefs: ['/analytics', '/reportes'] },
+    { label: 'Admin',     hrefs: ['/empresas', '/mi-empresa', '/buscar-talento'] },
+  ],
+  admin: [
+    { label: 'General',   hrefs: ['/dashboard'] },
+    { label: 'Trabajo',   hrefs: ['/mi-trabajo', '/mi-semana', '/objetivos', '/reuniones', '/validacion'] },
+    { label: 'Equipo',    hrefs: ['/equipo', '/personas', '/calendario', '/periodos'] },
+    { label: 'Analytics', hrefs: ['/analytics', '/reportes'] },
+    { label: 'Admin',     hrefs: ['/mi-empresa'] },
+  ],
+  supervisor: [
+    { label: 'General',   hrefs: ['/dashboard'] },
+    { label: 'Trabajo',   hrefs: ['/mi-trabajo', '/mi-semana', '/objetivos', '/validacion'] },
+    { label: 'Equipo',    hrefs: ['/equipo', '/reuniones'] },
+    { label: 'Analytics', hrefs: ['/analytics'] },
+  ],
+  empleado: [
+    { label: 'General',   hrefs: ['/dashboard'] },
+    { label: 'Mi trabajo', hrefs: ['/mi-trabajo', '/mi-semana', '/objetivos'] },
+    { label: 'Carrera',   hrefs: ['/perfil'] },
+  ],
+  individuo: [
+    { label: 'General',   hrefs: ['/dashboard'] },
+    { label: 'Mi trabajo', hrefs: ['/mi-trabajo', '/mi-semana', '/objetivos'] },
+    { label: 'Carrera',   hrefs: ['/perfil'] },
+  ],
 }
 
 export default function Sidebar({ profile, empresaNombre, isOpen = false, onClose }: SidebarProps) {
@@ -59,165 +85,207 @@ export default function Sidebar({ profile, empresaNombre, isOpen = false, onClos
     router.refresh()
   }
 
+  function isActive(href: string) {
+    return pathname === href || (href !== '/dashboard' && pathname.startsWith(href))
+  }
+
+  /* Build section groups for this role */
+  const groups = SECTION_GROUPS[profile.rol] ?? [{ label: '', hrefs: navItems.map(n => n.href) }]
+
+  /* Map href → nav item */
+  const navByHref: Record<string, typeof navItems[0]> = {}
+  navItems.forEach(n => { navByHref[n.href] = n })
+
   return (
     <aside
       className={`fixed inset-y-0 left-0 z-50 w-64 flex flex-col transition-transform duration-300 ease-in-out
         ${isOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}
       style={{
-        backgroundColor: '#0F172A',
-        borderRight: '1px solid rgba(255,255,255,0.06)',
+        background: 'var(--sb-bg)',
+        borderRight: '1px solid var(--sb-border)',
       }}
     >
-      {/* ── Logo ──────────────────────────────────────────────── */}
+      {/* ── Logo + close ──────────────────────────────────────── */}
       <div
-        className="px-5 py-5 flex-shrink-0 flex items-center justify-between"
-        style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}
+        className="px-5 py-4 flex-shrink-0 flex items-center justify-between"
+        style={{ borderBottom: '1px solid var(--sb-border)' }}
       >
-        <Link href="/dashboard" className="flex items-center gap-3 group" onClick={onClose}>
-          <TrazaLogo />
+        <Link href="/dashboard" className="flex items-center gap-2.5 group" onClick={onClose}>
+          <TrazaLogo size={32} />
           <div>
-            <p
-              className="font-extrabold text-white leading-none tracking-tight"
-              style={{
-                fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif",
-                fontSize: '1.125rem',
-                letterSpacing: '-0.02em',
-              }}
-            >
+            <p style={{
+              fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif",
+              fontSize: 17,
+              fontWeight: 900,
+              color: 'white',
+              letterSpacing: '-0.03em',
+              lineHeight: 1,
+            }}>
               traza
-</p>
-            <p
-              className="text-xs mt-0.5 font-medium"
-              style={{ color: '#334155', letterSpacing: '0.02em' }}
-            >
-              Performance Platform
+            </p>
+            <p style={{ fontSize: 10, color: '#2D3A56', fontWeight: 600, letterSpacing: '0.04em', marginTop: 2 }}>
+              PERFORMANCE
             </p>
           </div>
         </Link>
-
-        {/* Cerrar en mobile */}
         {onClose && (
           <button
             onClick={onClose}
             className="lg:hidden p-1.5 rounded-lg"
-            style={{ color: '#475569' }}
+            style={{ color: 'var(--sb-text)', background: 'rgba(255,255,255,.05)', border: 'none', cursor: 'pointer' }}
             aria-label="Cerrar menú"
           >
-            <X size={18} />
+            <X size={16} />
           </button>
         )}
       </div>
 
-      {/* ── Empresa activa ────────────────────────────────────── */}
+      {/* ── Empresa activa pill ────────────────────────────────── */}
       {empresaNombre && (
-        <div
-          className="px-4 py-2.5 flex-shrink-0"
-          style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}
-        >
+        <div className="px-4 pt-3 pb-2 flex-shrink-0">
           <div
-            className="flex items-center gap-2.5 px-3 py-2 rounded-xl"
-            style={{ backgroundColor: 'rgba(16,185,129,0.08)' }}
+            className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl"
+            style={{
+              background: 'rgba(22,163,74,0.09)',
+              border: '1px solid rgba(22,163,74,0.18)',
+            }}
           >
-            <span
-              className="w-2 h-2 rounded-full flex-shrink-0"
-              style={{ backgroundColor: '#10B981' }}
-            />
+            <div style={{
+              width: 7, height: 7, borderRadius: '50%',
+              background: '#22C55E',
+              boxShadow: '0 0 0 2px rgba(34,197,94,.25)',
+              flexShrink: 0,
+            }} />
             <div className="min-w-0">
-              <p className="text-xs font-semibold truncate" style={{ color: '#6EE7B7' }}>
+              <p style={{ fontSize: 12, fontWeight: 700, color: '#4ADE80', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                 {empresaNombre}
               </p>
-              <p className="text-xs" style={{ color: '#334155', fontSize: '10px' }}>
-                Empresa activa
-              </p>
+              <p style={{ fontSize: 10, color: '#1A3A2A', fontWeight: 600, marginTop: 1 }}>Empresa activa</p>
             </div>
           </div>
         </div>
       )}
 
-      {/* ── Navegación ────────────────────────────────────────── */}
-      <nav className="flex-1 px-3 py-3 overflow-y-auto">
-        <ul className="space-y-0.5">
-          {navItems.map(item => {
-            const isActive =
-              pathname === item.href ||
-              (item.href !== '/dashboard' && pathname.startsWith(item.href))
-            const Icon = ICON_MAP[item.icon]
+      {/* ── Navegación con grupos ─────────────────────────────── */}
+      <nav className="flex-1 px-3 py-2 overflow-y-auto">
+        {groups.map((group, gi) => {
+          const items = group.hrefs
+            .map(h => navByHref[h])
+            .filter(Boolean)
+          if (items.length === 0) return null
 
-            return (
-              <li key={item.href}>
-                <Link
-                  href={item.href}
-                  onClick={onClose}
-                  className={cn(
-                    'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150',
-                    isActive
-                      ? 'text-white'
-                      : 'text-slate-500 hover:text-slate-200'
-                  )}
-                  style={
-                    isActive
-                      ? {
-                          backgroundColor: 'rgba(51, 80, 208, 0.18)',
-                          color: '#E2E8F0',
-                        }
-                      : undefined
-                  }
-                  onMouseEnter={e => {
-                    if (!isActive) {
-                      (e.currentTarget as HTMLElement).style.backgroundColor = 'rgba(255,255,255,0.05)'
-                    }
-                  }}
-                  onMouseLeave={e => {
-                    if (!isActive) {
-                      (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent'
-                    }
-                  }}
-                >
-                  {Icon && (
-                    <Icon
-                      size={16}
-                      strokeWidth={isActive ? 2 : 1.75}
-                      style={{
-                        color: isActive ? '#8899EE' : 'inherit',
-                        flexShrink: 0,
-                        transition: 'color 150ms',
-                      }}
-                    />
-                  )}
-                  <span className="truncate">{item.label}</span>
-                  {isActive && (
-                    <span
-                      className="ml-auto w-1.5 h-1.5 rounded-full flex-shrink-0"
-                      style={{ backgroundColor: '#5572E5' }}
-                    />
-                  )}
-                </Link>
-              </li>
-            )
-          })}
-        </ul>
+          return (
+            <div key={gi} className={gi > 0 ? 'mt-5' : ''}>
+              {group.label && (
+                <p style={{
+                  fontSize: 10,
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.09em',
+                  color: '#1E2A40',
+                  paddingLeft: 10,
+                  marginBottom: 5,
+                  marginTop: gi === 0 ? 4 : 0,
+                }}>
+                  {group.label}
+                </p>
+              )}
+              <ul style={{ listStyle: 'none' }}>
+                {items.map(item => {
+                  const active = isActive(item.href)
+                  const Icon = ICON_MAP[item.icon]
+                  return (
+                    <li key={item.href}>
+                      <Link
+                        href={item.href}
+                        onClick={onClose}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 9,
+                          padding: '7px 10px',
+                          borderRadius: 10,
+                          marginBottom: 2,
+                          textDecoration: 'none',
+                          fontSize: 13.5,
+                          fontWeight: active ? 600 : 500,
+                          color: active ? '#C7D0F8' : 'var(--sb-text)',
+                          background: active ? 'var(--sb-active-bg)' : 'transparent',
+                          borderLeft: active ? '2px solid #4F63D2' : '2px solid transparent',
+                          paddingLeft: active ? 8 : 10,
+                          transition: 'all 130ms ease',
+                          position: 'relative',
+                        }}
+                        onMouseEnter={e => {
+                          if (!active) {
+                            (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,.04)'
+                            ;(e.currentTarget as HTMLElement).style.color = 'var(--sb-text-h)'
+                          }
+                        }}
+                        onMouseLeave={e => {
+                          if (!active) {
+                            (e.currentTarget as HTMLElement).style.background = 'transparent'
+                            ;(e.currentTarget as HTMLElement).style.color = 'var(--sb-text)'
+                          }
+                        }}
+                      >
+                        {Icon && (
+                          <Icon
+                            size={15}
+                            strokeWidth={active ? 2.1 : 1.75}
+                            style={{
+                              color: active ? 'var(--sb-active-fg)' : 'inherit',
+                              flexShrink: 0,
+                              transition: 'color 130ms',
+                            }}
+                          />
+                        )}
+                        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {item.label}
+                        </span>
+                      </Link>
+                    </li>
+                  )
+                })}
+              </ul>
+            </div>
+          )
+        })}
       </nav>
 
-      {/* ── Usuario + cerrar sesión ───────────────────────────── */}
+      {/* ── Footer del sidebar ────────────────────────────────── */}
       <div
         className="px-4 py-4 flex-shrink-0"
-        style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}
+        style={{ borderTop: '1px solid var(--sb-border)' }}
       >
-        {/* Avatar + nombre */}
-        <div className="flex items-center gap-3 mb-2 px-1">
-          <div
-            className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
-            style={{ backgroundColor: 'rgba(51, 80, 208, 0.20)' }}
-          >
-            <span className="text-xs font-bold" style={{ color: '#8899EE' }}>
-              {initials}
-            </span>
+        {/* User info */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 10,
+          padding: '10px 10px',
+          borderRadius: 12,
+          background: 'rgba(255,255,255,.03)',
+          border: '1px solid rgba(255,255,255,.05)',
+          marginBottom: 6,
+        }}>
+          <div style={{
+            width: 32,
+            height: 32,
+            borderRadius: '50%',
+            background: 'linear-gradient(135deg, #1C2B90, #4F63D2)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0,
+          }}>
+            <span style={{ fontSize: 11, fontWeight: 800, color: 'white' }}>{initials}</span>
           </div>
-          <div className="min-w-0">
-            <p className="text-sm font-semibold truncate" style={{ color: '#E2E8F0' }}>
+          <div style={{ minWidth: 0, flex: 1 }}>
+            <p style={{ fontSize: 12.5, fontWeight: 700, color: '#C7D0F8', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {fullName}
             </p>
-            <p className="text-xs capitalize" style={{ color: '#475569' }}>
+            <p style={{ fontSize: 10.5, color: '#2D3A56', fontWeight: 600, textTransform: 'capitalize', marginTop: 1 }}>
               {profile.rol.replace('_', ' ')}
             </p>
           </div>
@@ -227,36 +295,59 @@ export default function Sidebar({ profile, empresaNombre, isOpen = false, onClos
         <Link
           href="/soporte"
           onClick={onClose}
-          className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm transition-all duration-150"
-          style={{ color: '#475569' }}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            padding: '7px 10px',
+            borderRadius: 10,
+            fontSize: 13,
+            color: 'var(--sb-text)',
+            textDecoration: 'none',
+            transition: 'background 130ms, color 130ms',
+            marginBottom: 2,
+          }}
           onMouseEnter={e => {
-            ;(e.currentTarget as HTMLElement).style.backgroundColor = 'rgba(255,255,255,0.05)'
-            ;(e.currentTarget as HTMLElement).style.color = '#94A3B8'
+            ;(e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,.04)'
+            ;(e.currentTarget as HTMLElement).style.color = 'var(--sb-text-h)'
           }}
           onMouseLeave={e => {
-            ;(e.currentTarget as HTMLElement).style.backgroundColor = 'transparent'
-            ;(e.currentTarget as HTMLElement).style.color = '#475569'
+            ;(e.currentTarget as HTMLElement).style.background = 'transparent'
+            ;(e.currentTarget as HTMLElement).style.color = 'var(--sb-text)'
           }}
         >
-          <MessageSquare size={15} strokeWidth={1.75} style={{ flexShrink: 0 }} />
+          <MessageSquare size={14} strokeWidth={1.75} style={{ flexShrink: 0 }} />
           <span>Soporte</span>
         </Link>
 
         {/* Cerrar sesión */}
         <button
           onClick={handleSignOut}
-          className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm transition-all duration-150 mt-1"
-          style={{ color: '#475569' }}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            width: '100%',
+            padding: '7px 10px',
+            borderRadius: 10,
+            fontSize: 13,
+            color: 'var(--sb-text)',
+            background: 'transparent',
+            border: 'none',
+            cursor: 'pointer',
+            transition: 'background 130ms, color 130ms',
+            textAlign: 'left',
+          }}
           onMouseEnter={e => {
-            ;(e.currentTarget as HTMLElement).style.backgroundColor = 'rgba(239,68,68,0.08)'
+            ;(e.currentTarget as HTMLElement).style.background = 'rgba(239,68,68,0.08)'
             ;(e.currentTarget as HTMLElement).style.color = '#FCA5A5'
           }}
           onMouseLeave={e => {
-            ;(e.currentTarget as HTMLElement).style.backgroundColor = 'transparent'
-            ;(e.currentTarget as HTMLElement).style.color = '#475569'
+            ;(e.currentTarget as HTMLElement).style.background = 'transparent'
+            ;(e.currentTarget as HTMLElement).style.color = 'var(--sb-text)'
           }}
         >
-          <LogOut size={15} strokeWidth={1.75} style={{ flexShrink: 0 }} />
+          <LogOut size={14} strokeWidth={1.75} style={{ flexShrink: 0 }} />
           <span>Cerrar sesión</span>
         </button>
       </div>

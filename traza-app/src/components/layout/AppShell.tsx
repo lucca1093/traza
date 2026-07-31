@@ -17,14 +17,17 @@ interface AppShellProps {
 export default function AppShell({ profile, empresaNombre, userId, children }: AppShellProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
+  const fullName = [profile.nombre, profile.apellido].filter(Boolean).join(' ') || 'Usuario'
+  const initials = fullName.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()
+
   return (
-    <div className="flex h-screen overflow-hidden" style={{ backgroundColor: '#F8FAFC' }}>
+    <div style={{ display: 'flex', height: '100dvh', overflow: 'hidden', background: 'var(--bg)' }}>
 
       {/* Overlay mobile */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 z-40 lg:hidden"
-          style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
+          style={{ position: 'fixed', inset: 0, zIndex: 40, background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(2px)' }}
+          className="lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
@@ -36,34 +39,86 @@ export default function AppShell({ profile, empresaNombre, userId, children }: A
         onClose={() => setSidebarOpen(false)}
       />
 
-      <main className="flex-1 lg:ml-64 overflow-y-auto flex flex-col min-w-0">
-        {/* Top bar */}
-        <div
-          className="flex items-center justify-between lg:justify-end px-4 lg:px-8 h-14 sticky top-0 z-30 flex-shrink-0"
+      <main style={{ flex: 1, marginLeft: 0, overflowY: 'auto', display: 'flex', flexDirection: 'column', minWidth: 0 }}
+        className="lg:ml-64">
+
+        {/* ── Top bar ──────────────────────────────────────────────── */}
+        <header
           style={{
-            backgroundColor: 'rgba(248, 250, 252, 0.85)',
-            backdropFilter: 'blur(12px)',
-            WebkitBackdropFilter: 'blur(12px)',
-            borderBottom: '1px solid #E2E8F0',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '0 24px',
+            height: 56,
+            position: 'sticky',
+            top: 0,
+            zIndex: 30,
+            flexShrink: 0,
+            background: 'rgba(242,244,248,0.92)',
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)',
+            borderBottom: '1px solid var(--border)',
           }}
         >
-          {/* Hamburger — solo mobile */}
-          <button
-            onClick={() => setSidebarOpen(true)}
-            className="lg:hidden p-2 rounded-xl transition-colors"
-            style={{ color: '#64748B' }}
-            onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#F1F5F9')}
-            onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
-            aria-label="Abrir menú"
-          >
-            <Menu size={20} />
-          </button>
+          {/* Left: hamburger (mobile) + breadcrumb placeholder */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="lg:hidden"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: 34,
+                height: 34,
+                borderRadius: 10,
+                border: '1px solid var(--border)',
+                background: 'var(--surface)',
+                cursor: 'pointer',
+                color: 'var(--ink-3)',
+              }}
+              aria-label="Abrir menú"
+            >
+              <Menu size={17} />
+            </button>
+          </div>
 
-          <NotificationBell userId={userId} />
-        </div>
+          {/* Right: notifications + user chip */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <NotificationBell userId={userId} />
 
-        {/* Contenido */}
-        <div className="flex-1 max-w-7xl w-full mx-auto px-4 lg:px-8 py-6 lg:py-8">
+            {/* User chip */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              padding: '5px 10px 5px 6px',
+              borderRadius: 99,
+              background: 'var(--surface)',
+              border: '1px solid var(--border)',
+              cursor: 'default',
+            }}>
+              <div style={{
+                width: 26,
+                height: 26,
+                borderRadius: '50%',
+                background: 'linear-gradient(135deg, #1C2B90, #4F63D2)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+              }}>
+                <span style={{ fontSize: 10, fontWeight: 800, color: 'white' }}>{initials}</span>
+              </div>
+              <span style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--ink-2)', maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {profile.nombre}
+              </span>
+            </div>
+          </div>
+        </header>
+
+        {/* ── Contenido ─────────────────────────────────────────────── */}
+        <div style={{ flex: 1, maxWidth: 1280, width: '100%', margin: '0 auto', padding: '28px 24px 40px' }}>
           {children}
         </div>
       </main>

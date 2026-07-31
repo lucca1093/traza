@@ -16,32 +16,40 @@ function diasRestantes(fecha: string) {
 }
 
 function ScoreColor(score: number) {
-  if (score >= 75) return '#16a34a'
-  if (score >= 50) return '#d97706'
-  return '#dc2626'
+  if (score >= 75) return 'var(--green)'
+  if (score >= 50) return 'var(--amber)'
+  return 'var(--red)'
 }
 
 function BarColors(val: number) {
-  if (val >= 75) return { bg: '#dcfce7', fill: '#22c55e' }
-  if (val >= 50) return { bg: '#fef3c7', fill: '#f59e0b' }
-  return { bg: '#fee2e2', fill: '#ef4444' }
+  if (val >= 75) return { bg: 'var(--green-bg)',  fill: 'var(--green)' }
+  if (val >= 50) return { bg: 'var(--amber-bg)',  fill: 'var(--amber)' }
+  return           { bg: 'var(--red-bg)',    fill: 'var(--red)'   }
 }
 
 /* ── Sección header reutilizable ── */
 function CardHeader({ title, sub, right }: { title: string; sub?: string; right?: React.ReactNode }) {
   return (
     <div
-      className="flex items-center justify-between px-6 py-4"
-      style={{ borderBottom: '1px solid #F1F5F9' }}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '16px 24px',
+        borderBottom: '1px solid var(--border)',
+      }}
     >
       <div>
-        <h2
-          className="text-base font-semibold"
-          style={{ color: '#0F172A', fontFamily: DISPLAY, letterSpacing: '-0.01em' }}
-        >
+        <h2 style={{
+          fontFamily: DISPLAY,
+          fontSize: 14,
+          fontWeight: 700,
+          color: 'var(--ink-1)',
+          letterSpacing: '-0.015em',
+        }}>
           {title}
         </h2>
-        {sub && <p className="text-xs mt-0.5" style={{ color: '#94A3B8' }}>{sub}</p>}
+        {sub && <p style={{ fontSize: 12, color: 'var(--ink-3)', marginTop: 2 }}>{sub}</p>}
       </div>
       {right}
     </div>
@@ -247,26 +255,28 @@ export default async function DashboardPage() {
 
         {/* ── Alerta: pendientes de validar ─────────────── */}
         {pendValidar > 0 && (
-          <div
-            className="flex items-center justify-between gap-4 rounded-2xl px-5 py-4"
-            style={{ backgroundColor: '#FFFBEB', border: '1px solid #FDE68A' }}
-          >
-            <div className="flex items-center gap-3">
-              <div
-                className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
-                style={{ backgroundColor: '#FEF3C7' }}
-              >
+          <div className="alert-warning" style={{ justifyContent: 'space-between', borderRadius: 'var(--r-xl)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={{
+                width: 34, height: 34, borderRadius: 10,
+                background: '#FEF3C7',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+              }}>
                 <AlertTriangle size={15} strokeWidth={1.75} style={{ color: '#D97706' }} />
               </div>
-              <p className="text-sm" style={{ color: '#92400E' }}>
-                <span className="font-semibold">{pendValidar} objetivo{pendValidar > 1 ? 's' : ''}</span>{' '}
+              <p style={{ fontSize: 13.5 }}>
+                <span style={{ fontWeight: 700 }}>{pendValidar} objetivo{pendValidar > 1 ? 's' : ''}</span>{' '}
                 completado{pendValidar > 1 ? 's' : ''} esperan validación.
               </p>
             </div>
             <Link
               href="/validacion"
-              className="flex-shrink-0 text-xs font-bold px-3.5 py-2 rounded-lg transition-colors"
-              style={{ backgroundColor: '#FDE68A', color: '#92400E' }}
+              style={{
+                flexShrink: 0, fontSize: 12, fontWeight: 700,
+                padding: '7px 14px', borderRadius: 8,
+                background: '#FDE68A', color: '#92400E',
+                textDecoration: 'none',
+              }}
             >
               Validar →
             </Link>

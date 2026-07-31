@@ -1,51 +1,86 @@
 /* ── Google Fonts ─────────────────────────────────────────────────────────── */
-@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800;1,14..32,400&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800;1,14..32,400&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* ── Design Tokens ────────────────────────────────────────────────────────── */
+/* ══════════════════════════════════════════════════════════════════
+   DESIGN TOKENS
+══════════════════════════════════════════════════════════════════ */
 :root {
   /* Brand */
-  --traza-brand:       #1C2B90;   /* logo / brand */
-  --traza-primary:     #3350D0;   /* interactive / CTA */
-  --traza-primary-h:   #2438B0;   /* hover */
+  --brand:         #1C2B90;
+  --brand-mid:     #2A3FA8;
+  --primary:       #4F63D2;
+  --primary-h:     #3B4FBF;
+  --indigo:        #6366F1;
 
   /* App surfaces */
-  --traza-bg:          #F8FAFC;   /* fondo app — slate-100 cool */
-  --traza-bg-raised:   #F1F5F9;   /* hover sutil */
-  --traza-card:        #FFFFFF;
-  --traza-border:      #E2E8F0;   /* border sutil */
-  --traza-border-h:    #CBD5E1;   /* border hover */
+  --bg:            #F2F4F8;       /* fondo app — blue-gray fría */
+  --bg-raised:     #E8EBF2;       /* hover / pressed */
+  --surface:       #FFFFFF;       /* cards */
+  --surface-2:     #F8F9FC;       /* nested cards / alternating */
+  --border:        #E3E6EF;       /* border sutil */
+  --border-h:      #C7CCE0;       /* border hover / focus */
+  --border-focus:  #4F63D2;
 
   /* Typography */
-  --ink-primary:       #0F172A;
-  --ink-secondary:     #64748B;
-  --ink-muted:         #94A3B8;
+  --ink-1:         #0C0F1D;       /* headings */
+  --ink-2:         #3B4263;       /* body */
+  --ink-3:         #6B7497;       /* secondary */
+  --ink-4:         #9BA5C9;       /* muted / placeholder */
 
   /* Sidebar */
-  --sidebar-bg:        #0F172A;
-  --sidebar-hover:     #1E293B;
-  --sidebar-active:    #1C2B90;
-  --sidebar-text:      #64748B;
-  --sidebar-bright:    #E2E8F0;
+  --sb-bg:         #0D1117;
+  --sb-bg-2:       #161C26;
+  --sb-border:     rgba(255,255,255,0.06);
+  --sb-text:       #5B6888;
+  --sb-text-h:     #A0AECE;
+  --sb-active-bg:  rgba(79,99,210,0.14);
+  --sb-active-fg:  #8899EE;
+  --sb-active-dot: #4F63D2;
 
-  /* Shadows */
-  --shadow-xs:    0 1px 2px rgba(15, 23, 42, 0.04);
-  --shadow-sm:    0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
-  --shadow-md:    0 4px 8px rgba(15, 23, 42, 0.06), 0 2px 4px rgba(15, 23, 42, 0.04);
-  --shadow-focus: 0 0 0 3px rgba(51, 80, 208, 0.20);
+  /* Status */
+  --green:         #16A34A;
+  --green-bg:      #DCFCE7;
+  --amber:         #D97706;
+  --amber-bg:      #FEF3C7;
+  --red:           #DC2626;
+  --red-bg:        #FEE2E2;
+  --blue:          #2563EB;
+  --blue-bg:       #DBEAFE;
+  --purple:        #7C3AED;
+  --purple-bg:     #EDE9FE;
+  --teal:          #0891B2;
+  --teal-bg:       #CFFAFE;
+
+  /* Shadows — multi-layer, naturales */
+  --shadow-xs:   0 1px 2px rgba(12,15,29,0.04);
+  --shadow-sm:   0 1px 3px rgba(12,15,29,0.06),
+                 0 1px 2px rgba(12,15,29,0.04);
+  --shadow-md:   0 4px 6px rgba(12,15,29,0.05),
+                 0 2px 4px rgba(12,15,29,0.04),
+                 0 0 0 1px rgba(12,15,29,0.03);
+  --shadow-lg:   0 10px 15px rgba(12,15,29,0.07),
+                 0 4px 6px rgba(12,15,29,0.04),
+                 0 0 0 1px rgba(12,15,29,0.03);
+  --shadow-focus:0 0 0 3px rgba(79,99,210,0.22);
+  --shadow-brand:0 8px 24px rgba(28,43,144,0.22),
+                 0 2px 6px rgba(28,43,144,0.14);
 
   /* Radius */
-  --radius-sm: 0.375rem;   /*  6px */
-  --radius-md: 0.5rem;     /*  8px */
-  --radius-lg: 0.75rem;    /* 12px */
-  --radius-xl: 1rem;       /* 16px */
-  --radius-2xl: 1.25rem;   /* 20px */
+  --r-sm:   6px;
+  --r-md:   8px;
+  --r-lg:   12px;
+  --r-xl:   16px;
+  --r-2xl:  20px;
+  --r-3xl:  24px;
 }
 
-/* ── Reset & base ─────────────────────────────────────────────────────────── */
+/* ══════════════════════════════════════════════════════════════════
+   RESET & BASE
+══════════════════════════════════════════════════════════════════ */
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
@@ -54,208 +89,447 @@
 
 html, body {
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  background-color: var(--traza-bg);
-  color: var(--ink-primary);
+  background-color: var(--bg);
+  color: var(--ink-2);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
   line-height: 1.5;
+  font-size: 15px;
 }
 
-/* Tipografía display — headings */
-h1, h2, h3, h4 {
+h1, h2, h3, h4, h5 {
   font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.025em;
+  color: var(--ink-1);
 }
 
-/* ── Scrollbar premium ────────────────────────────────────────────────────── */
-::-webkit-scrollbar { width: 4px; height: 4px; }
+a { color: inherit; text-decoration: none; }
+button { font-family: inherit; }
+
+/* ── Scrollbar premium ────────────────────────────────────────── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
+::-webkit-scrollbar-thumb { background: var(--border-h); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: var(--ink-4); }
 
-/* ── Selection ────────────────────────────────────────────────────────────── */
+/* ── Selection ────────────────────────────────────────────────── */
 ::selection {
-  background: rgba(51, 80, 208, 0.12);
-  color: var(--ink-primary);
+  background: rgba(79,99,210,0.14);
+  color: var(--ink-1);
 }
 
-/* ── Focus visible ────────────────────────────────────────────────────────── */
+/* ── Focus visible ────────────────────────────────────────────── */
 :focus-visible {
   outline: none;
   box-shadow: var(--shadow-focus);
 }
 
-/* ── Animaciones base ─────────────────────────────────────────────────────── */
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-@keyframes slideUp {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-@keyframes scaleIn {
-  from { opacity: 0; transform: scale(0.95); }
-  to   { opacity: 1; transform: scale(1); }
-}
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
+/* ── Keyframes ────────────────────────────────────────────────── */
+@keyframes fadeIn   { from { opacity: 0 }                  to { opacity: 1 } }
+@keyframes slideUp  { from { opacity: 0; transform: translateY(10px) }  to { opacity: 1; transform: none } }
+@keyframes scaleIn  { from { opacity: 0; transform: scale(0.96) }        to { opacity: 1; transform: scale(1) } }
+@keyframes spin     { to   { transform: rotate(360deg) } }
+@keyframes pulse-soft { 0%,100% { opacity:.6 } 50% { opacity:1 } }
 
-/* ── Utilities personalizadas ─────────────────────────────────────────────── */
+/* ══════════════════════════════════════════════════════════════════
+   COMPONENT UTILITIES
+══════════════════════════════════════════════════════════════════ */
 @layer utilities {
 
-  /* ── Cards ─────────────────────────────────────────────────────── */
+  /* ── Cards ──────────────────────────────────────────────────── */
   .traza-card {
-    @apply bg-white rounded-2xl;
-    border: 1px solid var(--traza-border);
+    background: var(--surface);
+    border-radius: var(--r-2xl);
+    border: 1px solid var(--border);
     box-shadow: var(--shadow-sm);
   }
-
   .traza-card-flat {
-    @apply bg-white rounded-2xl;
-    border: 1px solid var(--traza-border);
+    background: var(--surface);
+    border-radius: var(--r-2xl);
+    border: 1px solid var(--border);
+  }
+  .traza-card-raised {
+    background: var(--surface);
+    border-radius: var(--r-2xl);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-md);
   }
 
-  /* ── Inputs ─────────────────────────────────────────────────────── */
+  /* ── Inputs ─────────────────────────────────────────────────── */
   .traza-input {
-    @apply w-full px-4 py-2.5 rounded-xl text-sm
-           transition-all placeholder-slate-500 bg-white;
-    border: 1px solid var(--traza-border);
-    color: var(--ink-primary);
+    @apply w-full px-4 py-2.5 rounded-xl text-sm transition-all;
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    color: var(--ink-1);
     outline: none;
+    font-size: 14px;
   }
-  .traza-input:hover {
-    border-color: var(--traza-border-h);
-  }
-  .traza-input:focus {
-    border-color: var(--traza-primary);
-    box-shadow: var(--shadow-focus);
-  }
-  .traza-input:disabled {
-    opacity: 0.45;
-    background-color: var(--traza-bg-raised);
-    cursor: not-allowed;
-  }
-  .traza-input::placeholder {
-    color: var(--ink-muted);
-  }
+  .traza-input::placeholder { color: var(--ink-4); }
+  .traza-input:hover  { border-color: var(--border-h); }
+  .traza-input:focus  { border-color: var(--border-focus); box-shadow: var(--shadow-focus); }
+  .traza-input:disabled { opacity: .45; background: var(--bg-raised); cursor: not-allowed; }
 
-  /* ── Select ─────────────────────────────────────────────────────── */
+  /* ── Select ─────────────────────────────────────────────────── */
   .traza-select {
-    @apply w-full px-4 py-2.5 rounded-xl text-sm
-           transition-all bg-white appearance-none cursor-pointer;
-    border: 1px solid var(--traza-border);
-    color: var(--ink-primary);
+    @apply w-full px-4 py-2.5 rounded-xl text-sm transition-all appearance-none cursor-pointer;
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    color: var(--ink-1);
     outline: none;
+    font-size: 14px;
   }
-  .traza-select:hover  { border-color: var(--traza-border-h); }
-  .traza-select:focus  { border-color: var(--traza-primary); box-shadow: var(--shadow-focus); }
+  .traza-select:hover { border-color: var(--border-h); }
+  .traza-select:focus { border-color: var(--border-focus); box-shadow: var(--shadow-focus); }
 
-  /* ── Textarea ───────────────────────────────────────────────────── */
+  /* ── Textarea ───────────────────────────────────────────────── */
   .traza-textarea {
-    @apply w-full px-4 py-3 rounded-xl text-sm
-           transition-all bg-white resize-none;
-    border: 1px solid var(--traza-border);
-    color: var(--ink-primary);
+    @apply w-full px-4 py-3 rounded-xl text-sm transition-all resize-none;
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    color: var(--ink-1);
     outline: none;
+    font-size: 14px;
   }
-  .traza-textarea:hover { border-color: var(--traza-border-h); }
-  .traza-textarea:focus { border-color: var(--traza-primary); box-shadow: var(--shadow-focus); }
-  .traza-textarea::placeholder { color: var(--ink-muted); }
+  .traza-textarea:hover { border-color: var(--border-h); }
+  .traza-textarea:focus { border-color: var(--border-focus); box-shadow: var(--shadow-focus); }
+  .traza-textarea::placeholder { color: var(--ink-4); }
 
-  /* ── Labels ─────────────────────────────────────────────────────── */
+  /* ── Labels ─────────────────────────────────────────────────── */
   .traza-label {
     @apply block text-xs font-semibold uppercase tracking-wider mb-1.5;
-    color: var(--ink-secondary);
+    color: var(--ink-3);
+    letter-spacing: 0.07em;
   }
 
-  /* ── Page headers ───────────────────────────────────────────────── */
+  /* ── Page header ────────────────────────────────────────────── */
   .traza-page-header {
-    @apply flex items-start justify-between gap-4 pb-6 mb-6;
-    border-bottom: 1px solid var(--traza-border);
+    @apply flex items-start justify-between gap-4;
+    padding-bottom: 24px;
+    margin-bottom: 24px;
   }
-
   .traza-page-title {
-    @apply text-2xl font-bold tracking-tight;
     font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
-    color: var(--ink-primary);
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--ink-1);
+    letter-spacing: -0.03em;
+    line-height: 1.1;
   }
-
   .traza-page-sub {
-    @apply text-sm mt-1;
-    color: var(--ink-secondary);
+    font-size: 13px;
+    color: var(--ink-3);
+    margin-top: 3px;
+    font-weight: 500;
   }
 
-  /* ── Tabs ───────────────────────────────────────────────────────── */
+  /* ── Section title within page ──────────────────────────────── */
+  .traza-section-title {
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--ink-1);
+    letter-spacing: -0.015em;
+  }
+
+  /* ── Card header row ────────────────────────────────────────── */
+  .traza-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 24px;
+    border-bottom: 1px solid var(--border);
+  }
+  .traza-card-header h2 {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--ink-1);
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    letter-spacing: -0.015em;
+  }
+  .traza-card-header p {
+    font-size: 12px;
+    color: var(--ink-3);
+    margin-top: 2px;
+  }
+
+  /* ── Card rows (list items) ─────────────────────────────────── */
+  .traza-row {
+    padding: 14px 24px;
+    border-bottom: 1px solid var(--border);
+    transition: background 120ms ease;
+  }
+  .traza-row:last-child { border-bottom: none; }
+  .traza-row:hover { background: var(--surface-2); }
+
+  /* ── Tables ─────────────────────────────────────────────────── */
+  .traza-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+  .traza-table thead th {
+    padding: 10px 16px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--ink-3);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--border);
+  }
+  .traza-table thead th:first-child { border-radius: 0; }
+  .traza-table tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background 100ms;
+  }
+  .traza-table tbody tr:last-child { border-bottom: none; }
+  .traza-table tbody tr:hover { background: var(--surface-2); }
+  .traza-table tbody td {
+    padding: 13px 16px;
+    color: var(--ink-2);
+    vertical-align: middle;
+  }
+
+  /* ── Tabs ───────────────────────────────────────────────────── */
   .traza-tabs {
-    @apply flex gap-1 p-1 rounded-xl;
-    background: #F1F5F9;
-    border: 1px solid var(--traza-border);
+    display: flex;
+    gap: 4px;
+    padding: 4px;
+    border-radius: var(--r-xl);
+    background: var(--bg-raised);
+    border: 1px solid var(--border);
   }
   .traza-tab {
-    @apply flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-all text-center cursor-pointer;
-    color: var(--ink-secondary);
+    flex: 1;
+    padding: 8px 16px;
+    border-radius: var(--r-lg);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    color: var(--ink-3);
+    transition: all 150ms;
+    text-align: center;
   }
-  .traza-tab:hover {
-    color: var(--ink-primary);
-    background: rgba(255, 255, 255, 0.7);
-  }
+  .traza-tab:hover { color: var(--ink-1); background: rgba(255,255,255,.65); }
   .traza-tab.active {
-    @apply bg-white shadow-sm;
-    color: var(--ink-primary);
+    background: var(--surface);
+    color: var(--ink-1);
     font-weight: 600;
+    box-shadow: var(--shadow-xs);
   }
 
-  /* ── Dividers ───────────────────────────────────────────────────── */
-  .traza-divider {
-    border-color: var(--traza-border);
+  /* ── Badges ─────────────────────────────────────────────────── */
+  .traza-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 99px;
+    font-size: 11.5px;
+    font-weight: 600;
+    line-height: 1;
+    white-space: nowrap;
+  }
+  .badge-completado {
+    @apply traza-badge;
+    background: var(--green-bg);
+    color: var(--green);
+  }
+  .badge-progreso {
+    @apply traza-badge;
+    background: var(--blue-bg);
+    color: var(--blue);
+  }
+  .badge-pendiente {
+    @apply traza-badge;
+    background: var(--bg-raised);
+    color: var(--ink-3);
+  }
+  .badge-rechazado {
+    @apply traza-badge;
+    background: var(--red-bg);
+    color: var(--red);
+  }
+  .badge-amber {
+    @apply traza-badge;
+    background: var(--amber-bg);
+    color: var(--amber);
+  }
+  .badge-purple {
+    @apply traza-badge;
+    background: var(--purple-bg);
+    color: var(--purple);
   }
 
-  /* ── Empty state ────────────────────────────────────────────────── */
+  /* ── Status dots ────────────────────────────────────────────── */
+  .dot-green  { width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
+  .dot-amber  { width: 6px; height: 6px; border-radius: 50%; background: var(--amber); }
+  .dot-red    { width: 6px; height: 6px; border-radius: 50%; background: var(--red); }
+  .dot-blue   { width: 6px; height: 6px; border-radius: 50%; background: var(--blue); }
+
+  /* ── Alerts / Banners ───────────────────────────────────────── */
+  .traza-alert {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 18px;
+    border-radius: var(--r-xl);
+    font-size: 14px;
+    line-height: 1.55;
+  }
+  .alert-warning {
+    @apply traza-alert;
+    background: #FFFBEB;
+    border: 1px solid #FDE68A;
+    color: #92400E;
+  }
+  .alert-error {
+    @apply traza-alert;
+    background: #FFF5F5;
+    border: 1px solid #FECACA;
+    color: #991B1B;
+  }
+  .alert-info {
+    @apply traza-alert;
+    background: #EFF6FF;
+    border: 1px solid #BFDBFE;
+    color: #1E40AF;
+  }
+  .alert-success {
+    @apply traza-alert;
+    background: #F0FDF4;
+    border: 1px solid #BBF7D0;
+    color: #14532D;
+  }
+
+  /* ── Empty state ────────────────────────────────────────────── */
   .traza-empty {
     @apply flex flex-col items-center justify-center py-12 text-center;
   }
   .traza-empty-icon {
-    @apply w-12 h-12 rounded-2xl flex items-center justify-center mb-4;
-    background: #F1F5F9;
+    width: 48px;
+    height: 48px;
+    border-radius: var(--r-xl);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 14px;
+    background: var(--bg-raised);
+    border: 1px solid var(--border);
   }
   .traza-empty p {
-    color: var(--ink-muted);
-    font-size: 0.875rem;
+    color: var(--ink-3);
+    font-size: 13.5px;
   }
 
-  /* ── Badges de estado ───────────────────────────────────────────── */
-  .badge-completado {
-    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold;
-    background: #DCFCE7; color: #15803D;
+  /* ── Progress bar ───────────────────────────────────────────── */
+  .traza-progress {
+    height: 5px;
+    border-radius: 99px;
+    background: var(--bg-raised);
+    overflow: hidden;
   }
-  .badge-progreso {
-    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold;
-    background: #DBEAFE; color: #1D4ED8;
-  }
-  .badge-pendiente {
-    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold;
-    background: #F1F5F9; color: #475569;
-  }
-  .badge-rechazado {
-    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold;
-    background: #FEE2E2; color: #B91C1C;
+  .traza-progress-fill {
+    height: 100%;
+    border-radius: 99px;
+    transition: width 600ms cubic-bezier(.22,1,.36,1);
   }
 
-  /* ── Scroll fade ────────────────────────────────────────────────── */
-  .traza-scroll-fade {
-    mask-image: linear-gradient(to bottom, black 85%, transparent 100%);
+  /* ── Dividers ───────────────────────────────────────────────── */
+  .traza-divider { border-color: var(--border); }
+
+  /* ── Avatar ─────────────────────────────────────────────────── */
+  .traza-avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    flex-shrink: 0;
+  }
+  .traza-avatar-sm {
+    @apply traza-avatar;
+    width: 28px;
+    height: 28px;
+    font-size: 11px;
+  }
+  .traza-avatar-md {
+    @apply traza-avatar;
+    width: 36px;
+    height: 36px;
+    font-size: 13px;
+  }
+  .traza-avatar-lg {
+    @apply traza-avatar;
+    width: 48px;
+    height: 48px;
+    font-size: 16px;
   }
 
-  /* ── Animate utilities ──────────────────────────────────────────── */
-  .animate-fade-in  { animation: fadeIn 200ms cubic-bezier(0, 0, 0.2, 1); }
-  .animate-slide-up { animation: slideUp 200ms cubic-bezier(0, 0, 0.2, 1); }
-  .animate-scale-in { animation: scaleIn 150ms cubic-bezier(0.34, 1.56, 0.64, 1); }
+  /* ── Icon button ────────────────────────────────────────────── */
+  .traza-icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: var(--r-lg);
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    color: var(--ink-3);
+    transition: background 130ms, color 130ms;
+  }
+  .traza-icon-btn:hover {
+    background: var(--bg-raised);
+    color: var(--ink-1);
+  }
 
-  /* ── Font display helper ────────────────────────────────────────── */
+  /* ── Animate utilities ──────────────────────────────────────── */
+  .animate-fade-in    { animation: fadeIn  220ms cubic-bezier(0,0,0.2,1); }
+  .animate-slide-up   { animation: slideUp 220ms cubic-bezier(0,0,0.2,1); }
+  .animate-scale-in   { animation: scaleIn 170ms cubic-bezier(.34,1.56,.64,1); }
+  .animate-pulse-soft { animation: pulse-soft 2s ease-in-out infinite; }
+
+  /* ── Font display helper ────────────────────────────────────── */
   .font-display {
     font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  }
+
+  /* ── Number large (stats) ───────────────────────────────────── */
+  .traza-stat-number {
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    font-size: 30px;
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    line-height: 1;
+    color: var(--ink-1);
+  }
+
+  /* ── Section label (como en Lattice) ───────────────────────── */
+  .traza-section-label {
+    font-size: 10.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    color: var(--ink-4);
+  }
+
+  /* ── Gradient brand card ────────────────────────────────────── */
+  .traza-brand-card {
+    background: linear-gradient(135deg, #1C2B90 0%, #3D55D6 100%);
+    border-radius: var(--r-2xl);
+    position: relative;
+    overflow: hidden;
+  }
+  .traza-brand-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 80% 20%, rgba(165,180,252,0.18) 0%, transparent 60%);
+    pointer-events: none;
   }
 }
