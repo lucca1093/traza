@@ -17,19 +17,19 @@
   --indigo:        #6366F1;
 
   /* App surfaces */
-  --bg:            #F2F4F8;       /* fondo app — blue-gray fría */
-  --bg-raised:     #E8EBF2;       /* hover / pressed */
-  --surface:       #FFFFFF;       /* cards */
-  --surface-2:     #F8F9FC;       /* nested cards / alternating */
-  --border:        #E3E6EF;       /* border sutil */
-  --border-h:      #C7CCE0;       /* border hover / focus */
+  --bg:            #F2F4F8;
+  --bg-raised:     #E8EBF2;
+  --surface:       #FFFFFF;
+  --surface-2:     #F8F9FC;
+  --border:        #E3E6EF;
+  --border-h:      #C7CCE0;
   --border-focus:  #4F63D2;
 
   /* Typography */
-  --ink-1:         #0C0F1D;       /* headings */
-  --ink-2:         #3B4263;       /* body */
-  --ink-3:         #6B7497;       /* secondary */
-  --ink-4:         #9BA5C9;       /* muted / placeholder */
+  --ink-1:         #0C0F1D;
+  --ink-2:         #3B4263;
+  --ink-3:         #6B7497;
+  --ink-4:         #9BA5C9;
 
   /* Sidebar */
   --sb-bg:         #0D1117;
@@ -55,19 +55,13 @@
   --teal:          #0891B2;
   --teal-bg:       #CFFAFE;
 
-  /* Shadows — multi-layer, naturales */
+  /* Shadows */
   --shadow-xs:   0 1px 2px rgba(12,15,29,0.04);
-  --shadow-sm:   0 1px 3px rgba(12,15,29,0.06),
-                 0 1px 2px rgba(12,15,29,0.04);
-  --shadow-md:   0 4px 6px rgba(12,15,29,0.05),
-                 0 2px 4px rgba(12,15,29,0.04),
-                 0 0 0 1px rgba(12,15,29,0.03);
-  --shadow-lg:   0 10px 15px rgba(12,15,29,0.07),
-                 0 4px 6px rgba(12,15,29,0.04),
-                 0 0 0 1px rgba(12,15,29,0.03);
+  --shadow-sm:   0 1px 3px rgba(12,15,29,0.06), 0 1px 2px rgba(12,15,29,0.04);
+  --shadow-md:   0 4px 6px rgba(12,15,29,0.05), 0 2px 4px rgba(12,15,29,0.04);
+  --shadow-lg:   0 10px 15px rgba(12,15,29,0.07), 0 4px 6px rgba(12,15,29,0.04);
   --shadow-focus:0 0 0 3px rgba(79,99,210,0.22);
-  --shadow-brand:0 8px 24px rgba(28,43,144,0.22),
-                 0 2px 6px rgba(28,43,144,0.14);
+  --shadow-brand:0 8px 24px rgba(28,43,144,0.22), 0 2px 6px rgba(28,43,144,0.14);
 
   /* Radius */
   --r-sm:   6px;
@@ -81,11 +75,7 @@
 /* ══════════════════════════════════════════════════════════════════
    RESET & BASE
 ══════════════════════════════════════════════════════════════════ */
-*, *::before, *::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 html, body {
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
@@ -107,51 +97,40 @@ h1, h2, h3, h4, h5 {
 a { color: inherit; text-decoration: none; }
 button { font-family: inherit; }
 
-/* ── Scrollbar premium ────────────────────────────────────────── */
+/* ── Scrollbar ────────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border-h); border-radius: 99px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--ink-4); }
 
-/* ── Selection ────────────────────────────────────────────────── */
-::selection {
-  background: rgba(79,99,210,0.14);
-  color: var(--ink-1);
-}
+::selection { background: rgba(79,99,210,0.14); color: var(--ink-1); }
 
-/* ── Focus visible ────────────────────────────────────────────── */
-:focus-visible {
-  outline: none;
-  box-shadow: var(--shadow-focus);
-}
+:focus-visible { outline: none; box-shadow: var(--shadow-focus); }
 
 /* ── Keyframes ────────────────────────────────────────────────── */
-@keyframes fadeIn   { from { opacity: 0 }                  to { opacity: 1 } }
-@keyframes slideUp  { from { opacity: 0; transform: translateY(10px) }  to { opacity: 1; transform: none } }
-@keyframes scaleIn  { from { opacity: 0; transform: scale(0.96) }        to { opacity: 1; transform: scale(1) } }
-@keyframes spin     { to   { transform: rotate(360deg) } }
+@keyframes fadeIn  { from { opacity: 0 }                        to { opacity: 1 } }
+@keyframes slideUp { from { opacity: 0; transform: translateY(10px) } to { opacity: 1; transform: none } }
+@keyframes scaleIn { from { opacity: 0; transform: scale(0.96) }      to { opacity: 1; transform: scale(1) } }
+@keyframes spin    { to   { transform: rotate(360deg) } }
 @keyframes pulse-soft { 0%,100% { opacity:.6 } 50% { opacity:1 } }
 
 /* ══════════════════════════════════════════════════════════════════
-   COMPONENT UTILITIES
+   COMPONENT UTILITIES  (solo Tailwind en @apply, sin clases custom)
 ══════════════════════════════════════════════════════════════════ */
 @layer utilities {
 
   /* ── Cards ──────────────────────────────────────────────────── */
   .traza-card {
-    background: var(--surface);
-    border-radius: var(--r-2xl);
+    @apply bg-white rounded-2xl;
     border: 1px solid var(--border);
     box-shadow: var(--shadow-sm);
   }
   .traza-card-flat {
-    background: var(--surface);
-    border-radius: var(--r-2xl);
+    @apply bg-white rounded-2xl;
     border: 1px solid var(--border);
   }
   .traza-card-raised {
-    background: var(--surface);
-    border-radius: var(--r-2xl);
+    @apply bg-white rounded-2xl;
     border: 1px solid var(--border);
     box-shadow: var(--shadow-md);
   }
@@ -163,7 +142,6 @@ button { font-family: inherit; }
     border: 1.5px solid var(--border);
     color: var(--ink-1);
     outline: none;
-    font-size: 14px;
   }
   .traza-input::placeholder { color: var(--ink-4); }
   .traza-input:hover  { border-color: var(--border-h); }
@@ -177,7 +155,6 @@ button { font-family: inherit; }
     border: 1.5px solid var(--border);
     color: var(--ink-1);
     outline: none;
-    font-size: 14px;
   }
   .traza-select:hover { border-color: var(--border-h); }
   .traza-select:focus { border-color: var(--border-focus); box-shadow: var(--shadow-focus); }
@@ -189,7 +166,6 @@ button { font-family: inherit; }
     border: 1.5px solid var(--border);
     color: var(--ink-1);
     outline: none;
-    font-size: 14px;
   }
   .traza-textarea:hover { border-color: var(--border-h); }
   .traza-textarea:focus { border-color: var(--border-focus); box-shadow: var(--shadow-focus); }
@@ -199,7 +175,6 @@ button { font-family: inherit; }
   .traza-label {
     @apply block text-xs font-semibold uppercase tracking-wider mb-1.5;
     color: var(--ink-3);
-    letter-spacing: 0.07em;
   }
 
   /* ── Page header ────────────────────────────────────────────── */
@@ -209,7 +184,7 @@ button { font-family: inherit; }
     margin-bottom: 24px;
   }
   .traza-page-title {
-    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    @apply font-display;
     font-size: 22px;
     font-weight: 800;
     color: var(--ink-1);
@@ -223,185 +198,65 @@ button { font-family: inherit; }
     font-weight: 500;
   }
 
-  /* ── Section title within page ──────────────────────────────── */
-  .traza-section-title {
-    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
-    font-size: 14px;
-    font-weight: 700;
-    color: var(--ink-1);
-    letter-spacing: -0.015em;
-  }
-
-  /* ── Card header row ────────────────────────────────────────── */
-  .traza-card-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 18px 24px;
-    border-bottom: 1px solid var(--border);
-  }
-  .traza-card-header h2 {
-    font-size: 14px;
-    font-weight: 700;
-    color: var(--ink-1);
-    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
-    letter-spacing: -0.015em;
-  }
-  .traza-card-header p {
-    font-size: 12px;
-    color: var(--ink-3);
-    margin-top: 2px;
-  }
-
-  /* ── Card rows (list items) ─────────────────────────────────── */
-  .traza-row {
-    padding: 14px 24px;
-    border-bottom: 1px solid var(--border);
-    transition: background 120ms ease;
-  }
-  .traza-row:last-child { border-bottom: none; }
-  .traza-row:hover { background: var(--surface-2); }
-
-  /* ── Tables ─────────────────────────────────────────────────── */
-  .traza-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 14px;
-  }
-  .traza-table thead th {
-    padding: 10px 16px;
-    text-align: left;
-    font-size: 11px;
-    font-weight: 700;
-    color: var(--ink-3);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    background: var(--surface-2);
-    border-bottom: 1px solid var(--border);
-  }
-  .traza-table thead th:first-child { border-radius: 0; }
-  .traza-table tbody tr {
-    border-bottom: 1px solid var(--border);
-    transition: background 100ms;
-  }
-  .traza-table tbody tr:last-child { border-bottom: none; }
-  .traza-table tbody tr:hover { background: var(--surface-2); }
-  .traza-table tbody td {
-    padding: 13px 16px;
-    color: var(--ink-2);
-    vertical-align: middle;
-  }
-
   /* ── Tabs ───────────────────────────────────────────────────── */
   .traza-tabs {
-    display: flex;
-    gap: 4px;
-    padding: 4px;
-    border-radius: var(--r-xl);
+    @apply flex gap-1 p-1 rounded-xl;
     background: var(--bg-raised);
     border: 1px solid var(--border);
   }
   .traza-tab {
-    flex: 1;
-    padding: 8px 16px;
-    border-radius: var(--r-lg);
-    font-size: 13px;
-    font-weight: 500;
-    cursor: pointer;
+    @apply flex-1 px-4 py-2 rounded-lg text-sm font-medium text-center cursor-pointer transition-all;
     color: var(--ink-3);
-    transition: all 150ms;
-    text-align: center;
   }
   .traza-tab:hover { color: var(--ink-1); background: rgba(255,255,255,.65); }
   .traza-tab.active {
-    background: var(--surface);
+    @apply bg-white;
     color: var(--ink-1);
     font-weight: 600;
     box-shadow: var(--shadow-xs);
   }
 
-  /* ── Badges ─────────────────────────────────────────────────── */
-  .traza-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    padding: 3px 10px;
-    border-radius: 99px;
-    font-size: 11.5px;
-    font-weight: 600;
-    line-height: 1;
-    white-space: nowrap;
-  }
+  /* ── Dividers ───────────────────────────────────────────────── */
+  .traza-divider { border-color: var(--border); }
+
+  /* ── Badges de estado ───────────────────────────────────────── */
   .badge-completado {
-    @apply traza-badge;
-    background: var(--green-bg);
-    color: var(--green);
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold;
+    background: var(--green-bg); color: var(--green);
   }
   .badge-progreso {
-    @apply traza-badge;
-    background: var(--blue-bg);
-    color: var(--blue);
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold;
+    background: var(--blue-bg); color: var(--blue);
   }
   .badge-pendiente {
-    @apply traza-badge;
-    background: var(--bg-raised);
-    color: var(--ink-3);
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold;
+    background: var(--bg-raised); color: var(--ink-3);
   }
   .badge-rechazado {
-    @apply traza-badge;
-    background: var(--red-bg);
-    color: var(--red);
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold;
+    background: var(--red-bg); color: var(--red);
   }
   .badge-amber {
-    @apply traza-badge;
-    background: var(--amber-bg);
-    color: var(--amber);
-  }
-  .badge-purple {
-    @apply traza-badge;
-    background: var(--purple-bg);
-    color: var(--purple);
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold;
+    background: var(--amber-bg); color: var(--amber);
   }
 
-  /* ── Status dots ────────────────────────────────────────────── */
-  .dot-green  { width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
-  .dot-amber  { width: 6px; height: 6px; border-radius: 50%; background: var(--amber); }
-  .dot-red    { width: 6px; height: 6px; border-radius: 50%; background: var(--red); }
-  .dot-blue   { width: 6px; height: 6px; border-radius: 50%; background: var(--blue); }
-
-  /* ── Alerts / Banners ───────────────────────────────────────── */
-  .traza-alert {
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-    padding: 14px 18px;
-    border-radius: var(--r-xl);
-    font-size: 14px;
-    line-height: 1.55;
-  }
+  /* ── Alerts ─────────────────────────────────────────────────── */
   .alert-warning {
-    @apply traza-alert;
-    background: #FFFBEB;
-    border: 1px solid #FDE68A;
-    color: #92400E;
+    @apply flex items-start gap-3 rounded-2xl px-5 py-4;
+    background: #FFFBEB; border: 1px solid #FDE68A; color: #92400E;
   }
   .alert-error {
-    @apply traza-alert;
-    background: #FFF5F5;
-    border: 1px solid #FECACA;
-    color: #991B1B;
+    @apply flex items-start gap-3 rounded-2xl px-5 py-4;
+    background: #FFF5F5; border: 1px solid #FECACA; color: #991B1B;
   }
   .alert-info {
-    @apply traza-alert;
-    background: #EFF6FF;
-    border: 1px solid #BFDBFE;
-    color: #1E40AF;
+    @apply flex items-start gap-3 rounded-2xl px-5 py-4;
+    background: #EFF6FF; border: 1px solid #BFDBFE; color: #1E40AF;
   }
   .alert-success {
-    @apply traza-alert;
-    background: #F0FDF4;
-    border: 1px solid #BBF7D0;
-    color: #14532D;
+    @apply flex items-start gap-3 rounded-2xl px-5 py-4;
+    background: #F0FDF4; border: 1px solid #BBF7D0; color: #14532D;
   }
 
   /* ── Empty state ────────────────────────────────────────────── */
@@ -409,83 +264,41 @@ button { font-family: inherit; }
     @apply flex flex-col items-center justify-center py-12 text-center;
   }
   .traza-empty-icon {
-    width: 48px;
-    height: 48px;
-    border-radius: var(--r-xl);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 14px;
+    @apply w-12 h-12 rounded-2xl flex items-center justify-center mb-4;
     background: var(--bg-raised);
     border: 1px solid var(--border);
   }
-  .traza-empty p {
-    color: var(--ink-3);
-    font-size: 13.5px;
-  }
+  .traza-empty p { color: var(--ink-3); font-size: 0.875rem; }
 
-  /* ── Progress bar ───────────────────────────────────────────── */
+  /* ── Progress ───────────────────────────────────────────────── */
   .traza-progress {
     height: 5px;
     border-radius: 99px;
     background: var(--bg-raised);
     overflow: hidden;
   }
-  .traza-progress-fill {
-    height: 100%;
-    border-radius: 99px;
-    transition: width 600ms cubic-bezier(.22,1,.36,1);
-  }
-
-  /* ── Dividers ───────────────────────────────────────────────── */
-  .traza-divider { border-color: var(--border); }
-
-  /* ── Avatar ─────────────────────────────────────────────────── */
-  .traza-avatar {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    font-weight: 700;
-    letter-spacing: -0.01em;
-    flex-shrink: 0;
-  }
-  .traza-avatar-sm {
-    @apply traza-avatar;
-    width: 28px;
-    height: 28px;
-    font-size: 11px;
-  }
-  .traza-avatar-md {
-    @apply traza-avatar;
-    width: 36px;
-    height: 36px;
-    font-size: 13px;
-  }
-  .traza-avatar-lg {
-    @apply traza-avatar;
-    width: 48px;
-    height: 48px;
-    font-size: 16px;
-  }
 
   /* ── Icon button ────────────────────────────────────────────── */
   .traza-icon-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 34px;
-    height: 34px;
-    border-radius: var(--r-lg);
-    border: none;
+    @apply inline-flex items-center justify-center rounded-xl border-none cursor-pointer transition-all;
+    width: 34px; height: 34px;
     background: transparent;
-    cursor: pointer;
     color: var(--ink-3);
-    transition: background 130ms, color 130ms;
   }
-  .traza-icon-btn:hover {
-    background: var(--bg-raised);
-    color: var(--ink-1);
+  .traza-icon-btn:hover { background: var(--bg-raised); color: var(--ink-1); }
+
+  /* ── Avatars ────────────────────────────────────────────────── */
+  .traza-avatar-sm {
+    @apply inline-flex items-center justify-center rounded-full flex-shrink-0;
+    width: 28px; height: 28px; font-size: 11px; font-weight: 700;
+  }
+  .traza-avatar-md {
+    @apply inline-flex items-center justify-center rounded-full flex-shrink-0;
+    width: 36px; height: 36px; font-size: 13px; font-weight: 700;
+  }
+  .traza-avatar-lg {
+    @apply inline-flex items-center justify-center rounded-full flex-shrink-0;
+    width: 48px; height: 48px; font-size: 16px; font-weight: 700;
   }
 
   /* ── Animate utilities ──────────────────────────────────────── */
@@ -494,36 +307,15 @@ button { font-family: inherit; }
   .animate-scale-in   { animation: scaleIn 170ms cubic-bezier(.34,1.56,.64,1); }
   .animate-pulse-soft { animation: pulse-soft 2s ease-in-out infinite; }
 
-  /* ── Font display helper ────────────────────────────────────── */
+  /* ── Font display ───────────────────────────────────────────── */
   .font-display {
     font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
   }
 
-  /* ── Number large (stats) ───────────────────────────────────── */
-  .traza-stat-number {
-    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
-    font-size: 30px;
-    font-weight: 800;
-    letter-spacing: -0.04em;
-    line-height: 1;
-    color: var(--ink-1);
-  }
-
-  /* ── Section label (como en Lattice) ───────────────────────── */
-  .traza-section-label {
-    font-size: 10.5px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.09em;
-    color: var(--ink-4);
-  }
-
   /* ── Gradient brand card ────────────────────────────────────── */
   .traza-brand-card {
+    @apply rounded-2xl relative overflow-hidden;
     background: linear-gradient(135deg, #1C2B90 0%, #3D55D6 100%);
-    border-radius: var(--r-2xl);
-    position: relative;
-    overflow: hidden;
   }
   .traza-brand-card::before {
     content: '';
@@ -531,5 +323,30 @@ button { font-family: inherit; }
     inset: 0;
     background: radial-gradient(ellipse at 80% 20%, rgba(165,180,252,0.18) 0%, transparent 60%);
     pointer-events: none;
+  }
+
+  /* ── Table helpers ──────────────────────────────────────────── */
+  .traza-table-head {
+    @apply text-xs font-bold uppercase tracking-wider px-4 py-3 text-left;
+    color: var(--ink-3);
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--border);
+    letter-spacing: 0.06em;
+  }
+  .traza-table-row {
+    border-bottom: 1px solid var(--border);
+    transition: background 100ms;
+  }
+  .traza-table-row:hover { background: var(--surface-2); }
+  .traza-table-cell {
+    @apply px-4 py-3 text-sm;
+    color: var(--ink-2);
+    vertical-align: middle;
+  }
+
+  /* ── Section label ──────────────────────────────────────────── */
+  .traza-section-label {
+    @apply text-xs font-bold uppercase tracking-widest;
+    color: var(--ink-4);
   }
 }

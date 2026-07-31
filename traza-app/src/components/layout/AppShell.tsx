@@ -39,8 +39,7 @@ export default function AppShell({ profile, empresaNombre, userId, children }: A
         onClose={() => setSidebarOpen(false)}
       />
 
-      <main style={{ flex: 1, marginLeft: 0, overflowY: 'auto', display: 'flex', flexDirection: 'column', minWidth: 0 }}
-        className="lg:ml-64">
+      <main className="flex-1 lg:ml-64 overflow-y-auto flex flex-col min-w-0">
 
         {/* ── Top bar ──────────────────────────────────────────────── */}
         <header
