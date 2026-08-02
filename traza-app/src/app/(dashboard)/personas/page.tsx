@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import Button from '@/components/ui/Button'
-import { Mail, UserCheck, UserX, ChevronDown } from 'lucide-react'
+import { Mail, UserCheck, UserX, ChevronDown, Pencil, Save, X as XIcon, AlertTriangle } from 'lucide-react'
 
 const ROL_COLOR: Record<string, string> = {
   empleado:    '#64748B',
@@ -31,6 +31,15 @@ export default function PersonasPage() {
 
   const [accionando, setAccionando] = useState<string | null>(null)
   const [tab, setTab] = useState<'activos' | 'bajas'>('activos')
+
+  // ── Edición inline de cargo/área ──────────────────────────────
+  const [editingId,  setEditingId]  = useState<string | null>(null)
+  const [editFields, setEditFields] = useState<{ cargo: string; area: string }>({ cargo: '', area: '' })
+
+  // ── Modal: baja de supervisor con subordinados ────────────────
+  const [bajaSupervisorModal, setBajaSupervisorModal] = useState<{
+    persona: any; subordinados: any[]
+  } | null>(null)
 
   async function fetchData() {
     const { data: { user } } = await supabase.auth.getUser()
@@ -103,6 +112,30 @@ export default function PersonasPage() {
     if (res.ok) await fetchData()
     else { const d = await res.json(); alert(d.error ?? 'Error') }
     setAccionando(null)
+  }
+
+  function startEdit(p: any) {
+    setEditingId(p.id)
+    setEditFields({ cargo: p.cargo ?? '', area: p.area ?? '' })
+  }
+
+  async function saveEdit(personaId: string) {
+    await accion(personaId, 'editar_datos', { cargo: editFields.cargo.trim(), area: editFields.area.trim() })
+    setEditingId(null)
+  }
+
+  function handleDarDeBaja(p: any) {
+    const rolActual = p.user_id ? (profiles[p.user_id] ?? 'empleado') : null
+    // Si es supervisor, verificar si tiene empleados asignados
+    if (rolActual === 'supervisor') {
+      const subordinados = activos.filter(x => x.supervisor_id === p.id)
+      if (subordinados.length > 0) {
+        setBajaSupervisorModal({ persona: p, subordinados })
+        return
+      }
+    }
+    if (!confirm(`¿Dar de baja a ${p.nombre} ${p.apellido}? Pierde acceso y su cuenta queda como independiente.`)) return
+    accion(p.id, 'dar_de_baja')
   }
 
   const activos   = personas.filter(p => p.empleo_activo !== false)
@@ -266,8 +299,27 @@ export default function PersonasPage() {
 
                     {/* Cargo / Área */}
                     <td className="px-5 py-4">
-                      <p className="text-sm text-gray-600">{p.cargo ?? '—'}</p>
-                      {p.area && <p className="text-xs text-gray-400">{p.area}</p>}
+                      {esAdmin && editingId === p.id ? (
+                        <div className="flex flex-col gap-1.5">
+                          <input
+                            className="traza-input py-1 text-xs"
+                            value={editFields.cargo}
+                            onChange={e => setEditFields(f => ({ ...f, cargo: e.target.value }))}
+                            placeholder="Cargo..."
+                          />
+                          <input
+                            className="traza-input py-1 text-xs"
+                            value={editFields.area}
+                            onChange={e => setEditFields(f => ({ ...f, area: e.target.value }))}
+                            placeholder="Área..."
+                          />
+                        </div>
+                      ) : (
+                        <>
+                          <p className="text-sm text-gray-600">{p.cargo ?? '—'}</p>
+                          {p.area && <p className="text-xs text-gray-400">{p.area}</p>}
+                        </>
+                      )}
                     </td>
 
                     {/* Acceso */}
@@ -334,29 +386,59 @@ export default function PersonasPage() {
 
                     {/* Acciones */}
                     {esAdmin && (
-                      <td className="px-5 py-4 text-right">
-                        {p.empleo_activo === false ? (
-                          <button
-                            onClick={() => accion(p.id, 'reactivar')}
-                            disabled={!!accionando}
-                            className="flex items-center gap-1.5 text-xs font-medium text-green-700 hover:text-green-900 transition-colors ml-auto disabled:opacity-40"
-                          >
-                            <UserCheck size={13} />
-                            {reactivando ? 'Reactivando...' : 'Reactivar'}
-                          </button>
-                        ) : (
-                          <button
-                            onClick={() => {
-                              if (!confirm(`¿Dar de baja a ${p.nombre} ${p.apellido}? Pierde acceso al sistema.`)) return
-                              accion(p.id, 'dar_de_baja')
-                            }}
-                            disabled={!!accionando}
-                            className="flex items-center gap-1.5 text-xs font-medium text-red-500 hover:text-red-700 transition-colors ml-auto disabled:opacity-40"
-                          >
-                            <UserX size={13} />
-                            {bajando ? 'Procesando...' : 'Dar de baja'}
-                          </button>
-                        )}
+                      <td className="px-5 py-4">
+                        <div className="flex items-center justify-end gap-1.5">
+                          {editingId === p.id ? (
+                            <>
+                              <button
+                                onClick={() => saveEdit(p.id)}
+                                disabled={!!accionando}
+                                className="flex items-center gap-1 text-xs font-medium text-traza-700 hover:text-traza-900 transition-colors disabled:opacity-40"
+                              >
+                                <Save size={13} /> Guardar
+                              </button>
+                              <span className="text-gray-200">|</span>
+                              <button
+                                onClick={() => setEditingId(null)}
+                                className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
+                              >
+                                <XIcon size={13} />
+                              </button>
+                            </>
+                          ) : (
+                            <>
+                              {p.empleo_activo !== false && (
+                                <button
+                                  onClick={() => startEdit(p)}
+                                  disabled={!!accionando}
+                                  title="Editar datos"
+                                  className="flex items-center gap-1 text-xs font-medium text-gray-400 hover:text-gray-700 transition-colors disabled:opacity-40"
+                                >
+                                  <Pencil size={13} />
+                                </button>
+                              )}
+                              {p.empleo_activo === false ? (
+                                <button
+                                  onClick={() => accion(p.id, 'reactivar')}
+                                  disabled={!!accionando}
+                                  className="flex items-center gap-1.5 text-xs font-medium text-green-700 hover:text-green-900 transition-colors disabled:opacity-40"
+                                >
+                                  <UserCheck size={13} />
+                                  {reactivando ? 'Reactivando...' : 'Reactivar'}
+                                </button>
+                              ) : (
+                                <button
+                                  onClick={() => handleDarDeBaja(p)}
+                                  disabled={!!accionando}
+                                  className="flex items-center gap-1.5 text-xs font-medium text-red-500 hover:text-red-700 transition-colors disabled:opacity-40"
+                                >
+                                  <UserX size={13} />
+                                  {bajando ? 'Procesando...' : 'Dar de baja'}
+                                </button>
+                              )}
+                            </>
+                          )}
+                        </div>
                       </td>
                     )}
                   </tr>
@@ -366,6 +448,74 @@ export default function PersonasPage() {
           </table>
         )}
       </div>
+      {/* ── Modal: dar de baja a supervisor con subordinados ───── */}
+      {bajaSupervisorModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center px-4"
+          style={{ backgroundColor: 'rgba(15,23,42,0.45)', backdropFilter: 'blur(4px)' }}
+        >
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 space-y-5">
+            {/* Header */}
+            <div className="flex items-start gap-4">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                style={{ backgroundColor: '#FEF3C7' }}>
+                <AlertTriangle size={18} style={{ color: '#D97706' }} />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-gray-900">
+                  Este supervisor tiene empleados asignados
+                </h3>
+                <p className="text-sm text-gray-500 mt-1">
+                  Al dar de baja a <strong>{bajaSupervisorModal.persona.nombre} {bajaSupervisorModal.persona.apellido}</strong>,{' '}
+                  los siguientes {bajaSupervisorModal.subordinados.length} empleados quedarán sin supervisor:
+                </p>
+              </div>
+            </div>
+
+            {/* Lista de subordinados */}
+            <div className="rounded-xl border border-amber-100 bg-amber-50 divide-y divide-amber-100 max-h-48 overflow-y-auto">
+              {bajaSupervisorModal.subordinados.map(s => (
+                <div key={s.id} className="px-4 py-2.5 flex items-center gap-3">
+                  <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold"
+                    style={{ backgroundColor: '#FDE68A', color: '#92400E' }}>
+                    {s.nombre?.[0]}{s.apellido?.[0]}
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-gray-900">{s.nombre} {s.apellido}</p>
+                    {s.cargo && <p className="text-xs text-gray-500">{s.cargo}</p>}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <p className="text-sm text-gray-500">
+              Podés reasignarlos desde esta misma página antes de proceder, o continuar y reasignarlos después.
+            </p>
+
+            {/* Botones */}
+            <div className="flex gap-3 pt-1">
+              <button
+                onClick={() => setBajaSupervisorModal(null)}
+                className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-600 hover:bg-gray-50"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => {
+                  const { persona } = bajaSupervisorModal
+                  setBajaSupervisorModal(null)
+                  accion(persona.id, 'dar_de_baja')
+                }}
+                disabled={!!accionando}
+                className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-40"
+                style={{ backgroundColor: '#DC2626' }}
+              >
+                Dar de baja igual
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

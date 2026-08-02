@@ -511,7 +511,10 @@ export default async function DashboardPage() {
      VISTA EMPLEADO
   ════════════════════════════════════════ */
   const { data: persona } = await supabase
-    .from('personas').select('id').eq('user_id', user!.id).single()
+    .from('personas')
+    .select('id, supervisor_verificado')
+    .eq('user_id', user!.id)
+    .single()
 
   const { data: misObjetivos } = await supabase
     .from('objetivos').select('*').eq('persona_id', persona?.id ?? '')
@@ -524,7 +527,19 @@ export default async function DashboardPage() {
     .eq('persona_id', persona?.id ?? '')
     .order('creado_en', { ascending: true })
 
-  const indice = calcularIndiceTraza(objs, todosAvances ?? [])
+  // Validaciones externas confirmadas — para score consistente con PDF/credencial
+  const { data: valExternas } = await supabase
+    .from('validaciones_externas')
+    .select('*')
+    .eq('persona_id', persona?.id ?? '')
+    .eq('confirmado', true)
+
+  const indice = calcularIndiceTraza(
+    objs,
+    todosAvances ?? [],
+    valExternas ?? [],
+    persona?.supervisor_verificado ?? true,
+  )
   const racha  = calcularRacha(todosAvances ?? [])
 
   function explicarDimension(key: 'A' | 'B' | 'C' | 'D' | 'E', val: number): string {
@@ -880,6 +895,34 @@ export default async function DashboardPage() {
           </div>
         </div>
 
+      </div>
+
+      {/* ── Tu cuenta es tuya ───────────────────────────── */}
+      <div
+        style={{
+          borderRadius: 14,
+          background: 'rgba(51,80,208,0.05)',
+          border: '1px solid rgba(51,80,208,0.12)',
+          padding: '14px 18px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 14,
+        }}
+      >
+        <div style={{
+          width: 32, height: 32, borderRadius: 9, flexShrink: 0,
+          background: 'rgba(51,80,208,0.1)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: 16,
+        }}>
+          🔒
+        </div>
+        <div>
+          <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink-1)' }}>Tu cuenta y tu historial te pertenecen</p>
+          <p style={{ fontSize: 12, color: 'var(--ink-3)', marginTop: 2, lineHeight: 1.5 }}>
+            Si cambiás de empresa, tu Índice Traza y tus objetivos verificados viajan con vos.
+          </p>
+        </div>
       </div>
 
       {/* ── Mis avances recientes ────────────────────────── */}

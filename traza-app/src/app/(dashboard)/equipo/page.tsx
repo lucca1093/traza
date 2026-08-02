@@ -10,6 +10,8 @@ interface MiembroEquipo {
   persona: any
   objetivos: any[]
   avances: any[]
+  validaciones: any[]
+  supervisorVerificado: boolean
   cierreSemanal: any | null
 }
 
@@ -207,7 +209,7 @@ export default function EquipoPage() {
     setBriefingLoading(true)
     setShowBriefing(true)
     const equipoData = miembros.map(m => {
-      const indice = calcularIndiceTraza(m.objetivos, m.avances)
+      const indice = calcularIndiceTraza(m.objetivos, m.avances, m.validaciones, m.supervisorVerificado)
       const vencidos = m.objetivos.filter((o: any) => isVencido(o.fecha_limite, o.estado)).length
       const dias = diasDesde(m.avances[0]?.creado_en ?? null)
       return {
@@ -288,7 +290,7 @@ export default function EquipoPage() {
       // Si es supervisor, traer solo su equipo asignado
       let personasQuery = supabase
         .from('personas')
-        .select('id, nombre, apellido, cargo, area, traza_id, empleo_activo')
+        .select('id, nombre, apellido, cargo, area, traza_id, empleo_activo, supervisor_verificado')
         .eq('empresa_id', empresaId)
         .eq('empleo_activo', true)
         .order('apellido')
@@ -327,17 +329,26 @@ export default function EquipoPage() {
         .order('creado_en', { ascending: false })
 
       const semana = getLunes()
-      const { data: cierres } = await supabase
-        .from('cierres_semanales')
-        .select('*')
-        .in('persona_id', personaIds)
-        .eq('semana', semana)
+      const [{ data: cierres }, { data: todasValidaciones }] = await Promise.all([
+        supabase
+          .from('cierres_semanales')
+          .select('*')
+          .in('persona_id', personaIds)
+          .eq('semana', semana),
+        supabase
+          .from('validaciones_externas')
+          .select('*')
+          .in('persona_id', personaIds)
+          .eq('confirmado', true),
+      ])
 
       const resultado: MiembroEquipo[] = personas.map((persona: any) => ({
         persona,
-        objetivos: (todosObjetivos ?? []).filter((o: any) => o.persona_id === persona.id),
-        avances:   (todosAvances ?? []).filter((a: any) => a.persona_id === persona.id),
-        cierreSemanal: (cierres ?? []).find((c: any) => c.persona_id === persona.id) ?? null,
+        objetivos:           (todosObjetivos ?? []).filter((o: any) => o.persona_id === persona.id),
+        avances:             (todosAvances ?? []).filter((a: any) => a.persona_id === persona.id),
+        validaciones:        (todasValidaciones ?? []).filter((v: any) => v.persona_id === persona.id),
+        supervisorVerificado: persona.supervisor_verificado ?? true,
+        cierreSemanal:       (cierres ?? []).find((c: any) => c.persona_id === persona.id) ?? null,
       }))
 
       setMiembros(resultado)
@@ -348,7 +359,8 @@ export default function EquipoPage() {
 
   const ordenados = [...miembros].sort((a, b) => {
     if (ordenPor === 'score') {
-      return calcularIndiceTraza(b.objetivos, b.avances).score - calcularIndiceTraza(a.objetivos, a.avances).score
+      return calcularIndiceTraza(b.objetivos, b.avances, b.validaciones, b.supervisorVerificado).score
+           - calcularIndiceTraza(a.objetivos, a.avances, a.validaciones, a.supervisorVerificado).score
     }
     if (ordenPor === 'actividad') {
       const ua = a.avances[0]?.creado_en ?? null
@@ -453,7 +465,7 @@ export default function EquipoPage() {
         }).length
         const conCierre = miembros.filter(m => m.cierreSemanal).length
         const promedioScore = Math.round(
-          miembros.reduce((sum, m) => sum + calcularIndiceTraza(m.objetivos, m.avances).score, 0) / miembros.length
+          miembros.reduce((sum, m) => sum + calcularIndiceTraza(m.objetivos, m.avances, m.validaciones, m.supervisorVerificado).score, 0) / miembros.length
         )
         return (
           <div className="grid grid-cols-3 gap-4">
@@ -489,8 +501,8 @@ export default function EquipoPage() {
           <div className="py-12 text-center text-gray-400 text-sm">No hay colaboradores en el equipo.</div>
         ) : (
           <div className="divide-y divide-gray-50">
-            {ordenados.map(({ persona, objetivos, avances, cierreSemanal }) => {
-              const indice      = calcularIndiceTraza(objetivos, avances)
+            {ordenados.map(({ persona, objetivos, avances, validaciones, supervisorVerificado, cierreSemanal }) => {
+              const indice      = calcularIndiceTraza(objetivos, avances, validaciones, supervisorVerificado)
               const activos     = objetivos.filter((o: any) => o.estado !== 'Completado').length
               const completados = objetivos.filter((o: any) => o.estado === 'Completado').length
               const vencidos    = objetivos.filter((o: any) => isVencido(o.fecha_limite, o.estado)).length
