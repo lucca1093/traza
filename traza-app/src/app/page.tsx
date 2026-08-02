@@ -642,54 +642,40 @@ function Comparison() {
   const { ref, visible } = useVisible()
 
   type FVal = boolean | 'parcial'
-  const cats: { icon: string; label: string; rows: { name: string; sub: string; v: [FVal,FVal,FVal] }[] }[] = [
-    {
-      icon: '🎯', label: 'Gestión de objetivos',
-      rows: [
-        { name: 'Objetivos estructurados con evidencia',  sub: 'Con contexto, avances documentados y archivos adjuntos — no solo una celda con texto', v: [true,false,false] },
-        { name: 'Seguimiento continuo sin fricción',      sub: 'Actualizaciones periódicas en menos de 2 minutos, desde cualquier dispositivo',          v: [true,'parcial',false] },
-        { name: 'Validaciones verificadas por managers',  sub: 'Cada resultado es calificado y firmado por el responsable directo del equipo',             v: [true,false,false] },
-        { name: 'Feedback estructurado y trazable',       sub: 'Comentarios formales vinculados a objetivos, no mensajes sueltos o perdidos',              v: [true,false,false] },
-      ],
-    },
-    {
-      icon: '📊', label: 'Analytics e Inteligencia Artificial',
-      rows: [
-        { name: 'Dashboard en tiempo real',               sub: 'Métricas del equipo actualizadas al instante — sin exportar, sin armar reportes manuales',  v: [true,'parcial',false] },
-        { name: 'Análisis con IA integrada',              sub: 'Insights automáticos de cada persona, briefings semanales y alertas de riesgo',             v: [true,false,false] },
-        { name: 'Reportes automáticos',                   sub: 'Generados sin intervención, exportables en PDF, Excel y JSON en un clic',                   v: [true,'parcial',false] },
-        { name: 'Alertas predictivas de riesgo',          sub: 'Detecta tendencias negativas antes de que sean un problema de desempeño real',              v: [true,false,false] },
-      ],
-    },
-    {
-      icon: '🏆', label: 'Carrera del profesional',
-      rows: [
-        { name: 'Historial portátil del profesional',     sub: 'El empleado se lleva su trayectoria verificada al cambiar de trabajo — es suya',           v: [true,false,false] },
-        { name: 'Exportación estándar (PDF, Excel, JSON)',sub: 'Formatos abiertos — tus datos nunca quedan atrapados en la plataforma',                     v: [true,false,false] },
-      ],
-    },
+  type Row = { icon: React.ReactNode; name: string; v: [FVal, FVal, FVal] }
+
+  const rows: Row[] = [
+    { icon: <Target       size={14} />, name: 'Objetivos estructurados con evidencia',   v: [true, false, false] },
+    { icon: <Activity     size={14} />, name: 'Seguimiento continuo de avances',          v: [true, 'parcial', false] },
+    { icon: <UserCheck    size={14} />, name: 'Validaciones verificadas por el manager',  v: [true, false, false] },
+    { icon: <MessageSquare size={14}/>, name: 'Feedback estructurado y trazable',          v: [true, false, false] },
+    { icon: <BarChart2    size={14} />, name: 'Dashboard del equipo en tiempo real',      v: [true, 'parcial', false] },
+    { icon: <Sparkles     size={14} />, name: 'Análisis e insights con IA',               v: [true, false, false] },
+    { icon: <FileText     size={14} />, name: 'Reportes automáticos exportables',         v: [true, 'parcial', false] },
+    { icon: <AlertTriangle size={14}/>, name: 'Alertas de riesgo y discrepancias',        v: [true, false, false] },
+    { icon: <Layers       size={14} />, name: 'Historial portátil del profesional',       v: [true, false, false] },
+    { icon: <RefreshCw    size={14} />, name: 'Datos exportables en cualquier momento',   v: [true, false, false] },
   ]
 
   const Cell = ({ v }: { v: FVal }) => {
     if (v === true) return (
       <div style={{ display: 'flex', justifyContent: 'center' }}>
-        <div style={{ width: 26, height: 26, borderRadius: '50%', background: '#DCFCE7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ width: 28, height: 28, borderRadius: 8, background: '#F0FDF4', border: '1px solid #BBF7D0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <Check size={13} color="#16A34A" strokeWidth={2.5} />
         </div>
       </div>
     )
     if (v === 'parcial') return (
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
-        <div style={{ width: 26, height: 26, borderRadius: '50%', background: '#FEF3C7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <span style={{ fontSize: 13, fontWeight: 900, color: '#D97706', lineHeight: 1 }}>~</span>
+      <div style={{ display: 'flex', justifyContent: 'center' }}>
+        <div style={{ width: 28, height: 28, borderRadius: 8, background: '#FFFBEB', border: '1px solid #FDE68A', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <span style={{ fontSize: 14, fontWeight: 900, color: '#D97706', lineHeight: 1 }}>∼</span>
         </div>
-        <span style={{ fontSize: 9, fontWeight: 600, color: '#D97706' }}>Parcial</span>
       </div>
     )
     return (
       <div style={{ display: 'flex', justifyContent: 'center' }}>
-        <div style={{ width: 26, height: 26, borderRadius: '50%', background: '#FEE2E2', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <X size={12} color="#DC2626" strokeWidth={2.5} />
+        <div style={{ width: 28, height: 28, borderRadius: 8, background: '#F8FAFC', border: '1px solid #E2E8F0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <X size={12} color="#CBD5E1" strokeWidth={2.5} />
         </div>
       </div>
     )
@@ -702,90 +688,81 @@ function Comparison() {
       <div style={{ maxWidth: 1040, margin: '0 auto' }}>
 
         {/* Heading */}
-        <div style={{ textAlign: 'center', marginBottom: 56, opacity: visible ? 1 : 0, transition: 'all .6s ease' }}>
+        <div style={{ textAlign: 'center', marginBottom: 52, opacity: visible ? 1 : 0, transition: 'all .6s ease' }}>
           <p style={{ fontSize: 11, fontWeight: 700, color: BRAND, letterSpacing: '.1em', textTransform: 'uppercase', marginBottom: 16 }}>Comparativa</p>
           <h2 style={{ fontFamily: D, fontSize: 'clamp(30px,4vw,52px)', fontWeight: 900, color: '#0A0A0A', letterSpacing: '-.04em', lineHeight: 1.06, marginBottom: 12 }}>TRAZA vs. el resto.</h2>
-          <p style={{ fontSize: 15, color: '#64748B', maxWidth: 480, margin: '0 auto', lineHeight: 1.6 }}>No es solo una lista de features. Es la diferencia entre gestionar el desempeño con evidencia o con intuición.</p>
+          <p style={{ fontSize: 15, color: '#64748B', maxWidth: 460, margin: '0 auto', lineHeight: 1.6 }}>No es solo una lista de features. Es la diferencia entre gestionar el desempeño con evidencia o con intuición.</p>
         </div>
 
         {/* Table */}
-        <div style={{ background: 'white', borderRadius: 24, border: '1px solid #E8EAFB', overflow: 'hidden', boxShadow: '0 4px 32px rgba(28,43,144,.08)', opacity: visible ? 1 : 0, transition: 'all .6s .15s ease' }}>
+        <div style={{ background: 'white', borderRadius: 20, border: '1px solid #E2E8F0', overflow: 'hidden', boxShadow: '0 4px 24px rgba(28,43,144,.07)', opacity: visible ? 1 : 0, transition: 'all .6s .15s ease' }}>
 
           {/* Header */}
-          <div style={{ display: 'grid', gridTemplateColumns: COL_W, borderBottom: '2px solid #EEF0FB' }}>
-            <div style={{ padding: '22px 28px', fontSize: 11, fontWeight: 700, color: '#94A3B8', letterSpacing: '.08em', textTransform: 'uppercase' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: COL_W, background: '#FAFBFF', borderBottom: '1px solid #E8EAFB' }}>
+            <div style={{ padding: '18px 24px', fontSize: 11, fontWeight: 700, color: '#94A3B8', letterSpacing: '.08em', textTransform: 'uppercase' }}>
               Funcionalidad
             </div>
             {/* TRAZA — highlighted */}
-            <div style={{ padding: '16px 12px', textAlign: 'center', background: 'linear-gradient(160deg, #1C2B90 0%, #3D55D6 100%)', position: 'relative', overflow: 'hidden' }}>
-              <div style={{ position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, background: 'radial-gradient(ellipse at 70% 20%, rgba(165,180,252,.22), transparent 65%)', pointerEvents: 'none' }} />
+            <div style={{ padding: '14px 12px', textAlign: 'center', background: 'linear-gradient(160deg, #1C2B90 0%, #3D55D6 100%)', position: 'relative', overflow: 'hidden' }}>
+              <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at 70% 20%, rgba(165,180,252,.2), transparent 65%)', pointerEvents: 'none' }} />
               <div style={{ position: 'relative' }}>
-                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: 'rgba(255,255,255,.14)', borderRadius: 99, padding: '2px 8px', marginBottom: 6 }}>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: 'rgba(255,255,255,.13)', borderRadius: 99, padding: '2px 8px', marginBottom: 5 }}>
                   <span style={{ fontSize: 9, color: '#FDE68A' }}>★</span>
                   <span style={{ fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,.8)', letterSpacing: '.04em' }}>Recomendado</span>
                 </div>
-                <div style={{ fontSize: 15, fontWeight: 900, color: 'white', letterSpacing: '-.02em' }}>TRAZA</div>
+                <div style={{ fontSize: 14, fontWeight: 900, color: 'white', letterSpacing: '-.02em', fontFamily: D }}>TRAZA</div>
               </div>
             </div>
-            {/* Other columns */}
-            {['Excel / Sheets', 'Sin sistema'].map((c,i) => (
-              <div key={i} style={{ padding: '22px 12px', textAlign: 'center', borderLeft: '1px solid #F0F2FF' }}>
-                <div style={{ fontSize: 12, fontWeight: 700, color: '#64748B' }}>{c}</div>
+            {['Excel / Sheets', 'Sin sistema'].map((c, i) => (
+              <div key={i} style={{ padding: '18px 12px', textAlign: 'center', borderLeft: '1px solid #EEF0F8' }}>
+                <div style={{ fontSize: 12, fontWeight: 600, color: '#94A3B8' }}>{c}</div>
               </div>
             ))}
           </div>
 
-          {/* Categories + rows */}
-          {cats.map((cat, ci) => (
-            <div key={ci}>
-              {/* Category label */}
-              <div style={{ display: 'grid', gridTemplateColumns: COL_W, background: '#F8F9FF', borderBottom: '1px solid #EEF0FB', borderTop: ci > 0 ? '2px solid #EEF0FB' : 'none' }}>
-                <div style={{ padding: '10px 28px', display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span style={{ fontSize: 14 }}>{cat.icon}</span>
-                  <span style={{ fontSize: 11, fontWeight: 800, color: '#3B4263', textTransform: 'uppercase', letterSpacing: '.07em' }}>{cat.label}</span>
-                </div>
-                <div style={{ background: 'rgba(28,43,144,.04)' }} />
-                <div style={{ borderLeft: '1px solid #F0F2FF' }} />
-                <div style={{ borderLeft: '1px solid #F0F2FF' }} />
+          {/* Feature rows */}
+          {rows.map((row, ri) => (
+            <div key={ri} style={{
+              display: 'grid', gridTemplateColumns: COL_W,
+              borderBottom: ri < rows.length - 1 ? '1px solid #F1F5F9' : 'none',
+              background: ri % 2 === 0 ? 'white' : '#FAFBFF',
+            }}>
+              {/* Feature name */}
+              <div style={{ padding: '13px 24px', display: 'flex', alignItems: 'center', gap: 10 }}>
+                <span style={{ color: '#94A3B8', flexShrink: 0 }}>{row.icon}</span>
+                <p style={{ fontSize: 13.5, color: '#1E293B', fontWeight: 500, lineHeight: 1.4 }}>{row.name}</p>
               </div>
-
-              {/* Feature rows */}
-              {cat.rows.map((row, ri) => (
-                <div key={ri} style={{ display: 'grid', gridTemplateColumns: COL_W, borderBottom: '1px solid #F5F6FF', background: ri % 2 === 0 ? 'white' : '#FAFBFF' }}>
-                  <div style={{ padding: '14px 28px' }}>
-                    <p style={{ fontSize: 13.5, color: '#0F172A', fontWeight: 600, marginBottom: 3, lineHeight: 1.3 }}>{row.name}</p>
-                    <p style={{ fontSize: 11.5, color: '#94A3B8', lineHeight: 1.5 }}>{row.sub}</p>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(28,43,144,.03)' }}>
-                    <Cell v={row.v[0]} />
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', borderLeft: '1px solid #F0F2FF' }}>
-                    <Cell v={row.v[1]} />
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', borderLeft: '1px solid #F0F2FF' }}>
-                    <Cell v={row.v[2]} />
-                  </div>
-                </div>
-              ))}
+              {/* TRAZA */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(28,43,144,.025)', borderLeft: '1px solid #EEF0F8' }}>
+                <Cell v={row.v[0]} />
+              </div>
+              {/* Excel */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', borderLeft: '1px solid #F1F5F9' }}>
+                <Cell v={row.v[1]} />
+              </div>
+              {/* Sin sistema */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', borderLeft: '1px solid #F1F5F9' }}>
+                <Cell v={row.v[2]} />
+              </div>
             </div>
           ))}
 
           {/* Footer CTA */}
-          <div style={{ display: 'grid', gridTemplateColumns: COL_W, background: '#F8F9FF', borderTop: '2px solid #EEF0FB' }}>
-            <div style={{ padding: '20px 28px' }}>
-              <p style={{ fontSize: 14, fontWeight: 700, color: '#0F172A', marginBottom: 3 }}>¿Listo para empezar?</p>
-              <p style={{ fontSize: 12, color: '#64748B' }}>Sin tarjeta de crédito · Setup en 30 min</p>
+          <div style={{ display: 'grid', gridTemplateColumns: COL_W, background: '#F8F9FF', borderTop: '1px solid #E8EAFB' }}>
+            <div style={{ padding: '18px 24px' }}>
+              <p style={{ fontSize: 13, fontWeight: 600, color: '#0F172A', marginBottom: 2 }}>¿Listo para empezar?</p>
+              <p style={{ fontSize: 11.5, color: '#94A3B8' }}>Sin tarjeta de crédito · Setup en 30 min</p>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px 12px', background: 'rgba(28,43,144,.04)' }}>
-              <a href="/registro" style={{ background: 'linear-gradient(135deg, #1C2B90, #4F63D2)', color: 'white', fontSize: 12, fontWeight: 700, padding: '9px 18px', borderRadius: 9, textDecoration: 'none', whiteSpace: 'nowrap', display: 'inline-block' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '14px 12px', background: 'rgba(28,43,144,.04)', borderLeft: '1px solid #EEF0F8' }}>
+              <a href="/registro" style={{ background: 'linear-gradient(135deg, #1C2B90, #4F63D2)', color: 'white', fontSize: 12, fontWeight: 700, padding: '8px 16px', borderRadius: 8, textDecoration: 'none', whiteSpace: 'nowrap', display: 'inline-block' }}>
                 Empezar gratis →
               </a>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', borderLeft: '1px solid #EEF0FB' }}>
-              <span style={{ fontSize: 11, color: '#CBD5E1', fontWeight: 500, textAlign: 'center', padding: '0 12px' }}>Limitado, sin historial</span>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', borderLeft: '1px solid #EEF0F8' }}>
+              <span style={{ fontSize: 11, color: '#CBD5E1', fontWeight: 500, textAlign: 'center', padding: '0 12px' }}>Limitado</span>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', borderLeft: '1px solid #EEF0FB' }}>
-              <span style={{ fontSize: 11, color: '#CBD5E1', fontWeight: 500, textAlign: 'center', padding: '0 12px' }}>Sin datos, sin soporte</span>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', borderLeft: '1px solid #EEF0F8' }}>
+              <span style={{ fontSize: 11, color: '#CBD5E1', fontWeight: 500, textAlign: 'center', padding: '0 12px' }}>Sin datos ni soporte</span>
             </div>
           </div>
         </div>
