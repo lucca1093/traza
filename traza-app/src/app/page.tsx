@@ -139,51 +139,101 @@ function Navbar() {
 ═══════════════════════════════════════════════ */
 function DashMock({ scale = 1 }: { scale?: number }) {
   const s = scale
+  const sbTeam = [
+    { label: 'GENERAL',   items: [['Dashboard', true]] },
+    { label: 'TRABAJO',   items: [['Mi Semana', false], ['Validación', false]] },
+    { label: 'EQUIPO',    items: [['Mi Equipo', false], ['Reuniones', false]] },
+    { label: 'ANALYTICS', items: [['Analytics', false], ['Reportes', false]] },
+  ] as { label: string; items: [string, boolean][] }[]
+  const team = [
+    {n:'Luciana F.',sc:87,e:'Destacada',c:GREEN,     init:'LF'},
+    {n:'Marcos R.' ,sc:74,e:'En progreso',c:INDIGO_L,init:'MR'},
+    {n:'Valeria P.',sc:91,e:'Destacada',c:GREEN,     init:'VP'},
+    {n:'Juan T.'   ,sc:58,e:'Atención',c:'#FBBF24',  init:'JT'},
+  ]
   return (
-    <div style={{ width: 540*s, background: '#0D1120', borderRadius: 16*s, boxShadow: `0 0 0 1px rgba(99,102,241,.2), 0 40px 100px rgba(0,0,0,.7), 0 0 100px rgba(99,102,241,.08)`, overflow: 'hidden', flexShrink: 0 }}>
+    <div style={{ width: 540*s, background: '#0D1117', borderRadius: 16*s, boxShadow: `0 0 0 1px rgba(99,102,241,.2), 0 40px 100px rgba(0,0,0,.7), 0 0 100px rgba(99,102,241,.08)`, overflow: 'hidden', flexShrink: 0 }}>
+      {/* Browser chrome */}
       <div style={{ background: '#111828', borderBottom: '1px solid rgba(255,255,255,.05)', padding: `${10*s}px ${16*s}px`, display: 'flex', alignItems: 'center', gap: 8*s }}>
         <div style={{ display: 'flex', gap: 6*s }}>
           {['#FC5F57','#FEBC2E','#28C840'].map(c => <div key={c} style={{ width: 11*s, height: 11*s, borderRadius: '50%', background: c }} />)}
         </div>
         <div style={{ flex: 1, background: 'rgba(255,255,255,.05)', borderRadius: 6*s, padding: `${4*s}px ${10*s}px`, fontSize: 10*s, color: 'rgba(255,255,255,.25)', border: '1px solid rgba(255,255,255,.05)' }}>app.traza.ar/dashboard</div>
-        <div style={{ width: 24*s, height: 24*s, borderRadius: '50%', background: INDIGO, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <span style={{ fontSize: 8*s, color: 'white', fontWeight: 800 }}>LF</span>
+        {/* Admin user chip — Carlos Medina */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 5*s, background: 'rgba(255,255,255,.07)', borderRadius: 99, padding: `${3*s}px ${7*s}px ${3*s}px ${3*s}px` }}>
+          <div style={{ width: 18*s, height: 18*s, borderRadius: '50%', background: 'linear-gradient(135deg, #1C2B90, #4F63D2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <span style={{ fontSize: 7*s, color: 'white', fontWeight: 800 }}>CM</span>
+          </div>
+          <span style={{ fontSize: 8*s, color: 'rgba(255,255,255,.45)', fontWeight: 600 }}>Carlos M.</span>
         </div>
       </div>
-      <div style={{ display: 'flex', height: 310*s }}>
-        <div style={{ width: 136*s, background: '#0A0D1A', borderRight: '1px solid rgba(255,255,255,.04)', padding: `${14*s}px ${10*s}px`, flexShrink: 0 }}>
-          <div style={{ fontSize: 9*s, fontWeight: 800, color: INDIGO_L, letterSpacing: '.1em', marginBottom: 14*s, paddingLeft: 8*s }}>TRAZA</div>
-          {[['Dashboard',true],['Objetivos',false],['Mi Trabajo',false],['Equipo',false],['Reportes',false],['IA',false]].map(([l,a]) => (
-            <div key={l as string} style={{ padding: `${6*s}px ${8*s}px`, borderRadius: 7*s, marginBottom: 3*s, background: a ? 'rgba(99,102,241,.15)' : 'transparent', fontSize: 10*s, fontWeight: a ? 700 : 500, color: a ? INDIGO_L : 'rgba(255,255,255,.3)', display: 'flex', alignItems: 'center', gap: 6*s }}>
-              <div style={{ width: 5*s, height: 5*s, borderRadius: '50%', background: a ? INDIGO : 'transparent' }} />{l as string}
+      {/* App shell */}
+      <div style={{ display: 'flex', height: 312*s }}>
+        {/* Sidebar — matches real app */}
+        <div style={{ width: 138*s, background: '#0A0D1A', borderRight: '1px solid rgba(255,255,255,.04)', padding: `${12*s}px ${8*s}px`, flexShrink: 0, display: 'flex', flexDirection: 'column' }}>
+          {/* Logo */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6*s, paddingLeft: 6*s, marginBottom: 14*s }}>
+            <div style={{ width: 20*s, height: 20*s, borderRadius: 5*s, background: '#1C2B90', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <div style={{ width: 10*s, height: 2.5*s, background: 'white', borderRadius: 1 }} />
+            </div>
+            <span style={{ fontSize: 11*s, fontWeight: 900, color: 'white', letterSpacing: '-.03em' }}>traza</span>
+          </div>
+          {/* Nav with section groups */}
+          {sbTeam.map((group, gi) => (
+            <div key={gi} style={{ marginBottom: gi < sbTeam.length - 1 ? 8*s : 0 }}>
+              <div style={{ fontSize: 6.5*s, fontWeight: 700, color: '#1E2A40', letterSpacing: '.09em', paddingLeft: 8*s, marginBottom: 3*s }}>{group.label}</div>
+              {group.items.map(([label, active]) => (
+                <div key={label} style={{ padding: `${5*s}px ${6*s}px`, paddingLeft: active ? 4*s : 6*s, borderRadius: 6*s, marginBottom: 2*s, background: active ? 'rgba(79,99,210,.14)' : 'transparent', fontSize: 9.5*s, fontWeight: active ? 700 : 500, color: active ? '#8899EE' : 'rgba(255,255,255,.28)', display: 'flex', alignItems: 'center', gap: 5*s, borderLeft: `${1.5*s}px solid ${active ? '#4F63D2' : 'transparent'}` }}>
+                  <div style={{ width: 4*s, height: 4*s, borderRadius: '50%', background: active ? '#4F63D2' : 'rgba(255,255,255,.1)', flexShrink: 0 }} />
+                  {label}
+                </div>
+              ))}
             </div>
           ))}
         </div>
-        <div style={{ flex: 1, padding: 14*s, overflow: 'hidden', background: '#0D1120' }}>
-          <div style={{ fontSize: 11*s, fontWeight: 800, color: 'white', marginBottom: 10*s }}>Resumen del equipo · Jul 2026</div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8*s, marginBottom: 10*s }}>
+        {/* Main content */}
+        <div style={{ flex: 1, padding: 13*s, overflow: 'hidden', background: '#0D1120' }}>
+          {/* Page header */}
+          <div style={{ marginBottom: 10*s }}>
+            <div style={{ fontSize: 12*s, fontWeight: 800, color: 'white', letterSpacing: '-.02em', lineHeight: 1 }}>Buen día, Carlos</div>
+            <div style={{ fontSize: 8*s, color: 'rgba(255,255,255,.28)', marginTop: 2.5*s }}>Grupo Meridian · Dashboard del equipo</div>
+          </div>
+          {/* Metric cards */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 6*s, marginBottom: 9*s }}>
             {[{l:'Score promedio',v:'74',c:INDIGO_L},{l:'Objetivos activos',v:'38',c:GREEN},{l:'Validaciones',v:'91%',c:TEAL}].map(k => (
-              <div key={k.l} style={{ background: 'rgba(255,255,255,.04)', borderRadius: 8*s, padding: 8*s, border: '1px solid rgba(255,255,255,.05)' }}>
-                <div style={{ fontSize: 18*s, fontWeight: 900, color: k.c, fontFamily: D }}>{k.v}</div>
-                <div style={{ fontSize: 8*s, color: 'rgba(255,255,255,.35)', marginTop: 2*s }}>{k.l}</div>
+              <div key={k.l} style={{ background: 'rgba(255,255,255,.04)', borderRadius: 8*s, padding: `${7*s}px ${8*s}px`, border: '1px solid rgba(255,255,255,.05)' }}>
+                <div style={{ fontSize: 17*s, fontWeight: 900, color: k.c, fontFamily: D, letterSpacing: '-.03em', lineHeight: 1 }}>{k.v}</div>
+                <div style={{ fontSize: 7.5*s, color: 'rgba(255,255,255,.3)', marginTop: 3*s }}>{k.l}</div>
               </div>
             ))}
           </div>
+          {/* Team table */}
           <div style={{ background: 'rgba(255,255,255,.03)', borderRadius: 8*s, border: '1px solid rgba(255,255,255,.04)', overflow: 'hidden' }}>
-            <div style={{ padding: `${6*s}px ${10*s}px`, fontSize: 8*s, fontWeight: 700, color: 'rgba(255,255,255,.25)', borderBottom: '1px solid rgba(255,255,255,.04)', display: 'flex', gap: 8*s }}>
-              <span style={{ flex: 2 }}>PERSONA</span><span style={{ flex: 1 }}>SCORE</span><span style={{ flex: 1 }}>ESTADO</span>
+            <div style={{ padding: `${5*s}px ${8*s}px`, fontSize: 7.5*s, fontWeight: 700, color: 'rgba(255,255,255,.2)', borderBottom: '1px solid rgba(255,255,255,.04)', display: 'flex', textTransform: 'uppercase', letterSpacing: '.07em' }}>
+              <span style={{ flex: 2 }}>Colaborador</span><span style={{ flex: 1, textAlign: 'center' }}>Índice Traza</span><span style={{ flex: 1, textAlign: 'center' }}>Estado</span>
             </div>
-            {[{n:'Luciana F.',sc:87,e:'Destacada',c:GREEN},{n:'Marcos R.',sc:74,e:'En progreso',c:INDIGO_L},{n:'Valeria P.',sc:91,e:'Destacada',c:GREEN},{n:'Juan T.',sc:58,e:'Atención',c:'#FBBF24'}].map(r => (
-              <div key={r.n} style={{ padding: `${5*s}px ${10*s}px`, display: 'flex', alignItems: 'center', gap: 8*s, borderBottom: '1px solid rgba(255,255,255,.03)', fontSize: 9*s }}>
-                <span style={{ flex: 2, color: 'rgba(255,255,255,.75)', fontWeight: 600 }}>{r.n}</span>
-                <span style={{ flex: 1 }}><span style={{ color: r.c, fontWeight: 800 }}>{r.sc}</span><span style={{ color: 'rgba(255,255,255,.2)' }}>/100</span></span>
-                <span style={{ flex: 1, color: r.c, fontSize: 8*s, fontWeight: 600 }}>{r.e}</span>
+            {team.map(r => (
+              <div key={r.n} style={{ padding: `${5*s}px ${8*s}px`, display: 'flex', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,.03)', fontSize: 9*s }}>
+                <div style={{ flex: 2, display: 'flex', alignItems: 'center', gap: 5*s }}>
+                  <div style={{ width: 16*s, height: 16*s, borderRadius: '50%', background: 'rgba(79,99,210,.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <span style={{ fontSize: 6*s, color: INDIGO_L, fontWeight: 800 }}>{r.init}</span>
+                  </div>
+                  <span style={{ color: 'rgba(255,255,255,.75)', fontWeight: 600 }}>{r.n}</span>
+                </div>
+                <span style={{ flex: 1, textAlign: 'center' }}>
+                  <span style={{ color: r.c, fontWeight: 800 }}>{r.sc}</span>
+                  <span style={{ color: 'rgba(255,255,255,.2)' }}>/100</span>
+                </span>
+                <span style={{ flex: 1, textAlign: 'center' }}>
+                  <span style={{ color: r.c, fontSize: 7.5*s, fontWeight: 700, background: `${r.c}1A`, padding: `${1.5*s}px ${5*s}px`, borderRadius: 4*s }}>{r.e}</span>
+                </span>
               </div>
             ))}
           </div>
-          <div style={{ marginTop: 8*s, display: 'flex', gap: 3*s, alignItems: 'flex-end', height: 32*s }}>
-            {[40,55,48,62,58,72,67,74,80,77,84,87].map((v,i) => (
-              <div key={i} style={{ flex: 1, background: `rgba(99,102,241,${.15+i*.065})`, borderRadius: `${3*s}px ${3*s}px 0 0`, height: `${(v/100)*32*s}px` }} />
+          {/* Bar chart trend */}
+          <div style={{ marginTop: 8*s, display: 'flex', gap: 2.5*s, alignItems: 'flex-end', height: 22*s }}>
+            {[42,55,50,63,60,72,68,74,80,78,84,87].map((v,i) => (
+              <div key={i} style={{ flex: 1, background: `rgba(99,102,241,${.12+i*.07})`, borderRadius: `${2*s}px ${2*s}px 0 0`, height: `${(v/100)*22*s}px` }} />
             ))}
           </div>
         </div>
@@ -590,35 +640,154 @@ function Testimonials() {
 ═══════════════════════════════════════════════ */
 function Comparison() {
   const { ref, visible } = useVisible()
-  const rows = ['Gestión de objetivos estructurados con evidencia','Seguimiento continuo sin fricción','Validaciones verificadas por managers','Feedback estructurado y trazable','Dashboard en tiempo real','Análisis con Inteligencia Artificial','Historial portátil del profesional','Alertas predictivas de riesgo','Reportes automáticos y personalizables','Exportación estándar (PDF, Excel, JSON)']
-  const cols = [
-    { label:'TRAZA', vals:[true,true,true,true,true,true,true,true,true,true], hi:true },
-    { label:'Excel / Sheets', vals:[false,'parcial',false,'parcial','parcial',false,false,false,false,false], hi:false },
-    { label:'Proceso manual', vals:[false,false,false,false,false,false,false,false,false,false], hi:false },
+
+  type FVal = boolean | 'parcial'
+  const cats: { icon: string; label: string; rows: { name: string; sub: string; v: [FVal,FVal,FVal] }[] }[] = [
+    {
+      icon: '🎯', label: 'Gestión de objetivos',
+      rows: [
+        { name: 'Objetivos estructurados con evidencia',  sub: 'Con contexto, avances documentados y archivos adjuntos — no solo una celda con texto', v: [true,false,false] },
+        { name: 'Seguimiento continuo sin fricción',      sub: 'Actualizaciones periódicas en menos de 2 minutos, desde cualquier dispositivo',          v: [true,'parcial',false] },
+        { name: 'Validaciones verificadas por managers',  sub: 'Cada resultado es calificado y firmado por el responsable directo del equipo',             v: [true,false,false] },
+        { name: 'Feedback estructurado y trazable',       sub: 'Comentarios formales vinculados a objetivos, no mensajes sueltos o perdidos',              v: [true,false,false] },
+      ],
+    },
+    {
+      icon: '📊', label: 'Analytics e Inteligencia Artificial',
+      rows: [
+        { name: 'Dashboard en tiempo real',               sub: 'Métricas del equipo actualizadas al instante — sin exportar, sin armar reportes manuales',  v: [true,'parcial',false] },
+        { name: 'Análisis con IA integrada',              sub: 'Insights automáticos de cada persona, briefings semanales y alertas de riesgo',             v: [true,false,false] },
+        { name: 'Reportes automáticos',                   sub: 'Generados sin intervención, exportables en PDF, Excel y JSON en un clic',                   v: [true,'parcial',false] },
+        { name: 'Alertas predictivas de riesgo',          sub: 'Detecta tendencias negativas antes de que sean un problema de desempeño real',              v: [true,false,false] },
+      ],
+    },
+    {
+      icon: '🏆', label: 'Carrera del profesional',
+      rows: [
+        { name: 'Historial portátil del profesional',     sub: 'El empleado se lleva su trayectoria verificada al cambiar de trabajo — es suya',           v: [true,false,false] },
+        { name: 'Exportación estándar (PDF, Excel, JSON)',sub: 'Formatos abiertos — tus datos nunca quedan atrapados en la plataforma',                     v: [true,false,false] },
+      ],
+    },
   ]
-  const Cell = ({v}:{v:boolean|string}) => {
-    if (v===true) return <div style={{display:'flex',justifyContent:'center'}}><div style={{width:22,height:22,borderRadius:'50%',background:'#DCFCE7',display:'flex',alignItems:'center',justifyContent:'center'}}><Check size={12} color="#16A34A"/></div></div>
-    if (v==='parcial') return <div style={{display:'flex',justifyContent:'center'}}><div style={{width:22,height:22,borderRadius:'50%',background:'#FEF3C7',display:'flex',alignItems:'center',justifyContent:'center'}}><span style={{fontSize:10,fontWeight:800,color:'#D97706'}}>~</span></div></div>
-    return <div style={{display:'flex',justifyContent:'center'}}><div style={{width:22,height:22,borderRadius:'50%',background:'#FEF2F2',display:'flex',alignItems:'center',justifyContent:'center'}}><X size={11} color="#DC2626"/></div></div>
+
+  const Cell = ({ v }: { v: FVal }) => {
+    if (v === true) return (
+      <div style={{ display: 'flex', justifyContent: 'center' }}>
+        <div style={{ width: 26, height: 26, borderRadius: '50%', background: '#DCFCE7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Check size={13} color="#16A34A" strokeWidth={2.5} />
+        </div>
+      </div>
+    )
+    if (v === 'parcial') return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
+        <div style={{ width: 26, height: 26, borderRadius: '50%', background: '#FEF3C7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <span style={{ fontSize: 13, fontWeight: 900, color: '#D97706', lineHeight: 1 }}>~</span>
+        </div>
+        <span style={{ fontSize: 9, fontWeight: 600, color: '#D97706' }}>Parcial</span>
+      </div>
+    )
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center' }}>
+        <div style={{ width: 26, height: 26, borderRadius: '50%', background: '#FEE2E2', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <X size={12} color="#DC2626" strokeWidth={2.5} />
+        </div>
+      </div>
+    )
   }
+
+  const COL_W = '2.4fr 1fr 1fr 1fr'
+
   return (
     <section style={{ padding: '100px 24px', background: '#F8F9FF' }} ref={ref}>
-      <div style={{ maxWidth: 1000, margin: '0 auto' }}>
-        <div style={{ textAlign: 'center', marginBottom: 52, opacity: visible?1:0, transition: 'all .6s ease' }}>
+      <div style={{ maxWidth: 1040, margin: '0 auto' }}>
+
+        {/* Heading */}
+        <div style={{ textAlign: 'center', marginBottom: 56, opacity: visible ? 1 : 0, transition: 'all .6s ease' }}>
           <p style={{ fontSize: 11, fontWeight: 700, color: BRAND, letterSpacing: '.1em', textTransform: 'uppercase', marginBottom: 16 }}>Comparativa</p>
-          <h2 style={{ fontFamily: D, fontSize: 'clamp(30px,4vw,52px)', fontWeight: 900, color: '#0A0A0A', letterSpacing: '-.04em', lineHeight: 1.06 }}>TRAZA vs. el resto.</h2>
+          <h2 style={{ fontFamily: D, fontSize: 'clamp(30px,4vw,52px)', fontWeight: 900, color: '#0A0A0A', letterSpacing: '-.04em', lineHeight: 1.06, marginBottom: 12 }}>TRAZA vs. el resto.</h2>
+          <p style={{ fontSize: 15, color: '#64748B', maxWidth: 480, margin: '0 auto', lineHeight: 1.6 }}>No es solo una lista de features. Es la diferencia entre gestionar el desempeño con evidencia o con intuición.</p>
         </div>
-        <div style={{ background: 'white', borderRadius: 20, border: '1px solid #E8EAFB', overflow: 'hidden', opacity: visible?1:0, transition: 'all .6s .15s ease' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', borderBottom: '2px solid #F0F2FF' }}>
-            <div style={{ padding: '18px 24px', fontSize: 11, fontWeight: 700, color: '#94A3B8', letterSpacing: '.08em', textTransform: 'uppercase' }}>Funcionalidad</div>
-            {cols.map((c,i) => <div key={i} style={{ padding: '18px 16px', textAlign: 'center', background: c.hi ? BRAND : 'transparent', color: c.hi?'white':'#0A0A0A', fontSize: 13, fontWeight: 800 }}>{c.label}</div>)}
+
+        {/* Table */}
+        <div style={{ background: 'white', borderRadius: 24, border: '1px solid #E8EAFB', overflow: 'hidden', boxShadow: '0 4px 32px rgba(28,43,144,.08)', opacity: visible ? 1 : 0, transition: 'all .6s .15s ease' }}>
+
+          {/* Header */}
+          <div style={{ display: 'grid', gridTemplateColumns: COL_W, borderBottom: '2px solid #EEF0FB' }}>
+            <div style={{ padding: '22px 28px', fontSize: 11, fontWeight: 700, color: '#94A3B8', letterSpacing: '.08em', textTransform: 'uppercase' }}>
+              Funcionalidad
+            </div>
+            {/* TRAZA — highlighted */}
+            <div style={{ padding: '16px 12px', textAlign: 'center', background: 'linear-gradient(160deg, #1C2B90 0%, #3D55D6 100%)', position: 'relative', overflow: 'hidden' }}>
+              <div style={{ position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, background: 'radial-gradient(ellipse at 70% 20%, rgba(165,180,252,.22), transparent 65%)', pointerEvents: 'none' }} />
+              <div style={{ position: 'relative' }}>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: 'rgba(255,255,255,.14)', borderRadius: 99, padding: '2px 8px', marginBottom: 6 }}>
+                  <span style={{ fontSize: 9, color: '#FDE68A' }}>★</span>
+                  <span style={{ fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,.8)', letterSpacing: '.04em' }}>Recomendado</span>
+                </div>
+                <div style={{ fontSize: 15, fontWeight: 900, color: 'white', letterSpacing: '-.02em' }}>TRAZA</div>
+              </div>
+            </div>
+            {/* Other columns */}
+            {['Excel / Sheets', 'Sin sistema'].map((c,i) => (
+              <div key={i} style={{ padding: '22px 12px', textAlign: 'center', borderLeft: '1px solid #F0F2FF' }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: '#64748B' }}>{c}</div>
+              </div>
+            ))}
           </div>
-          {rows.map((row,ri) => (
-            <div key={ri} style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', borderBottom: ri<rows.length-1?'1px solid #F5F6FF':'none', background: ri%2===0?'white':'#FAFBFF' }}>
-              <div style={{ padding: '13px 24px', fontSize: 13.5, color: '#374151', fontWeight: 500 }}>{row}</div>
-              {cols.map((c,ci) => <div key={ci} style={{ padding: '13px 16px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: ci===0?'rgba(28,43,144,.03)':'transparent' }}><Cell v={c.vals[ri]} /></div>)}
+
+          {/* Categories + rows */}
+          {cats.map((cat, ci) => (
+            <div key={ci}>
+              {/* Category label */}
+              <div style={{ display: 'grid', gridTemplateColumns: COL_W, background: '#F8F9FF', borderBottom: '1px solid #EEF0FB', borderTop: ci > 0 ? '2px solid #EEF0FB' : 'none' }}>
+                <div style={{ padding: '10px 28px', display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ fontSize: 14 }}>{cat.icon}</span>
+                  <span style={{ fontSize: 11, fontWeight: 800, color: '#3B4263', textTransform: 'uppercase', letterSpacing: '.07em' }}>{cat.label}</span>
+                </div>
+                <div style={{ background: 'rgba(28,43,144,.04)' }} />
+                <div style={{ borderLeft: '1px solid #F0F2FF' }} />
+                <div style={{ borderLeft: '1px solid #F0F2FF' }} />
+              </div>
+
+              {/* Feature rows */}
+              {cat.rows.map((row, ri) => (
+                <div key={ri} style={{ display: 'grid', gridTemplateColumns: COL_W, borderBottom: '1px solid #F5F6FF', background: ri % 2 === 0 ? 'white' : '#FAFBFF' }}>
+                  <div style={{ padding: '14px 28px' }}>
+                    <p style={{ fontSize: 13.5, color: '#0F172A', fontWeight: 600, marginBottom: 3, lineHeight: 1.3 }}>{row.name}</p>
+                    <p style={{ fontSize: 11.5, color: '#94A3B8', lineHeight: 1.5 }}>{row.sub}</p>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(28,43,144,.03)' }}>
+                    <Cell v={row.v[0]} />
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', borderLeft: '1px solid #F0F2FF' }}>
+                    <Cell v={row.v[1]} />
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', borderLeft: '1px solid #F0F2FF' }}>
+                    <Cell v={row.v[2]} />
+                  </div>
+                </div>
+              ))}
             </div>
           ))}
+
+          {/* Footer CTA */}
+          <div style={{ display: 'grid', gridTemplateColumns: COL_W, background: '#F8F9FF', borderTop: '2px solid #EEF0FB' }}>
+            <div style={{ padding: '20px 28px' }}>
+              <p style={{ fontSize: 14, fontWeight: 700, color: '#0F172A', marginBottom: 3 }}>¿Listo para empezar?</p>
+              <p style={{ fontSize: 12, color: '#64748B' }}>Sin tarjeta de crédito · Setup en 30 min</p>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px 12px', background: 'rgba(28,43,144,.04)' }}>
+              <a href="/registro" style={{ background: 'linear-gradient(135deg, #1C2B90, #4F63D2)', color: 'white', fontSize: 12, fontWeight: 700, padding: '9px 18px', borderRadius: 9, textDecoration: 'none', whiteSpace: 'nowrap', display: 'inline-block' }}>
+                Empezar gratis →
+              </a>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', borderLeft: '1px solid #EEF0FB' }}>
+              <span style={{ fontSize: 11, color: '#CBD5E1', fontWeight: 500, textAlign: 'center', padding: '0 12px' }}>Limitado, sin historial</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', borderLeft: '1px solid #EEF0FB' }}>
+              <span style={{ fontSize: 11, color: '#CBD5E1', fontWeight: 500, textAlign: 'center', padding: '0 12px' }}>Sin datos, sin soporte</span>
+            </div>
+          </div>
         </div>
       </div>
     </section>
