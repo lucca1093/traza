@@ -310,6 +310,13 @@ export default function RegistroPage() {
               {loading ? 'Creando cuenta...' : 'Crear mi cuenta TRAZA'}
               {!loading && <ChevronRight size={15} />}
             </button>
+
+            <p className="text-xs text-center" style={{ color: '#94A3B8', marginTop: 10 }}>
+              Al crear tu cuenta aceptás los{' '}
+              <a href="/terminos-y-condiciones" style={{ color: '#3350D0' }}>Términos de uso</a>
+              {' '}y la{' '}
+              <a href="/politica-de-privacidad" style={{ color: '#3350D0' }}>Política de privacidad</a>.
+            </p>
           </form>
 
           <div className="mt-5 pt-4 border-t border-gray-100 flex items-start gap-2.5">

@@ -464,7 +464,23 @@ export default function AnalyticsPage() {
         </div>
         <div className="divide-y divide-gray-100">
           {ranking.length === 0 && (
-            <p className="text-gray-400 text-center py-12">No hay datos todavía.</p>
+            <div className="py-12 px-6 text-center space-y-4">
+              <div
+                className="w-12 h-12 rounded-2xl flex items-center justify-center mx-auto"
+                style={{ background: 'linear-gradient(135deg, #EEF2FF, #E0E7FF)' }}
+              >
+                <Trophy size={20} style={{ color: '#3350D0' }} />
+              </div>
+              <div className="space-y-1.5">
+                <p className="font-bold text-gray-800">Sin datos de equipo todavía</p>
+                <p className="text-sm max-w-xs mx-auto" style={{ color: '#94A3B8' }}>
+                  El ranking aparece cuando los colaboradores registran objetivos y avances en sus cuentas.
+                </p>
+              </div>
+              <a href="/administracion" className="inline-flex text-sm font-semibold" style={{ color: '#3350D0' }}>
+                Invitar colaboradores →
+              </a>
+            </div>
           )}
           {ranking.map((item, i) => {
             const s          = item.indice.score

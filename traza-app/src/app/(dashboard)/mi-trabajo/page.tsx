@@ -548,7 +548,23 @@ export default function MiTrabajoPage() {
       {tab === 'historial' && (
         <div className="space-y-2">
           {completados.length === 0 ? (
-            <div className="traza-card p-10 text-center text-gray-400 text-sm">Todavía no hay objetivos completados.</div>
+            <div
+              className="rounded-2xl p-10 text-center space-y-4"
+              style={{ background: 'linear-gradient(135deg, #F8FAFC 0%, #F0FDF4 100%)', border: '1px solid #E2E8F0' }}
+            >
+              <div
+                className="w-12 h-12 rounded-2xl flex items-center justify-center mx-auto"
+                style={{ backgroundColor: '#DCFCE7' }}
+              >
+                <CheckCircle2 size={22} style={{ color: '#16a34a' }} />
+              </div>
+              <div className="space-y-1.5">
+                <p className="font-bold text-gray-800">Tu historial está vacío todavía</p>
+                <p className="text-sm max-w-xs mx-auto" style={{ color: '#94A3B8' }}>
+                  Cuando completes un objetivo, quedará guardado acá para siempre — incluso si cambiás de empresa.
+                </p>
+              </div>
+            </div>
           ) : (
             completados.map(obj => <HistorialCard key={obj.id} obj={obj} valExt={valExtMap[obj.id] ?? []} />)
           )}

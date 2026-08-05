@@ -360,11 +360,43 @@ export default function ReunionesPage() {
 
       {/* Lista agrupada por empleado */}
       {Object.keys(grupos).length === 0 ? (
-        <div className="traza-card p-12 text-center">
-          <Calendar size={32} className="text-gray-200 mx-auto mb-3" />
-          <p className="text-gray-400 text-sm">
-            {esAdmin ? 'Todavía no hay reuniones registradas. Creá la primera.' : 'Tu supervisor todavía no registró reuniones 1:1 con vos.'}
-          </p>
+        <div
+          className="rounded-2xl p-10 text-center space-y-5"
+          style={{ background: 'linear-gradient(135deg, #F8FAFC 0%, #EEF2FF 100%)', border: '1px solid #E2E8F0' }}
+        >
+          <div
+            className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto"
+            style={{ background: 'linear-gradient(135deg, #1C2B90, #3350D0)' }}
+          >
+            <MessageSquare size={24} className="text-white" />
+          </div>
+          <div className="space-y-2">
+            {esAdmin ? (
+              <>
+                <p className="text-lg font-black text-gray-900">Registrá tu primera reunión 1:1</p>
+                <p className="text-sm leading-relaxed max-w-xs mx-auto" style={{ color: '#64748B' }}>
+                  Las reuniones 1:1 quedan vinculadas al historial de cada colaborador y alimentan el Índice TRAZA.
+                </p>
+              </>
+            ) : (
+              <>
+                <p className="text-lg font-black text-gray-900">Sin reuniones todavía</p>
+                <p className="text-sm leading-relaxed max-w-xs mx-auto" style={{ color: '#64748B' }}>
+                  Cuando tu supervisor registre una 1:1 con vos, aparecerá aquí y quedará en tu historial profesional.
+                </p>
+              </>
+            )}
+          </div>
+          {esAdmin && (
+            <button
+              onClick={() => setShowForm(true)}
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-white text-sm transition-opacity hover:opacity-90"
+              style={{ background: 'linear-gradient(135deg, #1C2B90, #3350D0)' }}
+            >
+              <Plus size={15} />
+              Crear primera reunión
+            </button>
+          )}
         </div>
       ) : (
         <div className="space-y-4">

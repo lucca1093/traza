@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   description: 'Cómo TRAZA recopila, usa y protege tu información personal.',
 }
 
-const LAST_UPDATED = '1 de julio de 2025'
+const LAST_UPDATED = '1 de agosto de 2026'
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (

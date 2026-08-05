@@ -560,7 +560,30 @@ export default function EquipoPage() {
         </div>
 
         {ordenados.length === 0 ? (
-          <div className="py-12 text-center text-gray-400 text-sm">No hay colaboradores en el equipo.</div>
+          <div
+            className="rounded-2xl p-10 text-center space-y-5"
+            style={{ background: 'linear-gradient(135deg, #F8FAFC 0%, #EEF2FF 100%)', border: '1px solid #E2E8F0' }}
+          >
+            <div
+              className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto"
+              style={{ background: 'linear-gradient(135deg, #1C2B90, #3350D0)' }}
+            >
+              <Star size={24} className="text-white" />
+            </div>
+            <div className="space-y-2">
+              <p className="text-lg font-black text-gray-900">Invitá a tu equipo</p>
+              <p className="text-sm leading-relaxed max-w-xs mx-auto" style={{ color: '#64748B' }}>
+                Cuando un colaborador se una a tu empresa, su Índice TRAZA aparecerá aquí para que puedas hacer seguimiento.
+              </p>
+            </div>
+            <a
+              href="/administracion"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-white text-sm transition-opacity hover:opacity-90"
+              style={{ background: 'linear-gradient(135deg, #1C2B90, #3350D0)' }}
+            >
+              Invitar colaboradores
+            </a>
+          </div>
         ) : (
           <div className="divide-y divide-gray-50">
             {ordenados.map(({ persona, objetivos, avances, validaciones, supervisorVerificado, cierreSemanal, nivel }) => {
