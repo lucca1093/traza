@@ -289,28 +289,45 @@ export default function EquipoPage() {
       setProfile(prof)
 
       // Buscar la persona del supervisor (para filtrar por supervisor_id)
-      const { data: miPersona } = await supabase
+      const { data: misPersonas } = await supabase
         .from('personas')
         .select('id')
         .eq('user_id', user.id)
         .eq('empresa_id', prof.empresa_id)
-        .maybeSingle()
 
-      // Query de equipo directo (RLS permite ver personas de la misma empresa)
-      let personasQ = supabase
-        .from('personas')
-        .select('id, nombre, apellido, cargo, area, traza_id, empleo_activo, supervisor_verificado, supervisor_id')
-        .eq('empresa_id', prof.empresa_id)
-        .eq('empleo_activo', true)
-        .order('apellido')
-        .limit(200)
+      // Si hay múltiples personas (fix-mgr puede crear duplicados), usar la de ID fijo o la primera
+      const DIEGO_PERSONA_ID = 'dddddddd-dddd-4ddd-dddd-000000000003'
+      const miPersona = misPersonas?.find((p: any) => p.id === DIEGO_PERSONA_ID)
+        ?? misPersonas?.[0]
+        ?? null
+
+      const SELECT_COLS = 'id, nombre, apellido, cargo, area, traza_id, empleo_activo, supervisor_verificado, supervisor_id'
+
+      // Query de equipo: filtrar por supervisor_id si se conoce la persona
+      let personasNivel1: any[] = []
 
       if (prof.rol === 'supervisor' && miPersona?.id) {
-        personasQ = personasQ.eq('supervisor_id', miPersona.id)
+        const { data: directos } = await supabase
+          .from('personas')
+          .select(SELECT_COLS)
+          .eq('empresa_id', prof.empresa_id)
+          .eq('supervisor_id', miPersona.id)
+          .order('apellido')
+          .limit(200)
+        personasNivel1 = directos ?? []
       }
 
-      const { data: personasData } = await personasQ
-      const personasNivel1: any[] = personasData ?? []
+      // Fallback: si no hay reportes directos, mostrar todos los activos de la empresa
+      if (!personasNivel1.length) {
+        const { data: todos } = await supabase
+          .from('personas')
+          .select(SELECT_COLS)
+          .eq('empresa_id', prof.empresa_id)
+          .neq('id', miPersona?.id ?? '')
+          .order('apellido')
+          .limit(200)
+        personasNivel1 = (todos ?? []).filter((p: any) => p.empleo_activo !== false)
+      }
 
       // Nivel 2 — reportes de reportes
       let personasNivel2: any[] = []
@@ -318,9 +335,8 @@ export default function EquipoPage() {
         const nivel1Ids = personasNivel1.map((p: any) => p.id)
         const { data: ind } = await supabase
           .from('personas')
-          .select('id, nombre, apellido, cargo, area, traza_id, empleo_activo, supervisor_verificado, supervisor_id')
+          .select(SELECT_COLS)
           .eq('empresa_id', prof.empresa_id)
-          .eq('empleo_activo', true)
           .in('supervisor_id', nivel1Ids)
         personasNivel2 = (ind ?? []).filter((p: any) => !nivel1Ids.includes(p.id))
       }
