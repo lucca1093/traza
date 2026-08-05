@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase-server'
 import { requireAuth } from '@/lib/auth-helpers'
+import { checkAIRateLimit, aiSignal } from '@/lib/rate-limit'
 
 export async function POST(req: NextRequest) {
-  const { error } = await requireAuth(['supervisor', 'admin', 'super_admin'])
+  const { user, error } = await requireAuth(['supervisor', 'admin', 'super_admin'])
   if (error) return error
 
   try {
@@ -13,6 +14,13 @@ export async function POST(req: NextRequest) {
 
     /* ── Sugerencia con IA ─────────────────────────────── */
     if (action === 'sugerir') {
+      if (!checkAIRateLimit(user!.id)) {
+        return NextResponse.json(
+          { error: 'Límite de uso de IA alcanzado. Intentá de nuevo en una hora.' },
+          { status: 429 }
+        )
+      }
+
       const { persona_nombre, dim_ejecucion, dim_comunicacion,
               dim_colaboracion, dim_iniciativa, dim_liderazgo, periodo } = data
 
@@ -40,6 +48,7 @@ Redactá un párrafo de feedback constructivo, profesional y específico en espa
 
       const response = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
+        signal: aiSignal(),
         headers: {
           'Content-Type': 'application/json',
           'x-api-key': apiKey,

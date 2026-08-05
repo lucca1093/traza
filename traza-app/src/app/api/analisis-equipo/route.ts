@@ -1,9 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth } from '@/lib/auth-helpers'
+import { checkAIRateLimit, aiSignal } from '@/lib/rate-limit'
 
 export async function POST(req: NextRequest) {
-  const { error } = await requireAuth(['supervisor', 'admin', 'super_admin'])
+  const { user, error } = await requireAuth(['supervisor', 'admin', 'super_admin'])
   if (error) return error
+
+  if (!checkAIRateLimit(user!.id)) {
+    return NextResponse.json(
+      { error: 'Límite de uso de IA alcanzado. Intentá de nuevo en una hora.' },
+      { status: 429 }
+    )
+  }
 
   try {
     const { stats, ranking } = await req.json()
@@ -43,6 +51,7 @@ Instrucciones:
 
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
+      signal: aiSignal(),
       headers: {
         'Content-Type': 'application/json',
         'x-api-key': apiKey,

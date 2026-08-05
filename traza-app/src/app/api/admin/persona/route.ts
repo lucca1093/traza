@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { requireAuth } from '@/lib/auth-helpers'
 
 function admin() {
   return createClient(
@@ -11,6 +12,10 @@ function admin() {
 // PATCH /api/admin/persona
 // Acciones: cambiar_rol | dar_de_baja | reactivar | asignar_supervisor | editar_datos
 export async function PATCH(req: NextRequest) {
+  // Solo admins y super_admins pueden modificar personas
+  const { error: authError } = await requireAuth(['admin', 'super_admin'])
+  if (authError) return authError
+
   const supabase = admin()
   const { action, persona_id, nuevo_rol, supervisor_id, cargo, area, nombre, apellido } = await req.json()
 

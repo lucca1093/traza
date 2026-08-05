@@ -59,3 +59,19 @@ export function getIP(request: Request): string {
     '127.0.0.1'
   )
 }
+
+/**
+ * Rate limit específico para endpoints de IA (por userId).
+ * Límite: 30 llamadas por usuario por hora.
+ */
+export function checkAIRateLimit(userId: string): boolean {
+  return checkRateLimit(userId, 'ai', 30, 60 * 60 * 1000)
+}
+
+/**
+ * AbortSignal con timeout de 30 segundos.
+ * Usar en cada fetch a Anthropic para evitar llamadas colgadas.
+ */
+export function aiSignal(): AbortSignal {
+  return AbortSignal.timeout(30_000)
+}
