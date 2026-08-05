@@ -5,7 +5,7 @@ import { NextResponse } from 'next/server'
 // GET /api/equipo
 // Devuelve el equipo del supervisor logueado usando admin client (bypass RLS).
 export async function GET() {
-  const { user, error } = await requireAuth(['supervisor', 'admin', 'super_admin'])
+  const { user, error } = await requireAuth()
   if (error || !user) {
     return NextResponse.json({ personas: [], nivel2: [], empresaId: null, rol: null })
   }
