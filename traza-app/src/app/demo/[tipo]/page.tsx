@@ -50,6 +50,15 @@ export default function DemoLoginPage() {
         return
       }
 
+      // Si es el manager demo, asegurar que Diego tenga su equipo asignado
+      if (tipo === 'manager') {
+        try {
+          await fetch('/api/demo/fix-mgr')
+        } catch {
+          // Silencioso — si falla no bloquea el demo
+        }
+      }
+
       // Redirigir al dashboard — DemoTour leerá demo_role de sessionStorage
       router.push('/dashboard')
     }
