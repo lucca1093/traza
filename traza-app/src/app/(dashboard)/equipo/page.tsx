@@ -288,47 +288,17 @@ export default function EquipoPage() {
       if (!prof?.empresa_id) return
       setProfile(prof)
 
-      const empresaId = prof.empresa_id
+      // Traer equipo via API (admin client — bypass RLS)
+      const equipoRes = await fetch('/api/equipo')
+      const equipoJson = await equipoRes.json()
+      const personasNivel1: any[] = equipoJson.personas ?? []
+      const personasNivel2: any[] = equipoJson.nivel2 ?? []
+      const empresaId: string = equipoJson.empresaId ?? prof.empresa_id
 
-      // Si es supervisor, traer solo su equipo asignado
-      let personasQuery = supabase
-        .from('personas')
-        .select('id, nombre, apellido, cargo, area, traza_id, empleo_activo, supervisor_verificado')
-        .eq('empresa_id', empresaId)
-        .eq('empleo_activo', true)
-        .order('apellido')
-        .limit(200)
-
-      if (prof.rol === 'supervisor') {
-        // Obtener el persona.id del supervisor logueado
-        const { data: miPersona } = await supabase
-          .from('personas')
-          .select('id')
-          .eq('user_id', user.id)
-          .single()
-        if (miPersona?.id) {
-          personasQuery = personasQuery.eq('supervisor_id', miPersona.id)
-        }
-      }
-
-      const { data: personasNivel1 } = await personasQuery
-
-      if (!personasNivel1?.length) { setLoading(false); return }
+      if (!personasNivel1.length) { setLoading(false); return }
 
       const nivel1Ids = personasNivel1.map((p: any) => p.id)
-
-      // Fetch indirectos: personas cuyos supervisores son reportes directos del supervisor actual
-      let personasNivel2: any[] = []
-      if (prof.rol === 'supervisor' && nivel1Ids.length > 0) {
-        const { data: indirectos } = await supabase
-          .from('personas')
-          .select('id, nombre, apellido, cargo, area, traza_id, empleo_activo, supervisor_verificado, supervisor_id')
-          .eq('empresa_id', empresaId)
-          .eq('empleo_activo', true)
-          .in('supervisor_id', nivel1Ids)
-        personasNivel2 = (indirectos ?? []).filter((p: any) => !nivel1Ids.includes(p.id))
-        if (personasNivel2.length > 0) setHayIndirectos(true)
-      }
+      if (personasNivel2.length > 0) setHayIndirectos(true)
 
       const todasPersonas = [...personasNivel1, ...personasNivel2]
       const personaIds = todasPersonas.map((p: any) => p.id)
