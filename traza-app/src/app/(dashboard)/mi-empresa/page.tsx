@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { supabase } from '@/lib/supabase'
 import Button from '@/components/ui/Button'
-import { Building2, Users, Target, Upload, X, CheckCircle2, ImageIcon } from 'lucide-react'
+import { Building2, Users, Target, Upload, X, CheckCircle2, ImageIcon, CreditCard, AlertTriangle } from 'lucide-react'
 
 const TAMANOS = [
   { value: '1-10',    label: '1–10 personas' },
@@ -261,6 +261,87 @@ export default function MiEmpresaPage() {
             )}
           </div>
         </form>
+      </div>
+
+      {/* Plan y plazas */}
+      <div className="traza-card p-6">
+        <div className="flex items-center gap-2 mb-5">
+          <CreditCard size={16} className="text-traza-500" />
+          <h2 className="text-base font-semibold text-gray-900">Plan y plazas</h2>
+        </div>
+
+        {/* Plan badge */}
+        <div className="flex items-center justify-between mb-5">
+          <span className="text-sm text-gray-500">Plan actual</span>
+          <span className="text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider"
+            style={{ backgroundColor: '#EEF2FF', color: '#3350D0' }}>
+            {empresa.plan ?? 'Starter'}
+          </span>
+        </div>
+
+        {/* Barra de plazas */}
+        {(() => {
+          const max   = empresa.max_plazas ?? 10
+          const usado = stats.activos
+          const pct   = Math.min(100, Math.round((usado / max) * 100))
+          const critico = pct >= 90
+          const advertencia = pct >= 70 && !critico
+          return (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-gray-500">Plazas utilizadas</span>
+                <span className="font-semibold" style={{ color: critico ? '#dc2626' : '#0F172A' }}>
+                  {usado} <span className="font-normal text-gray-400">/ {max}</span>
+                </span>
+              </div>
+              <div className="w-full h-2.5 rounded-full" style={{ backgroundColor: '#F1F5F9' }}>
+                <div
+                  className="h-2.5 rounded-full transition-all duration-500"
+                  style={{
+                    width: `${pct}%`,
+                    backgroundColor: critico ? '#dc2626' : advertencia ? '#d97706' : '#3350D0',
+                  }}
+                />
+              </div>
+              {critico && (
+                <div className="flex items-center gap-1.5 text-xs text-red-600 font-medium mt-1">
+                  <AlertTriangle size={12} />
+                  Llegaste al límite de tu plan. Para agregar más personas, hacé un upgrade.
+                </div>
+              )}
+              {advertencia && (
+                <p className="text-xs text-amber-600 mt-1">
+                  Estás usando el {pct}% de tus plazas. Considerá hacer un upgrade pronto.
+                </p>
+              )}
+            </div>
+          )
+        })()}
+
+        {/* Límites del plan */}
+        <div className="mt-5 pt-4 border-t border-gray-50 space-y-2 text-sm">
+          {[
+            { label: 'Personas activas', val: `hasta ${empresa.max_plazas ?? 10}` },
+            { label: 'Supervisores', val: 'ilimitados' },
+            { label: 'Exportación PDF', val: 'incluida' },
+            { label: 'Análisis con IA', val: (empresa.plan ?? 'starter') === 'starter' ? '30/mes por usuario' : 'ilimitado' },
+          ].map(row => (
+            <div key={row.label} className="flex justify-between">
+              <span className="text-gray-400">{row.label}</span>
+              <span className="font-medium text-gray-700">{row.val}</span>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-5">
+          <button
+            className="w-full py-2.5 rounded-xl text-sm font-semibold text-white transition-opacity hover:opacity-90"
+            style={{ background: 'linear-gradient(135deg, #1C2B90, #3350D0)' }}
+            onClick={() => alert('Próximamente: gestión de plan desde el portal de billing.')}
+          >
+            Gestionar plan →
+          </button>
+        </div>
       </div>
 
       {/* Info de cuenta */}

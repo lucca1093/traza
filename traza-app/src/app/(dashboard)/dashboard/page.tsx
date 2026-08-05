@@ -9,6 +9,40 @@ import CareerInsightsCard from '@/components/CareerInsightsCard'
 
 const DISPLAY = "'Plus Jakarta Sans', system-ui, sans-serif"
 
+/* ── Sparkline SVG inline ── */
+function ScoreSparkline({ data }: { data: { fecha: string; score: number }[] }) {
+  if (!data || data.length < 2) return null
+  const W = 500; const H = 72
+  const PAD = { t: 8, r: 8, b: 22, l: 8 }
+  const scores = data.map(d => d.score)
+  const min = 0; const max = 100
+  const toY = (s: number) => PAD.t + ((max - s) / (max - min)) * (H - PAD.t - PAD.b)
+  const toX = (i: number) => PAD.l + (i / (data.length - 1)) * (W - PAD.l - PAD.r)
+  const pts = data.map((d, i) => ({ x: toX(i), y: toY(d.score), score: d.score, fecha: d.fecha }))
+  const line = pts.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ')
+  const area = `${line} L${pts[pts.length-1].x.toFixed(1)},${(H-PAD.b).toFixed(1)} L${pts[0].x.toFixed(1)},${(H-PAD.b).toFixed(1)} Z`
+  const last  = data[data.length - 1].score
+  const color = last >= 75 ? '#16a34a' : last >= 50 ? '#d97706' : '#dc2626'
+  const light = last >= 75 ? '#dcfce7' : last >= 50 ? '#fef3c7' : '#fee2e2'
+  // Show label only at first, last, and a couple mid points
+  const labelIdxs = new Set([0, data.length - 1])
+  if (data.length > 4) labelIdxs.add(Math.floor(data.length / 2))
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 72, display: 'block' }}>
+      <path d={area} fill={light} opacity="0.55" />
+      <path d={line} fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+      {pts.map((p, i) => (
+        <circle key={i} cx={p.x} cy={p.y} r={i === pts.length - 1 ? 4 : 2.5} fill={color} />
+      ))}
+      {pts.map((p, i) => labelIdxs.has(i) ? (
+        <text key={i} x={p.x} y={H - 4} textAnchor={i === 0 ? 'start' : i === pts.length - 1 ? 'end' : 'middle'} fontSize="9" fill="#94A3B8">
+          {new Date(p.fecha + 'T00:00:00').toLocaleDateString('es-AR', { day: '2-digit', month: 'short' })}
+        </text>
+      ) : null)}
+    </svg>
+  )
+}
+
 function diasRestantes(fecha: string) {
   const hoy = new Date(); hoy.setHours(0, 0, 0, 0)
   const fin  = new Date(fecha); fin.setHours(0, 0, 0, 0)
@@ -542,6 +576,26 @@ export default async function DashboardPage() {
   )
   const racha  = calcularRacha(todosAvances ?? [])
 
+  // ── Guardar snapshot diario del score ──────────────────
+  if (persona?.id) {
+    const hoyFecha = new Date().toISOString().split('T')[0]
+    await supabase
+      .from('score_historico')
+      .upsert(
+        { persona_id: persona.id, empresa_id: profileData?.empresa_id ?? null, score: indice.score, fecha: hoyFecha },
+        { onConflict: 'persona_id,fecha' }
+      )
+  }
+
+  // ── Historial de las últimas 12 semanas ────────────────
+  const hace12semanas = new Date(Date.now() - 84 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+  const { data: scoreHistory } = await supabase
+    .from('score_historico')
+    .select('fecha, score')
+    .eq('persona_id', persona?.id ?? '')
+    .gte('fecha', hace12semanas)
+    .order('fecha', { ascending: true })
+
   function explicarDimension(key: 'A' | 'B' | 'C' | 'D' | 'E', val: number): string {
     if (key === 'A') {
       if (objs.filter(o => o.validacion).length === 0) return 'Todavía no tenés objetivos validados por el manager'
@@ -747,6 +801,38 @@ export default async function DashboardPage() {
           })}
         </div>
       </div>
+
+      {/* ── Evolución del score ─────────────────────────── */}
+      {scoreHistory && scoreHistory.length >= 2 && (() => {
+        const last  = scoreHistory[scoreHistory.length - 1].score
+        const first = scoreHistory[0].score
+        const delta = last - first
+        const color = last >= 75 ? '#16a34a' : last >= 50 ? '#d97706' : '#dc2626'
+        return (
+          <div className="traza-card overflow-hidden">
+            <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: '1px solid #F1F5F9' }}>
+              <div>
+                <h2 className="text-sm font-semibold" style={{ color: '#0F172A', fontFamily: DISPLAY, letterSpacing: '-0.01em' }}>
+                  Evolución de tu Índice Traza
+                </h2>
+                <p className="text-xs mt-0.5" style={{ color: '#94A3B8' }}>Últimas {scoreHistory.length} sesiones registradas</p>
+              </div>
+              <div className="flex items-center gap-2">
+                {delta !== 0 && (
+                  <span className="text-xs font-semibold px-2 py-1 rounded-lg"
+                    style={{ backgroundColor: delta > 0 ? '#dcfce7' : '#fee2e2', color: delta > 0 ? '#16a34a' : '#dc2626' }}>
+                    {delta > 0 ? '+' : ''}{delta} pts
+                  </span>
+                )}
+                <span className="text-2xl font-bold" style={{ color, fontFamily: DISPLAY, letterSpacing: '-0.04em' }}>{last}</span>
+              </div>
+            </div>
+            <div className="px-6 pt-4 pb-2">
+              <ScoreSparkline data={scoreHistory} />
+            </div>
+          </div>
+        )
+      })()}
 
       {/* ── Racha ───────────────────────────────────────── */}
       <div

@@ -228,7 +228,46 @@ export async function GET(req: Request) {
     rol: 'supervisor', empresa_id: MERIDIAN,
   })
 
-  results.mgr = { userId: mgrId }
+  // Crear persona de Diego en Meridian para que pueda ser supervisor
+  const { data: mgrPersona } = await supabase.from('personas').insert({
+    user_id: mgrId, nombre: 'Diego', apellido: 'Sánchez',
+    cargo: 'Director de Recursos Humanos', area: 'RRHH',
+    empresa_id: MERIDIAN,
+    tipo_cuenta: 'empresa', empleo_activo: true,
+    traza_id: 'TRZ-DEMO-DGO', credencial_publica: false,
+    supervisor_verificado: true,
+  }).select('id').single()
+  const mgrPersonaId = mgrPersona?.id
+
+  // Asignar Martín como reporte directo de Diego
+  if (mgrPersonaId && empPersonaId) {
+    await supabase
+      .from('personas')
+      .update({ supervisor_id: mgrPersonaId })
+      .eq('id', empPersonaId)
+  }
+
+  // Asignar también otros empleados de Meridian que no tengan supervisor (hasta 4 más)
+  if (mgrPersonaId) {
+    const { data: sinSupervisor } = await supabase
+      .from('personas')
+      .select('id')
+      .eq('empresa_id', MERIDIAN)
+      .eq('empleo_activo', true)
+      .is('supervisor_id', null)
+      .neq('id', mgrPersonaId)
+      .limit(4)
+
+    if (sinSupervisor && sinSupervisor.length > 0) {
+      await supabase
+        .from('personas')
+        .update({ supervisor_id: mgrPersonaId })
+        .in('id', sinSupervisor.map(p => p.id))
+    }
+    results.equipo = `${(sinSupervisor?.length ?? 0) + (empPersonaId ? 1 : 0)} colaboradores asignados a Diego`
+  }
+
+  results.mgr = { userId: mgrId, personaId: mgrPersonaId }
 
   return NextResponse.json({
     success: true,
