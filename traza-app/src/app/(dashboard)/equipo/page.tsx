@@ -13,6 +13,7 @@ interface MiembroEquipo {
   validaciones: any[]
   supervisorVerificado: boolean
   cierreSemanal: any | null
+  nivel: number   // 1 = reporte directo, 2 = reporte de reporte
 }
 
 function scoreColor(score: number): string {
@@ -90,10 +91,12 @@ function BriefingText({ text }: { text: string }) {
 }
 
 export default function EquipoPage() {
-  const [miembros, setMiembros] = useState<MiembroEquipo[]>([])
-  const [profile, setProfile]   = useState<any>(null)
-  const [loading, setLoading]   = useState(true)
-  const [ordenPor, setOrdenPor] = useState<'score' | 'actividad' | 'nombre'>('score')
+  const [miembros, setMiembros]           = useState<MiembroEquipo[]>([])
+  const [profile, setProfile]             = useState<any>(null)
+  const [loading, setLoading]             = useState(true)
+  const [ordenPor, setOrdenPor]           = useState<'score' | 'actividad' | 'nombre'>('score')
+  const [vistaExpandida, setVistaExpandida] = useState(false)
+  const [hayIndirectos, setHayIndirectos] = useState(false)
 
   /* — Reconocimiento — */
   const [reconModal, setReconModal]   = useState<any | null>(null)
@@ -308,11 +311,27 @@ export default function EquipoPage() {
         }
       }
 
-      const { data: personas } = await personasQuery
+      const { data: personasNivel1 } = await personasQuery
 
-      if (!personas?.length) { setLoading(false); return }
+      if (!personasNivel1?.length) { setLoading(false); return }
 
-      const personaIds = personas.map((p: any) => p.id)
+      const nivel1Ids = personasNivel1.map((p: any) => p.id)
+
+      // Fetch indirectos: personas cuyos supervisores son reportes directos del supervisor actual
+      let personasNivel2: any[] = []
+      if (prof.rol === 'supervisor' && nivel1Ids.length > 0) {
+        const { data: indirectos } = await supabase
+          .from('personas')
+          .select('id, nombre, apellido, cargo, area, traza_id, empleo_activo, supervisor_verificado, supervisor_id')
+          .eq('empresa_id', empresaId)
+          .eq('empleo_activo', true)
+          .in('supervisor_id', nivel1Ids)
+        personasNivel2 = (indirectos ?? []).filter((p: any) => !nivel1Ids.includes(p.id))
+        if (personasNivel2.length > 0) setHayIndirectos(true)
+      }
+
+      const todasPersonas = [...personasNivel1, ...personasNivel2]
+      const personaIds = todasPersonas.map((p: any) => p.id)
 
       const { data: todosObjetivos } = await supabase
         .from('objetivos')
@@ -342,14 +361,20 @@ export default function EquipoPage() {
           .eq('confirmado', true),
       ])
 
-      const resultado: MiembroEquipo[] = personas.map((persona: any) => ({
+      const buildMiembro = (persona: any, nivel: number): MiembroEquipo => ({
         persona,
-        objetivos:           (todosObjetivos ?? []).filter((o: any) => o.persona_id === persona.id),
-        avances:             (todosAvances ?? []).filter((a: any) => a.persona_id === persona.id),
-        validaciones:        (todasValidaciones ?? []).filter((v: any) => v.persona_id === persona.id),
+        objetivos:            (todosObjetivos ?? []).filter((o: any) => o.persona_id === persona.id),
+        avances:              (todosAvances ?? []).filter((a: any) => a.persona_id === persona.id),
+        validaciones:         (todasValidaciones ?? []).filter((v: any) => v.persona_id === persona.id),
         supervisorVerificado: persona.supervisor_verificado ?? true,
-        cierreSemanal:       (cierres ?? []).find((c: any) => c.persona_id === persona.id) ?? null,
-      }))
+        cierreSemanal:        (cierres ?? []).find((c: any) => c.persona_id === persona.id) ?? null,
+        nivel,
+      })
+
+      const resultado: MiembroEquipo[] = [
+        ...personasNivel1.map((p: any) => buildMiembro(p, 1)),
+        ...personasNivel2.map((p: any) => buildMiembro(p, 2)),
+      ]
 
       setMiembros(resultado)
       setLoading(false)
@@ -357,7 +382,9 @@ export default function EquipoPage() {
     load()
   }, [])
 
-  const ordenados = [...miembros].sort((a, b) => {
+  const miembrosVisibles = vistaExpandida ? miembros : miembros.filter(m => m.nivel === 1)
+
+  const ordenados = [...miembrosVisibles].sort((a, b) => {
     if (ordenPor === 'score') {
       return calcularIndiceTraza(b.objetivos, b.avances, b.validaciones, b.supervisorVerificado).score
            - calcularIndiceTraza(a.objetivos, a.avances, a.validaciones, a.supervisorVerificado).score
@@ -385,10 +412,27 @@ export default function EquipoPage() {
         <div>
           <h1 className="traza-page-title">Mi Equipo</h1>
           <p className="traza-page-sub">
-            {miembros.length} colaborador{miembros.length !== 1 ? 'es' : ''} · visión consolidada del equipo
+            {vistaExpandida
+              ? `${miembros.filter(m => m.nivel === 1).length} directos · ${miembros.filter(m => m.nivel === 2).length} indirectos · ${miembros.length} en total`
+              : `${miembros.filter(m => m.nivel === 1).length} reporte${miembros.filter(m => m.nivel === 1).length !== 1 ? 's' : ''} directo${miembros.filter(m => m.nivel === 1).length !== 1 ? 's' : ''}`
+            }
           </p>
         </div>
         <div className="flex items-center gap-3">
+          {/* Toggle vista expandida */}
+          {hayIndirectos && (
+            <button
+              onClick={() => setVistaExpandida(v => !v)}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all border"
+              style={vistaExpandida
+                ? { backgroundColor: '#EEF2FF', color: '#3350D0', borderColor: '#C7D2FE' }
+                : { backgroundColor: 'white', color: '#64748B', borderColor: '#E2E8F0' }
+              }
+            >
+              <Activity size={14} />
+              {vistaExpandida ? 'Equipo completo' : 'Solo directos'}
+            </button>
+          )}
           {/* Briefing semanal */}
           <button
             onClick={handleBriefing}
@@ -501,7 +545,7 @@ export default function EquipoPage() {
           <div className="py-12 text-center text-gray-400 text-sm">No hay colaboradores en el equipo.</div>
         ) : (
           <div className="divide-y divide-gray-50">
-            {ordenados.map(({ persona, objetivos, avances, validaciones, supervisorVerificado, cierreSemanal }) => {
+            {ordenados.map(({ persona, objetivos, avances, validaciones, supervisorVerificado, cierreSemanal, nivel }) => {
               const indice      = calcularIndiceTraza(objetivos, avances, validaciones, supervisorVerificado)
               const activos     = objetivos.filter((o: any) => o.estado !== 'Completado').length
               const completados = objetivos.filter((o: any) => o.estado === 'Completado').length
@@ -518,10 +562,20 @@ export default function EquipoPage() {
                 >
                   {/* Colaborador */}
                   <div className="col-span-3 flex items-center gap-3 min-w-0">
-                    <div className="w-9 h-9 rounded-full bg-traza-100 flex items-center justify-center flex-shrink-0">
-                      <span className="text-traza-700 text-xs font-bold">
-                        {persona.nombre?.[0]}{persona.apellido?.[0]}
-                      </span>
+                    <div className="relative w-9 h-9 flex-shrink-0">
+                      <div className="w-9 h-9 rounded-full bg-traza-100 flex items-center justify-center">
+                        <span className="text-traza-700 text-xs font-bold">
+                          {persona.nombre?.[0]}{persona.apellido?.[0]}
+                        </span>
+                      </div>
+                      {nivel === 2 && (
+                        <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-white flex items-center justify-center"
+                          style={{ backgroundColor: '#94A3B8' }}
+                          title="Reporte indirecto"
+                        >
+                          <Activity size={7} className="text-white" />
+                        </div>
+                      )}
                     </div>
                     <div className="min-w-0">
                       <p className="text-sm font-semibold text-gray-900 truncate">{persona.nombre} {persona.apellido}</p>
