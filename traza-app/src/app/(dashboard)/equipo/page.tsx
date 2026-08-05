@@ -288,12 +288,44 @@ export default function EquipoPage() {
       if (!prof?.empresa_id) return
       setProfile(prof)
 
-      // Traer equipo via API (admin client — bypass RLS)
-      const equipoRes = await fetch('/api/equipo')
-      const equipoJson = await equipoRes.json()
-      const personasNivel1: any[] = equipoJson.personas ?? []
-      const personasNivel2: any[] = equipoJson.nivel2 ?? []
-      const empresaId: string = equipoJson.empresaId ?? prof.empresa_id
+      // Buscar la persona del supervisor (para filtrar por supervisor_id)
+      const { data: miPersona } = await supabase
+        .from('personas')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('empresa_id', prof.empresa_id)
+        .maybeSingle()
+
+      // Query de equipo directo (RLS permite ver personas de la misma empresa)
+      let personasQ = supabase
+        .from('personas')
+        .select('id, nombre, apellido, cargo, area, traza_id, empleo_activo, supervisor_verificado, supervisor_id')
+        .eq('empresa_id', prof.empresa_id)
+        .eq('empleo_activo', true)
+        .order('apellido')
+        .limit(200)
+
+      if (prof.rol === 'supervisor' && miPersona?.id) {
+        personasQ = personasQ.eq('supervisor_id', miPersona.id)
+      }
+
+      const { data: personasData } = await personasQ
+      const personasNivel1: any[] = personasData ?? []
+
+      // Nivel 2 — reportes de reportes
+      let personasNivel2: any[] = []
+      if (prof.rol === 'supervisor' && miPersona?.id && personasNivel1.length > 0) {
+        const nivel1Ids = personasNivel1.map((p: any) => p.id)
+        const { data: ind } = await supabase
+          .from('personas')
+          .select('id, nombre, apellido, cargo, area, traza_id, empleo_activo, supervisor_verificado, supervisor_id')
+          .eq('empresa_id', prof.empresa_id)
+          .eq('empleo_activo', true)
+          .in('supervisor_id', nivel1Ids)
+        personasNivel2 = (ind ?? []).filter((p: any) => !nivel1Ids.includes(p.id))
+      }
+
+      const empresaId: string = prof.empresa_id
 
       if (!personasNivel1.length) { setLoading(false); return }
 
