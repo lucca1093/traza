@@ -802,6 +802,73 @@ export default async function DashboardPage() {
         </div>
       </div>
 
+      {/* ── Próxima acción ──────────────────────────────── */}
+      {objs.length > 0 && (() => {
+        const acciones = [
+          {
+            key: 'A', label: 'Validación de Superiores', val: indice.moduloA, peso: 35,
+            texto: objs.filter(o => o.validacion).length === 0
+              ? 'Pedí a tu manager que valide un objetivo completado. Es la dimensión con más peso en el Índice (35%).'
+              : 'Solicitá validaciones externas de clientes o colegas para reforzar esta dimensión.',
+            href: '/mi-trabajo', cta: 'Ir a mis objetivos',
+          },
+          {
+            key: 'B', label: 'Cumplimiento', val: indice.moduloB, peso: 25,
+            texto: 'Revisá los objetivos vencidos y marcalos como completados si ya los terminaste.',
+            href: '/mi-trabajo', cta: 'Ver mis objetivos',
+          },
+          {
+            key: 'C', label: 'Regularidad', val: indice.moduloC, peso: 20,
+            texto: 'Hacé el cierre semanal — 3 preguntas en 5 minutos que mantienen tu racha activa y suman Regularidad.',
+            href: '/mi-semana', cta: 'Ir a mi semana',
+          },
+          {
+            key: 'D', label: 'Alineación', val: indice.alineacion, peso: 10,
+            texto: 'Completá tu autoevaluación en los objetivos que ya tienen validación del manager.',
+            href: '/mi-trabajo', cta: 'Completar autoevaluación',
+          },
+          {
+            key: 'E', label: 'Proactividad', val: indice.proactividad, peso: 10,
+            texto: 'Cargá al menos un objetivo personal propio, más allá de los asignados por tu empresa.',
+            href: '/mi-trabajo', cta: 'Agregar objetivo propio',
+          },
+        ]
+          .map(d => ({ ...d, potencial: Math.round((100 - d.val) * d.peso / 100) }))
+          .sort((a, b) => b.potencial - a.potencial)
+
+        const mejor = acciones[0]
+        if (!mejor || mejor.potencial < 4) return null
+
+        return (
+          <div
+            className="rounded-2xl p-5 flex items-start gap-4"
+            style={{ backgroundColor: '#EEF2FF', border: '1px solid #BBC5F7' }}
+          >
+            <div
+              className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+              style={{ backgroundColor: '#3350D0' }}
+            >
+              <TrendingUp size={16} className="text-white" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-bold" style={{ color: '#1C2B90' }}>
+                Mejorando <span style={{ color: '#3350D0' }}>{mejor.label}</span> podés sumar hasta +{mejor.potencial} pts
+              </p>
+              <p className="text-xs mt-1 leading-relaxed" style={{ color: '#475569' }}>
+                {mejor.texto}
+              </p>
+            </div>
+            <Link
+              href={mejor.href}
+              className="flex-shrink-0 text-xs font-semibold px-4 py-2 rounded-xl text-white transition-opacity hover:opacity-90 whitespace-nowrap"
+              style={{ backgroundColor: '#3350D0' }}
+            >
+              {mejor.cta}
+            </Link>
+          </div>
+        )
+      })()}
+
       {/* ── Evolución del score ─────────────────────────── */}
       {scoreHistory && scoreHistory.length >= 2 && (() => {
         const last  = scoreHistory[scoreHistory.length - 1].score

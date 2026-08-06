@@ -61,15 +61,16 @@ function qLbl(k: string) {
 /* ══════════════════════════════════════════════════
    SVG · SCORE RING
 ══════════════════════════════════════════════════ */
-function Ring({ score, color, size = 120, sw = 10 }: {
-  score: number; color: string; size?: number; sw?: number
+function Ring({ score, color, size = 120, sw = 10, trackColor }: {
+  score: number; color: string; size?: number; sw?: number; trackColor?: string
 }) {
   const r = (size - sw * 2) / 2 - 2
   const c = 2 * Math.PI * r
   const cx = size / 2
+  const track = trackColor ?? `${color}18`
   return (
     <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-      <circle cx={cx} cy={cx} r={r} fill="none" stroke={`${color}18`} strokeWidth={sw} />
+      <circle cx={cx} cy={cx} r={r} fill="none" stroke={track} strokeWidth={sw} />
       <circle cx={cx} cy={cx} r={r} fill="none" stroke={color} strokeWidth={sw}
         strokeDasharray={`${(score / 100) * c} ${c}`} strokeLinecap="round"
         transform={`rotate(-90 ${cx} ${cx})`} />
@@ -205,10 +206,13 @@ function QBars({ objetivos }: { objetivos: Objetivo[] }) {
 ══════════════════════════════════════════════════ */
 function SecLabel({ children }: { children: string }) {
   return (
-    <p style={{ fontSize: 8, fontWeight: 700, color: SUB, letterSpacing: '0.12em',
-      textTransform: 'uppercase', fontFamily: FB, marginBottom: 8 }}>
-      {children}
-    </p>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+      <div style={{ width: 2, height: 10, borderRadius: 1, background: P, flexShrink: 0 }} />
+      <p style={{ fontSize: 8, fontWeight: 700, color: SUB, letterSpacing: '0.12em',
+        textTransform: 'uppercase', fontFamily: FB }}>
+        {children}
+      </p>
+    </div>
   )
 }
 
@@ -545,76 +549,107 @@ export default function ImprimirPage() {
         {/* ════════════════════════════════════
             PÁG 1 · PORTADA
         ════════════════════════════════════ */}
-        <div style={{ background: '#fff', minHeight: 1123, display: 'flex', position: 'relative' }}>
-          {/* Left accent bar */}
-          <div style={{ width: 10, background: B, flexShrink: 0 }} />
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '52px 60px' }}>
+        <div style={{ background: '#fff', minHeight: 1123, display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden' }}>
 
-            {/* Header */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 80 }}>
+          {/* ── DARK GRADIENT BAND ── */}
+          <div style={{
+            background: `linear-gradient(150deg, ${B} 0%, #233BC5 60%, #2A47D8 100%)`,
+            padding: '52px 60px 52px',
+            position: 'relative',
+            overflow: 'hidden',
+            flexShrink: 0,
+          }}>
+            {/* Decorative circles */}
+            <div style={{ position: 'absolute', top: -80, right: -80, width: 340, height: 340,
+              borderRadius: '50%', background: 'rgba(255,255,255,0.04)', pointerEvents: 'none' }} />
+            <div style={{ position: 'absolute', bottom: -60, right: 200, width: 240, height: 240,
+              borderRadius: '50%', background: 'rgba(255,255,255,0.03)', pointerEvents: 'none' }} />
+            <div style={{ position: 'absolute', top: 60, left: -70, width: 180, height: 180,
+              borderRadius: '50%', background: 'rgba(255,255,255,0.03)', pointerEvents: 'none' }} />
+
+            {/* Header: logo + doc type */}
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 68, position: 'relative' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <div style={{ width: 32, height: 32, borderRadius: 8, background: B,
+                <div style={{ width: 34, height: 34, borderRadius: 9,
+                  background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.2)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <span style={{ color: '#fff', fontWeight: 900, fontSize: 16, fontFamily: FD }}>t</span>
+                  <span style={{ color: '#fff', fontWeight: 900, fontSize: 17, fontFamily: FD }}>t</span>
                 </div>
                 <div>
-                  <p style={{ color: INK, fontWeight: 800, fontSize: 16, fontFamily: FD, lineHeight: 1 }}>traza</p>
-                  <p style={{ color: SUB, fontSize: 8.5, letterSpacing: '0.08em', marginTop: 1 }}>Performance Intelligence</p>
+                  <p style={{ color: '#fff', fontWeight: 800, fontSize: 17, fontFamily: FD, lineHeight: 1 }}>traza</p>
+                  <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: 8.5, letterSpacing: '0.08em', marginTop: 2 }}>Performance Intelligence</p>
                 </div>
               </div>
               <div style={{ textAlign: 'right' }}>
-                <p style={{ color: SUB, fontSize: 7.5, letterSpacing: '0.1em', textTransform: 'uppercase' }}>Tipo de documento</p>
-                <p style={{ color: MID, fontSize: 11, fontWeight: 600, marginTop: 2 }}>Career Intelligence Report</p>
+                <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: 7.5, letterSpacing: '0.1em', textTransform: 'uppercase' }}>Tipo de documento</p>
+                <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: 11, fontWeight: 600, marginTop: 3 }}>Career Intelligence Report</p>
               </div>
             </div>
 
-            {/* Level chip */}
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6,
-              background: bdg.bg, borderRadius: 20, padding: '5px 14px', marginBottom: 20, alignSelf: 'flex-start' }}>
-              <div style={{ width: 6, height: 6, borderRadius: '50%', background: bdg.color }} />
-              <span style={{ color: bdg.color, fontSize: 10, fontWeight: 700, letterSpacing: '0.04em' }}>
-                {bdg.label.toUpperCase()} · {bdg.desc}
-              </span>
-            </div>
-
-            {/* Name */}
-            <h1 style={{ fontFamily: FD, fontWeight: 900, fontSize: 54, lineHeight: 1.0,
-              letterSpacing: '-0.02em', color: INK, marginBottom: 16 }}>
-              {persona.nombre}<br />{persona.apellido}
-            </h1>
-            <p style={{ fontSize: 18, fontWeight: 600, color: SLT, marginBottom: 5 }}>{persona.cargo ?? '—'}</p>
-            <p style={{ fontSize: 13, color: MUT }}>
-              {[empNombre, persona.area].filter(Boolean).join(' · ')}
-            </p>
-
-            {/* Score hero */}
-            <div style={{ marginTop: 40, marginBottom: 40, display: 'flex', alignItems: 'center', gap: 24 }}>
-              <div>
-                <p style={{ fontSize: 8, color: SUB, fontWeight: 700, letterSpacing: '0.1em',
-                  textTransform: 'uppercase', marginBottom: 4, fontFamily: FB }}>Índice TRAZA Global</p>
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-                  <span style={{ fontSize: 72, fontWeight: 900, color: col,
-                    fontFamily: FD, lineHeight: 1, letterSpacing: '-0.03em' }}>{indice.score}</span>
-                  <span style={{ fontSize: 20, color: SUB, fontWeight: 400 }}>/100</span>
+            {/* Name + Score Ring */}
+            <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', position: 'relative' }}>
+              <div style={{ flex: 1 }}>
+                {/* Level badge */}
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6,
+                  background: 'rgba(255,255,255,0.1)', borderRadius: 20, padding: '5px 14px',
+                  marginBottom: 20, border: '1px solid rgba(255,255,255,0.15)' }}>
+                  <div style={{ width: 6, height: 6, borderRadius: '50%', background: bdg.color }} />
+                  <span style={{ color: 'rgba(255,255,255,0.9)', fontSize: 10, fontWeight: 700, letterSpacing: '0.04em' }}>
+                    {bdg.label.toUpperCase()} · {bdg.desc}
+                  </span>
                 </div>
+                <h1 style={{ fontFamily: FD, fontWeight: 900, fontSize: 54, lineHeight: 1.0,
+                  letterSpacing: '-0.02em', color: '#fff', marginBottom: 14 }}>
+                  {persona.nombre}<br />{persona.apellido}
+                </h1>
+                <p style={{ fontSize: 18, fontWeight: 600, color: 'rgba(255,255,255,0.7)', marginBottom: 5 }}>
+                  {persona.cargo ?? '—'}
+                </p>
+                <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.45)' }}>
+                  {[empNombre, persona.area].filter(Boolean).join(' · ')}
+                </p>
               </div>
-              <div style={{ width: 1, height: 64, background: BRD }} />
-              <Ring score={indice.score} color={col} size={96} sw={8} />
+              {/* Score ring on dark bg */}
+              <div style={{ textAlign: 'center', flexShrink: 0, marginLeft: 32 }}>
+                <Ring score={indice.score} color="#fff" trackColor="rgba(255,255,255,0.15)" size={124} sw={11} />
+                <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 7.5, letterSpacing: '0.08em',
+                  textTransform: 'uppercase', marginTop: 6, fontFamily: FB }}>Índice TRAZA Global</p>
+              </div>
             </div>
+          </div>
 
-            {/* Identity grid */}
+          {/* ── WHITE BOTTOM SECTION ── */}
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '36px 60px 40px' }}>
+
+            {/* Identity stats grid */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)',
-              borderTop: `1px solid ${BRD}`, borderLeft: `1px solid ${BRD}` }}>
+              borderTop: `1px solid ${BRD}`, borderLeft: `1px solid ${BRD}`, marginBottom: 24 }}>
               {[
                 { label: 'Empresas registradas', value: String(empresas.length) },
                 { label: 'Objetivos totales',    value: String(objetivos.length) },
                 { label: 'Completados',           value: String(completados.length) },
                 { label: 'Antigüedad en TRAZA',  value: antiguedad ?? `${avances.length} avances` },
               ].map((m, i) => (
-                <div key={i} style={{ padding: '16px', borderRight: `1px solid ${BRD}`, borderBottom: `1px solid ${BRD}` }}>
+                <div key={i} style={{ padding: '16px 18px', borderRight: `1px solid ${BRD}`, borderBottom: `1px solid ${BRD}` }}>
                   <p style={{ fontSize: 8, color: SUB, fontWeight: 600, letterSpacing: '0.05em',
                     textTransform: 'uppercase', marginBottom: 6, fontFamily: FB }}>{m.label}</p>
                   <p style={{ fontSize: 22, fontWeight: 800, color: INK, fontFamily: FD }}>{m.value}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* 5-module mini scorecards */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 10, marginBottom: 20 }}>
+              {modulos.map((m) => (
+                <div key={m.id} style={{ padding: '13px 14px', background: SUR, borderRadius: 10, border: `1px solid ${BRD}` }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 7 }}>
+                    <span style={{ fontSize: 9, fontWeight: 800, color: B, fontFamily: FD }}>{m.id}</span>
+                    <span style={{ fontSize: 16, fontWeight: 900, color: sCol(m.val), fontFamily: FD, lineHeight: 1 }}>{m.val}</span>
+                  </div>
+                  <p style={{ fontSize: 8, color: MUT, lineHeight: 1.35, marginBottom: 7 }}>{m.label}</p>
+                  <div style={{ height: 3, background: BRD, borderRadius: 2, overflow: 'hidden' }}>
+                    <div style={{ height: '100%', width: `${m.val}%`, background: sCol(m.val), borderRadius: 2 }} />
+                  </div>
                 </div>
               ))}
             </div>
@@ -623,7 +658,7 @@ export default function ImprimirPage() {
             <div style={{ flex: 1 }} />
 
             {/* Verification footer */}
-            <div style={{ paddingTop: 24, borderTop: `1px solid ${BRD}`,
+            <div style={{ paddingTop: 20, borderTop: `1px solid ${BRD}`,
               display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
               <div>
                 {persona.traza_id && (
@@ -635,11 +670,23 @@ export default function ImprimirPage() {
                   </>
                 )}
               </div>
-              <div style={{ textAlign: 'right' }}>
-                <p style={{ fontSize: 9, color: MUT }}>Generado el {hoy}</p>
+              <div style={{ display: 'flex', alignItems: 'flex-end', gap: 20 }}>
                 {persona.traza_id && (
-                  <p style={{ fontSize: 8.5, color: SUB, marginTop: 2 }}>traza.app/p/{persona.traza_id}</p>
+                  <div style={{ textAlign: 'center' }}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={`https://api.qrserver.com/v1/create-qr-code/?size=56x56&data=${encodeURIComponent(`https://traza.app/p/${persona.traza_id}`)}&color=1C2B90&bgcolor=ffffff`}
+                      width="52" height="52" alt="QR código"
+                      style={{ borderRadius: 5, border: `1px solid ${BRD}`, display: 'block' }} />
+                    <p style={{ fontSize: 7, color: SUB, marginTop: 4, fontFamily: FB }}>Verificar en línea</p>
+                  </div>
                 )}
+                <div style={{ textAlign: 'right' }}>
+                  <p style={{ fontSize: 9, color: MUT }}>Generado el {hoy}</p>
+                  {persona.traza_id && (
+                    <p style={{ fontSize: 8.5, color: SUB, marginTop: 2 }}>traza.app/p/{persona.traza_id}</p>
+                  )}
+                </div>
               </div>
             </div>
           </div>
