@@ -2,31 +2,6 @@ import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({ request })
-
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll()
-        },
-        setAll(cookiesToSet: { name: string; value: string; options: CookieOptions }[]) {
-          cookiesToSet.forEach(({ name, value }) =>
-            request.cookies.set(name, value)
-          )
-          supabaseResponse = NextResponse.next({ request })
-          cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
-          )
-        },
-      },
-    }
-  )
-
-  const { data: { user } } = await supabase.auth.getUser()
-
   const path = request.nextUrl.pathname
 
   const isAuthRoute   = path.startsWith('/login')
@@ -52,8 +27,47 @@ export async function middleware(request: NextRequest) {
     || path.startsWith('/api/checkout')
     || path.startsWith('/api/webhooks/mercadopago')
 
+  // Rutas públicas y de auth no necesitan verificar sesión con Supabase
+  // (evita que el SDK de Supabase redireccione a su página de auth propia)
+  if (isPublicRoute || isAuthRoute) {
+    return NextResponse.next({ request })
+  }
+
+  // ── Rutas protegidas: verificar sesión ───────────────────────────
+  let supabaseResponse = NextResponse.next({ request })
+
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll()
+        },
+        setAll(cookiesToSet: { name: string; value: string; options: CookieOptions }[]) {
+          cookiesToSet.forEach(({ name, value }) =>
+            request.cookies.set(name, value)
+          )
+          supabaseResponse = NextResponse.next({ request })
+          cookiesToSet.forEach(({ name, value, options }) =>
+            supabaseResponse.cookies.set(name, value, options)
+          )
+        },
+      },
+    }
+  )
+
+  let user: any = null
+  try {
+    const { data } = await supabase.auth.getUser()
+    user = data.user
+  } catch {
+    // Si el cliente Supabase falla (ej. key incompatible), redirigir a login
+    return NextResponse.redirect(new URL('/login', request.url))
+  }
+
   // Si no hay sesión → login
-  if (!user && !isAuthRoute && !isPublicRoute) {
+  if (!user) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
@@ -65,7 +79,7 @@ export async function middleware(request: NextRequest) {
   ]
   const esSoloManagers = soloManagers.some(r => path.startsWith(r))
 
-  if (user && esSoloManagers) {
+  if (esSoloManagers) {
     const { data: profile } = await supabase
       .from('profiles')
       .select('rol')

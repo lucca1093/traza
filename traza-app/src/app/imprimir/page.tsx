@@ -238,6 +238,7 @@ export default function ImprimirPage() {
   const [error,       setError]       = useState('')
   const [narrativa,   setNarrativa]   = useState('')
   const [downloading, setDownloading] = useState(false)
+  const [qrDataUrl,   setQrDataUrl]   = useState<string>('')
   const [data, setData] = useState<{
     persona:              any
     objetivos:            Objetivo[]
@@ -301,6 +302,40 @@ export default function ImprimirPage() {
       setData({ persona, objetivos: todosObjs, avances: todosAvances,
         validacionesExternas: valExtRaw ?? [], reconocimientos: reconRaw ?? [], empresas })
       setLoading(false)
+
+      // Generate QR code inline (avoids html2pdf/html2canvas external-image issue)
+      if (persona.traza_id) {
+        try {
+          if (!(window as any).QRCode) {
+            await new Promise<void>((resolve, reject) => {
+              const s = document.createElement('script')
+              s.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js'
+              s.onload = () => resolve(); s.onerror = () => reject()
+              document.head.appendChild(s)
+            })
+          }
+          // Use a temporary hidden div to let QRCode.js render, then extract data URL
+          const url = `https://traza.app/p/${persona.traza_id}`
+          const tmp = document.createElement('div')
+          tmp.style.cssText = 'position:absolute;left:-9999px;width:80px;height:80px'
+          document.body.appendChild(tmp)
+          new (window as any).QRCode(tmp, {
+            text: url, width: 80, height: 80,
+            colorDark: '#1C2B90', colorLight: '#ffffff',
+            correctLevel: (window as any).QRCode.CorrectLevel.M,
+          })
+          // QRCode.js renders an <img> after a small delay
+          await new Promise(r => setTimeout(r, 150))
+          const img = tmp.querySelector('img') as HTMLImageElement | null
+          const canvas = tmp.querySelector('canvas') as HTMLCanvasElement | null
+          if (img?.src) {
+            setQrDataUrl(img.src)
+          } else if (canvas) {
+            setQrDataUrl(canvas.toDataURL('image/png'))
+          }
+          document.body.removeChild(tmp)
+        } catch { /* QR generation failed silently */ }
+      }
 
       if (todosObjs.length > 0) {
         const idx = calcularIndiceTraza(todosObjs, todosAvances, valExtRaw ?? [], persona.supervisor_verificado ?? true)
@@ -686,11 +721,18 @@ export default function ImprimirPage() {
               {/* Center: QR (solo si hay traza_id) */}
               {persona.traza_id ? (
                 <div style={{ textAlign: 'center' }}>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={`https://api.qrserver.com/v1/create-qr-code/?size=72x72&data=${encodeURIComponent(`https://traza.app/p/${persona.traza_id}`)}&color=1C2B90&bgcolor=ffffff`}
-                    width="64" height="64" alt="QR de verificación"
-                    style={{ borderRadius: 6, border: `1px solid ${BRD}`, display: 'block', margin: '0 auto' }} />
+                  {qrDataUrl ? (
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img
+                      src={qrDataUrl}
+                      width="64" height="64" alt="QR de verificación"
+                      style={{ borderRadius: 6, border: `1px solid ${BRD}`, display: 'block', margin: '0 auto', imageRendering: 'pixelated' }} />
+                  ) : (
+                    <div style={{ width: 64, height: 64, borderRadius: 6, border: `1px solid ${BRD}`, margin: '0 auto', background: SUR,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <span style={{ fontSize: 7, color: SUB }}>QR…</span>
+                    </div>
+                  )}
                   <p style={{ fontSize: 7, color: SUB, marginTop: 4, fontFamily: FB, textAlign: 'center' }}>Escanear para verificar</p>
                 </div>
               ) : <div />}
