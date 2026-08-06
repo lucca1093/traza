@@ -374,9 +374,18 @@ export default function ImprimirPage() {
     </div>
   )
   if (error || !data) return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center',
-      height: '100vh', fontFamily: FB, color: MUT }}>
-      {error || 'Error al cargar datos.'}
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+      height: '100vh', fontFamily: FB, gap: 12 }}>
+      <div style={{ width: 44, height: 44, borderRadius: 11, background: B,
+        display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <span style={{ color: '#fff', fontWeight: 900, fontSize: 20, fontFamily: FD }}>t</span>
+      </div>
+      <p style={{ color: INK, fontSize: 14, fontWeight: 600 }}>{error || 'Error al cargar datos.'}</p>
+      {error === 'No autenticado' && (
+        <a href="/login" style={{ fontSize: 13, color: P, fontWeight: 600, textDecoration: 'underline' }}>
+          Iniciar sesión →
+        </a>
+      )}
     </div>
   )
 
@@ -659,34 +668,35 @@ export default function ImprimirPage() {
 
             {/* Verification footer */}
             <div style={{ paddingTop: 20, borderTop: `1px solid ${BRD}`,
-              display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+              display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: 20 }}>
+              {/* Left: ID + URL */}
               <div>
-                {persona.traza_id && (
+                {persona.traza_id ? (
                   <>
                     <p style={{ fontSize: 7.5, color: SUB, letterSpacing: '0.1em',
                       textTransform: 'uppercase', marginBottom: 4, fontFamily: FB }}>ID de verificación</p>
-                    <p style={{ fontSize: 18, fontWeight: 800, color: B,
+                    <p style={{ fontSize: 17, fontWeight: 800, color: B,
                       letterSpacing: '0.06em', fontFamily: FD }}>{persona.traza_id}</p>
+                    <p style={{ fontSize: 8.5, color: SUB, marginTop: 3 }}>traza.app/p/{persona.traza_id}</p>
                   </>
+                ) : (
+                  <p style={{ fontSize: 9, color: SUB }}>Generado el {hoy}</p>
                 )}
               </div>
-              <div style={{ display: 'flex', alignItems: 'flex-end', gap: 20 }}>
-                {persona.traza_id && (
-                  <div style={{ textAlign: 'center' }}>
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={`https://api.qrserver.com/v1/create-qr-code/?size=56x56&data=${encodeURIComponent(`https://traza.app/p/${persona.traza_id}`)}&color=1C2B90&bgcolor=ffffff`}
-                      width="52" height="52" alt="QR código"
-                      style={{ borderRadius: 5, border: `1px solid ${BRD}`, display: 'block' }} />
-                    <p style={{ fontSize: 7, color: SUB, marginTop: 4, fontFamily: FB }}>Verificar en línea</p>
-                  </div>
-                )}
-                <div style={{ textAlign: 'right' }}>
-                  <p style={{ fontSize: 9, color: MUT }}>Generado el {hoy}</p>
-                  {persona.traza_id && (
-                    <p style={{ fontSize: 8.5, color: SUB, marginTop: 2 }}>traza.app/p/{persona.traza_id}</p>
-                  )}
+              {/* Center: QR (solo si hay traza_id) */}
+              {persona.traza_id ? (
+                <div style={{ textAlign: 'center' }}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={`https://api.qrserver.com/v1/create-qr-code/?size=72x72&data=${encodeURIComponent(`https://traza.app/p/${persona.traza_id}`)}&color=1C2B90&bgcolor=ffffff`}
+                    width="64" height="64" alt="QR de verificación"
+                    style={{ borderRadius: 6, border: `1px solid ${BRD}`, display: 'block', margin: '0 auto' }} />
+                  <p style={{ fontSize: 7, color: SUB, marginTop: 4, fontFamily: FB, textAlign: 'center' }}>Escanear para verificar</p>
                 </div>
+              ) : <div />}
+              {/* Right: fecha */}
+              <div style={{ textAlign: 'right' }}>
+                <p style={{ fontSize: 9, color: MUT }}>Generado el {hoy}</p>
               </div>
             </div>
           </div>
