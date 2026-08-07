@@ -72,7 +72,7 @@ export default async function CredencialTrazaPage({ params }: { params: { trazaI
             Esta persona eligió mantener su credencial TRAZA privada.
             Si la conocés, podés pedirle que la comparta directamente.
           </p>
-          <p className="text-xs text-gray-300 mt-6 font-mono">traza.app · Performance Intelligence</p>
+          <p className="text-xs text-gray-300 mt-6 font-mono">traza-three.vercel.app · Performance Intelligence</p>
         </div>
       </div>
     )
@@ -372,13 +372,13 @@ Las 3 oraciones deben cubrir: (1) quién es y dónde trabaja hoy, (2) su evoluci
             <div>
               <div className="flex h-2 rounded-full overflow-hidden mb-2" style={{ gap: 2 }}>
                 {positivos > 0 && <div style={{ flex: positivos, backgroundColor: '#3350D0', borderRadius: 9999 }} />}
-                {parciales > 0 && <div style={{ flex: parciales, backgroundColor: '#7c3aed' }} />}
+                {parciales > 0 && <div style={{ flex: parciales, backgroundColor: '#d97706' }} />}
                 {negativos > 0 && <div style={{ flex: negativos, backgroundColor: '#dc2626', borderRadius: 9999 }} />}
               </div>
               <div className="flex flex-wrap gap-3">
                 {[
                   { n: positivos, label: 'Positivo',         color: '#3350D0' },
-                  { n: parciales, label: 'Con observaciones', color: '#7c3aed' },
+                  { n: parciales, label: 'Con observaciones', color: '#d97706' },
                   { n: negativos, label: 'A reforzar',        color: '#dc2626' },
                 ].filter(x => x.n > 0).map(({ n, label, color }) => (
                   <div key={label} className="flex items-center gap-1.5">
@@ -400,7 +400,7 @@ Las 3 oraciones deben cubrir: (1) quién es y dónde trabaja hoy, (2) su evoluci
             <Star size={14} style={{ color: '#3350D0' }} strokeWidth={1.75} />
             <h2 className="font-semibold text-gray-900 text-sm">Trayectoria profesional</h2>
             <span className="ml-auto text-xs px-2 py-0.5 rounded-full font-medium"
-              style={{ backgroundColor: narrativaIA ? '#ede9fe' : '#F1F5F9', color: narrativaIA ? '#7c3aed' : '#9ca3af' }}>
+              style={{ backgroundColor: narrativaIA ? '#EDEFFD' : '#F1F5F9', color: narrativaIA ? '#3350D0' : '#9ca3af' }}>
               {narrativaIA ? 'Análisis IA' : 'Resumen automático'}
             </span>
           </div>
@@ -556,7 +556,7 @@ Las 3 oraciones deben cubrir: (1) quién es y dónde trabaja hoy, (2) su evoluci
           </div>
           <p className="text-xs text-gray-400">Actualizada el {ahora}</p>
           <p className="text-xs text-gray-400 font-mono tracking-wide mt-0.5">
-            traza.app/p/{personaActual.traza_id}
+            traza-three.vercel.app/p/{personaActual.traza_id}
           </p>
           <p className="text-xs mt-2 text-center max-w-xs text-gray-400 leading-relaxed">
             Esta credencial refleja datos reales validados por supervisores a lo largo de toda la trayectoria profesional.

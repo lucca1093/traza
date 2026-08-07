@@ -315,7 +315,7 @@ export default function ImprimirPage() {
             })
           }
           // Use a temporary hidden div to let QRCode.js render, then extract data URL
-          const url = `https://traza.app/p/${persona.traza_id}`
+          const url = `https://traza-three.vercel.app/p/${persona.traza_id}`
           const tmp = document.createElement('div')
           tmp.style.cssText = 'position:absolute;left:-9999px;width:80px;height:80px'
           document.body.appendChild(tmp)
@@ -712,7 +712,7 @@ export default function ImprimirPage() {
                       textTransform: 'uppercase', marginBottom: 4, fontFamily: FB }}>ID de verificación</p>
                     <p style={{ fontSize: 17, fontWeight: 800, color: B,
                       letterSpacing: '0.06em', fontFamily: FD }}>{persona.traza_id}</p>
-                    <p style={{ fontSize: 8.5, color: SUB, marginTop: 3 }}>traza.app/p/{persona.traza_id}</p>
+                    <p style={{ fontSize: 8.5, color: SUB, marginTop: 3 }}>traza-three.vercel.app/p/{persona.traza_id}</p>
                   </>
                 ) : (
                   <p style={{ fontSize: 9, color: SUB }}>Generado el {hoy}</p>
@@ -952,7 +952,7 @@ export default function ImprimirPage() {
           </h2>
           <p style={{ fontSize: 11, color: MUT, marginBottom: 32 }}>
             {objetivos.length} objetivo{objetivos.length !== 1 ? 's' : ''} en {empresas.length} empresa{empresas.length !== 1 ? 's' : ''}.
-            Todos los datos son auditables en traza.app{persona.traza_id ? `/p/${persona.traza_id}` : ''}.
+            Todos los datos son auditables en traza-three.vercel.app{persona.traza_id ? `/p/${persona.traza_id}` : ''}.
           </p>
 
           {/* Timeline (multi-empresa) */}
@@ -1384,13 +1384,16 @@ export default function ImprimirPage() {
               </div>
               {persona.traza_id && (
                 <div style={{ textAlign: 'center', flexShrink: 0, marginLeft: 24 }}>
-                  <div style={{ width: 72, height: 72, background: 'rgba(255,255,255,0.1)',
+                  <div style={{ width: 72, height: 72, background: '#fff',
                     borderRadius: 10, border: '1px solid rgba(255,255,255,0.2)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 5 }}>
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={`https://api.qrserver.com/v1/create-qr-code/?size=60x60&data=${encodeURIComponent(`https://traza.app/p/${persona.traza_id}`)}&color=1C2B90&bgcolor=ffffff`}
-                      width="58" height="58" alt="QR de verificación" style={{ borderRadius: 6 }} />
+                    {qrDataUrl ? (
+                      /* eslint-disable-next-line @next/next/no-img-element */
+                      <img src={qrDataUrl} width="60" height="60" alt="QR de verificación"
+                        style={{ borderRadius: 4, imageRendering: 'pixelated' }} />
+                    ) : (
+                      <span style={{ fontSize: 7, color: '#94A3B8' }}>QR…</span>
+                    )}
                   </div>
                   <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: 7, fontFamily: FB }}>Verificar en línea</p>
                 </div>
@@ -1444,7 +1447,7 @@ export default function ImprimirPage() {
               </div>
               <div>
                 <p style={{ fontSize: 12, fontWeight: 800, color: B, fontFamily: FD }}>traza · Performance Intelligence</p>
-                <p style={{ fontSize: 8.5, color: SUB }}>El estándar verificado de desempeño profesional · traza.app</p>
+                <p style={{ fontSize: 8.5, color: SUB }}>El estándar verificado de desempeño profesional · traza-three.vercel.app</p>
               </div>
             </div>
             <div style={{ textAlign: 'right' }}>
