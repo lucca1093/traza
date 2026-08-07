@@ -239,6 +239,20 @@ Las 3 oraciones deben cubrir: (1) quién es y dónde trabaja hoy, (2) su evoluci
 
   const valExt = validacionesExternas ?? []
 
+  // Reconocimientos
+  const { data: reconocimientosRaw } = await supabase
+    .from('reconocimientos')
+    .select('*')
+    .eq('persona_id', personaActual.id)
+    .order('created_at', { ascending: false })
+  const reconocimientos = reconocimientosRaw ?? []
+
+  // Objetivos completados con validación (todos, para mostrar en credencial)
+  const objsCompletados = todosObjsGlobal
+    .filter(o => o.estado === 'Completado')
+    .sort((a, b) => (b.fecha_limite ?? '').localeCompare(a.fecha_limite ?? ''))
+    .slice(0, 12)
+
   // Timeline por trimestre (solo empresa actual)
   type TriEntry = { completados: number; validadosPos: number; validadosParcial: number; validadosNeg: number }
   const timelineMap: Record<string, TriEntry> = {}
@@ -542,6 +556,100 @@ Las 3 oraciones deben cubrir: (1) quién es y dónde trabaja hoy, (2) su evoluci
                   </div>
                 )
               })}
+            </div>
+          </div>
+        )}
+
+        {/* ── MÓDULOS A–E ── */}
+        <div className="bg-white rounded-2xl p-5 shadow-sm">
+          <div className="flex items-center gap-2 mb-4">
+            <BarChart3 size={14} style={{ color: '#3350D0' }} strokeWidth={1.75} />
+            <h2 className="font-semibold text-gray-900 text-sm">Desglose del Índice TRAZA</h2>
+          </div>
+          <div className="space-y-3">
+            {[
+              { id: 'A', label: 'Validación de Superiores', pct: 35, val: moduloA },
+              { id: 'B', label: 'Cumplimiento',             pct: 25, val: moduloB },
+              { id: 'C', label: 'Regularidad',              pct: 20, val: moduloC },
+              { id: 'D', label: 'Alineación',               pct: 10, val: indiceGlobal.alineacion },
+              { id: 'E', label: 'Proactividad',             pct: 10, val: indiceGlobal.proactividad },
+            ].map(m => {
+              const col = m.val >= 85 ? '#16a34a' : m.val >= 65 ? '#3350D0' : m.val >= 40 ? '#d97706' : '#9ca3af'
+              return (
+                <div key={m.id}>
+                  <div className="flex items-center justify-between mb-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-black w-4" style={{ color: '#1C2B90' }}>{m.id}</span>
+                      <span className="text-xs text-gray-600">{m.label}</span>
+                      <span className="text-xs text-gray-400">·  {m.pct}%</span>
+                    </div>
+                    <span className="text-sm font-black" style={{ color: col }}>{m.val}</span>
+                  </div>
+                  <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                    <div className="h-full rounded-full" style={{ width: `${m.val}%`, backgroundColor: col }} />
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* ── OBJETIVOS COMPLETADOS ── */}
+        {objsCompletados.length > 0 && (
+          <div className="bg-white rounded-2xl p-5 shadow-sm">
+            <div className="flex items-center gap-2 mb-4">
+              <CheckCircle2 size={14} style={{ color: '#3350D0' }} strokeWidth={1.75} />
+              <h2 className="font-semibold text-gray-900 text-sm">Objetivos completados</h2>
+              <span className="ml-auto text-xs text-gray-400">{completadosGlobal} totales</span>
+            </div>
+            <div className="space-y-2.5">
+              {objsCompletados.map(o => {
+                const res = o.validacion === 'De acuerdo'
+                  ? { label: 'Validado ✓', color: '#16a34a', bg: '#f0fdf4' }
+                  : o.validacion === 'Parcialmente de acuerdo'
+                  ? { label: 'Con observaciones', color: '#d97706', bg: '#fffbeb' }
+                  : o.validacion === 'En desacuerdo'
+                  ? { label: 'No acordado', color: '#dc2626', bg: '#fef2f2' }
+                  : { label: 'Completado', color: '#6b7280', bg: '#f9fafb' }
+                return (
+                  <div key={o.id} className="flex items-start gap-3 py-2 border-b border-gray-50 last:border-0">
+                    <div className="w-1 self-stretch rounded-full flex-shrink-0 mt-0.5" style={{ backgroundColor: res.color, minHeight: 16 }} />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-gray-800 font-medium leading-snug">{o.titulo}</p>
+                      {o.fecha_limite && (
+                        <p className="text-xs text-gray-400 mt-0.5">{new Date(o.fecha_limite).toLocaleDateString('es-AR', { month: 'short', year: 'numeric' })}</p>
+                      )}
+                    </div>
+                    <span className="text-xs font-semibold px-2 py-0.5 rounded-full flex-shrink-0"
+                      style={{ color: res.color, backgroundColor: res.bg }}>{res.label}</span>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* ── RECONOCIMIENTOS ── */}
+        {reconocimientos.length > 0 && (
+          <div className="bg-white rounded-2xl p-5 shadow-sm">
+            <div className="flex items-center gap-2 mb-4">
+              <Star size={14} style={{ color: '#d97706' }} strokeWidth={1.75} />
+              <h2 className="font-semibold text-gray-900 text-sm">Reconocimientos</h2>
+              <span className="ml-auto text-xs text-gray-400">{reconocimientos.length}</span>
+            </div>
+            <div className="space-y-3">
+              {reconocimientos.slice(0, 5).map((r: any) => (
+                <div key={r.id} className="rounded-xl p-3.5" style={{ backgroundColor: '#fffbeb', border: '1px solid #fde68a' }}>
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <p className="text-sm font-semibold text-gray-900">{r.tipo ?? 'Reconocimiento'}</p>
+                      {r.descripcion && <p className="text-xs text-gray-600 mt-1 italic">"{r.descripcion}"</p>}
+                      {r.otorgado_por && <p className="text-xs text-gray-400 mt-1">Por: {r.otorgado_por}</p>}
+                    </div>
+                    <span className="text-lg flex-shrink-0">⭐</span>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         )}
