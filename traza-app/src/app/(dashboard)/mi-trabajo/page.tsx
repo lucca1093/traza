@@ -52,7 +52,33 @@ export default function MiTrabajoPage() {
     async function load() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
-      const { data: p } = await supabase.from('personas').select('*').eq('user_id', user.id).single()
+      let { data: p } = await supabase.from('personas').select('*').eq('user_id', user.id).single()
+
+      // Si no hay persona (ej. INSERT falló en registro por email no confirmado),
+      // auto-crear desde el perfil del usuario.
+      if (!p) {
+        const { data: profile } = await supabase
+          .from('profiles').select('nombre, apellido, cargo, rol').eq('id', user.id).single()
+        if (profile) {
+          const letras = 'ABCDEFGHJKLMNPQRSTUVWXYZ'
+          const nums   = '23456789'
+          const p1 = Array.from({ length: 4 }, () => letras[Math.floor(Math.random() * letras.length)]).join('')
+          const p2 = Array.from({ length: 4 }, () => nums[Math.floor(Math.random() * nums.length)]).join('')
+          const nuevoTrazaId = `TRZ-${p1}-${p2}`
+          const { data: created } = await supabase.from('personas').insert({
+            user_id:            user.id,
+            nombre:             profile.nombre ?? '',
+            apellido:           profile.apellido ?? '',
+            cargo:              profile.cargo ?? null,
+            tipo_cuenta:        'individual',
+            empleo_activo:      true,
+            traza_id:           nuevoTrazaId,
+            credencial_publica: true,
+          }).select().single()
+          p = created
+        }
+      }
+
       setPersona(p)
       if (p) {
         const { data: obs } = await supabase
