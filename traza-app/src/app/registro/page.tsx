@@ -37,8 +37,9 @@ export default function RegistroPage() {
   const [apellido, setApellido] = useState('')
   const [cargo,    setCargo]    = useState('')
   const [email,    setEmail]    = useState('')
-  const [password, setPassword] = useState('')
-  const [showPass, setShowPass] = useState(false)
+  const [password,        setPassword]        = useState('')
+  const [passwordConfirm, setPasswordConfirm] = useState('')
+  const [showPass,        setShowPass]        = useState(false)
   const [loading,  setLoading]  = useState(false)
   const [error,    setError]    = useState('')
   const [trazaId,  setTrazaId]  = useState('')
@@ -69,6 +70,10 @@ export default function RegistroPage() {
     }
     if (password.length < 8) {
       setError('La contraseña debe tener al menos 8 caracteres.')
+      return
+    }
+    if (password !== passwordConfirm) {
+      setError('Las contraseñas no coinciden.')
       return
     }
 
@@ -298,6 +303,28 @@ export default function RegistroPage() {
                   {showPass ? <EyeOff size={14} /> : <Eye size={14} />}
                 </button>
               </div>
+            </div>
+
+            <div>
+              <label className="text-xs text-gray-500">Repetir contraseña *</label>
+              <div className="relative mt-1">
+                <input type={showPass ? 'text' : 'password'} value={passwordConfirm}
+                  onChange={e => setPasswordConfirm(e.target.value)}
+                  placeholder="Repetí tu contraseña"
+                  className={`w-full rounded-xl border px-3 py-2.5 pr-10 text-sm focus:outline-none focus:ring-2 ${
+                    passwordConfirm && password !== passwordConfirm
+                      ? 'border-red-300 focus:ring-red-200'
+                      : 'border-gray-200'
+                  }`} />
+                {passwordConfirm && (
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm">
+                    {password === passwordConfirm ? '✓' : '✗'}
+                  </span>
+                )}
+              </div>
+              {passwordConfirm && password !== passwordConfirm && (
+                <p className="text-xs text-red-500 mt-1">Las contraseñas no coinciden.</p>
+              )}
             </div>
 
             {error && (
