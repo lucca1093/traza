@@ -1,6 +1,6 @@
 import { createAdminClient } from '@/lib/supabase-server'
 import { calcularIndiceTraza, generarPerfilNarrativo } from '@/lib/traza'
-import { ShieldCheck, TrendingUp, Star, Calendar, CheckCircle2, Clock, Building2, Briefcase, Users, ShieldAlert } from 'lucide-react'
+import { ShieldCheck, TrendingUp, Star, Calendar, CheckCircle2, Clock, Building2, Briefcase, Users, ShieldAlert, BarChart3 } from 'lucide-react'
 import type { Objetivo } from '@/types'
 
 export const dynamic = 'force-dynamic'
