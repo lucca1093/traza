@@ -116,13 +116,14 @@ export default function MiTrabajoPage() {
     if (!persona) return
     setSaving('new')
     const { data: { user } } = await supabase.auth.getUser()
-    const { data: profile }  = await supabase.from('profiles').select('empresa_id').eq('id', user!.id).single()
+    const { data: profile }  = await supabase.from('profiles').select('empresa_id').eq('id', user!.id).maybeSingle()
+    const empresaId = profile?.empresa_id ?? null
 
     // Si es "con externo", crear primero el grupo
     let grupoId: string | null = null
     if (form.con_externo) {
       const { data: grupo } = await supabase.from('objetivo_grupos').insert({
-        empresa_id:  profile!.empresa_id,
+        empresa_id:  empresaId,
         titulo:      form.titulo,
         descripcion: form.descripcion || null,
         prioridad:   form.prioridad,
@@ -136,7 +137,7 @@ export default function MiTrabajoPage() {
     }
 
     await supabase.from('objetivos').insert({
-      empresa_id:   profile!.empresa_id,
+      empresa_id:   empresaId,
       persona_id:   persona.id,
       creado_por:   user!.id,
       titulo:       form.titulo,
@@ -546,34 +547,11 @@ export default function MiTrabajoPage() {
                 Ningún objetivo coincide con los filtros.
               </div>
             ) : (
-              /* ── Empty state accionable ── */
-              <div
-                className="rounded-2xl p-10 text-center space-y-5"
-                style={{
-                  background:    'linear-gradient(135deg, #F8FAFC 0%, #EEF2FF 100%)',
-                  border:        '1px solid #E2E8F0',
-                }}
-              >
-                <div
-                  className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto"
-                  style={{ background: 'linear-gradient(135deg, #1C2B90, #3350D0)' }}
-                >
-                  <Plus size={24} className="text-white" />
-                </div>
-                <div className="space-y-2">
-                  <p className="text-lg font-black text-gray-900">Cargá tu primer objetivo</p>
-                  <p className="text-sm leading-relaxed max-w-xs mx-auto" style={{ color: '#64748B' }}>
-                    Cada objetivo que registrés queda en tu historial profesional verificado, para siempre.
-                  </p>
-                </div>
-                <button
-                  onClick={() => setShowForm(true)}
-                  className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-white text-sm transition-opacity hover:opacity-90"
-                  style={{ background: 'linear-gradient(135deg, #1C2B90, #3350D0)' }}
-                >
-                  <Plus size={15} />
-                  Crear mi primer objetivo
-                </button>
+              /* ── Empty state simple ── */
+              <div className="py-12 text-center">
+                <p className="text-sm" style={{ color: '#94A3B8' }}>
+                  Todavía no tenés objetivos activos. Usá el botón de arriba para agregar uno.
+                </p>
               </div>
             )
           ) : (
