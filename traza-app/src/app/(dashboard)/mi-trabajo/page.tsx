@@ -72,10 +72,15 @@ export default function MiTrabajoPage() {
 
       setPersona(p)
       if (p) {
-        const { data: obs } = await supabase
-          .from('objetivos').select('*, grupo:objetivo_grupos(tipo)').eq('persona_id', p.id)
-          .order('fecha_limite', { ascending: true, nullsFirst: false })
-        const objs = (obs ?? []) as Objetivo[]
+        // Cargar objetivos via API admin (bypasea RLS para usuarios independientes sin empresa_id)
+        let objs: Objetivo[] = []
+        try {
+          const res = await fetch('/api/mis-objetivos')
+          if (res.ok) {
+            const json = await res.json()
+            objs = json.objetivos ?? []
+          }
+        } catch { /* fallback silencioso */ }
         setObjetivos(objs)
 
         // Validaciones externas para todos los objetivos
@@ -136,7 +141,7 @@ export default function MiTrabajoPage() {
       grupoId = grupo?.id ?? null
     }
 
-    await supabase.from('objetivos').insert({
+    const payload = {
       empresa_id:   empresaId,
       persona_id:   persona.id,
       creado_por:   user!.id,
@@ -150,14 +155,26 @@ export default function MiTrabajoPage() {
       tipo:         'Personal',
       estado:       'Pendiente',
       grupo_id:     grupoId,
-    })
+    }
+    const { data: insertado } = await supabase.from('objetivos').insert(payload).select('*, grupo:objetivo_grupos(tipo)').single()
     const eraPrimero = objetivos.length === 0
     track('objective_created', { categoria: form.categoria, prioridad: form.prioridad, es_primero: eraPrimero })
     setForm({ titulo: '', descripcion: '', prioridad: 'Media', categoria: 'Resultado', es_continuo: false, fecha_limite: '', evidencia_url: '', con_externo: false })
     setShowForm(false)
-    const { data: obs } = await supabase.from('objetivos').select('*, grupo:objetivo_grupos(tipo)').eq('persona_id', persona.id)
-      .order('fecha_limite', { ascending: true, nullsFirst: false })
-    setObjetivos((obs ?? []) as Objetivo[])
+
+    if (insertado) {
+      // Si el SELECT devolvió el registro (RLS OK), agregarlo al estado directamente
+      setObjetivos(prev => [...prev, insertado as Objetivo].sort((a, b) => {
+        if (!a.fecha_limite) return 1
+        if (!b.fecha_limite) return -1
+        return a.fecha_limite.localeCompare(b.fecha_limite)
+      }))
+    } else {
+      // Fallback: construir el objeto localmente con un id temporal
+      const objLocal = { ...payload, id: `tmp-${Date.now()}`, created_at: new Date().toISOString(), grupo: null } as unknown as Objetivo
+      setObjetivos(prev => [...prev, objLocal])
+    }
+
     setSaving(null)
     if (eraPrimero) {
       setPrimerObjCreado(true)
