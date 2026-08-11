@@ -174,6 +174,35 @@ export default function MiTrabajoPage() {
     <div className="py-16 text-center text-sm" style={{ color: '#94A3B8' }}>Cargando...</div>
   )
 
+  if (!persona) return (
+    <div className="space-y-6">
+      <div className="traza-page-header">
+        <div>
+          <h1 className="traza-page-title">Mi Trabajo</h1>
+          <p className="traza-page-sub">Tus objetivos y avances.</p>
+        </div>
+      </div>
+      <div className="rounded-2xl p-10 text-center flex flex-col items-center gap-4"
+        style={{ background: '#F8FAFF', border: '1.5px dashed #C7D2FE' }}>
+        <div className="w-14 h-14 rounded-full flex items-center justify-center"
+          style={{ background: '#EDEFFD' }}>
+          <AlertTriangle size={24} style={{ color: '#1C2B90' }} />
+        </div>
+        <div>
+          <p className="font-semibold text-base" style={{ color: '#1C2B90' }}>
+            Completá tu perfil primero
+          </p>
+          <p className="text-sm mt-1" style={{ color: '#64748B' }}>
+            Para cargar objetivos necesitás tener un perfil activo.
+          </p>
+        </div>
+        <Button onClick={() => router.push('/onboarding')} variant="primary">
+          Completar perfil
+        </Button>
+      </div>
+    </div>
+  )
+
   const activos     = objetivos.filter(o => o.estado !== 'Completado')
   const completados = objetivos.filter(o => o.estado === 'Completado')
   const vencidosN   = activos.filter(o => isVencido(o.fecha_limite, o.estado)).length
