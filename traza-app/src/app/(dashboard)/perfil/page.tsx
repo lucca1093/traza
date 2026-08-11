@@ -37,7 +37,7 @@ export default function PerfilPage() {
   useEffect(() => {
     // Detectar modo onboarding desde URL sin useSearchParams (evita Suspense)
     const params = new URLSearchParams(window.location.search)
-    if (params.get('onboarding') === '1') setOnboardingMode(true)
+    if (params.get('onboarding') === '1' || params.get('setup') === '1') setOnboardingMode(true)
   }, [])
 
   useEffect(() => {

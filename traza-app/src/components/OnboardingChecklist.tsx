@@ -192,7 +192,7 @@ export default function OnboardingChecklist() {
             icon:  <User size={14} />,
             label: 'Completá tu perfil laboral',
             sub:   'Empresa actual y supervisor. Mejora Alineación (10%).',
-            href:  '/perfil',
+            href:  '/perfil?setup=1',
             cta:   'Completar perfil',
           })
         }
