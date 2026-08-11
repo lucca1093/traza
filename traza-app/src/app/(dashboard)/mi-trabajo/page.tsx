@@ -55,28 +55,40 @@ export default function MiTrabajoPage() {
       let { data: p } = await supabase.from('personas').select('*').eq('user_id', user.id).single()
 
       // Si no hay persona (ej. INSERT falló en registro por email no confirmado),
-      // auto-crear desde el perfil del usuario.
+      // auto-crear usando profile o metadatos del usuario auth como fallback.
       if (!p) {
         const { data: profile } = await supabase
           .from('profiles').select('nombre, apellido, cargo, rol').eq('id', user.id).single()
-        if (profile) {
-          const letras = 'ABCDEFGHJKLMNPQRSTUVWXYZ'
-          const nums   = '23456789'
-          const p1 = Array.from({ length: 4 }, () => letras[Math.floor(Math.random() * letras.length)]).join('')
-          const p2 = Array.from({ length: 4 }, () => nums[Math.floor(Math.random() * nums.length)]).join('')
-          const nuevoTrazaId = `TRZ-${p1}-${p2}`
-          const { data: created } = await supabase.from('personas').insert({
-            user_id:            user.id,
-            nombre:             profile.nombre ?? '',
-            apellido:           profile.apellido ?? '',
-            cargo:              profile.cargo ?? null,
-            tipo_cuenta:        'individual',
-            empleo_activo:      true,
-            traza_id:           nuevoTrazaId,
-            credencial_publica: true,
-          }).select().single()
-          p = created
+
+        // Nombre/apellido: profile > user_metadata > email prefix
+        const meta    = (user as any).user_metadata ?? {}
+        const nombre  = profile?.nombre  ?? meta.nombre  ?? user.email?.split('@')[0] ?? ''
+        const apellido = profile?.apellido ?? meta.apellido ?? ''
+        const cargo   = profile?.cargo ?? null
+
+        // Si tampoco existe profiles, crearlo para que el resto de la app funcione
+        if (!profile) {
+          await supabase.from('profiles').upsert({
+            id: user.id, nombre, apellido, cargo, rol: 'individuo', empresa_id: null,
+          }, { onConflict: 'id' })
         }
+
+        const letras = 'ABCDEFGHJKLMNPQRSTUVWXYZ'
+        const nums   = '23456789'
+        const p1 = Array.from({ length: 4 }, () => letras[Math.floor(Math.random() * letras.length)]).join('')
+        const p2 = Array.from({ length: 4 }, () => nums[Math.floor(Math.random() * nums.length)]).join('')
+        const nuevoTrazaId = `TRZ-${p1}-${p2}`
+        const { data: created } = await supabase.from('personas').insert({
+          user_id:            user.id,
+          nombre,
+          apellido,
+          cargo,
+          tipo_cuenta:        'individual',
+          empleo_activo:      true,
+          traza_id:           nuevoTrazaId,
+          credencial_publica: true,
+        }).select().single()
+        p = created
       }
 
       setPersona(p)
