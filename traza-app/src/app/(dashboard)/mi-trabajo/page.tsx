@@ -54,41 +54,20 @@ export default function MiTrabajoPage() {
       if (!user) return
       let { data: p } = await supabase.from('personas').select('*').eq('user_id', user.id).single()
 
-      // Si no hay persona (ej. INSERT falló en registro por email no confirmado),
-      // auto-crear usando profile o metadatos del usuario auth como fallback.
+      // Si no hay persona, crearla via API con service role (bypasea RLS)
       if (!p) {
-        const { data: profile } = await supabase
-          .from('profiles').select('nombre, apellido, cargo, rol').eq('id', user.id).single()
-
-        // Nombre/apellido: profile > user_metadata > email prefix
-        const meta    = (user as any).user_metadata ?? {}
-        const nombre  = profile?.nombre  ?? meta.nombre  ?? user.email?.split('@')[0] ?? ''
-        const apellido = profile?.apellido ?? meta.apellido ?? ''
-        const cargo   = profile?.cargo ?? null
-
-        // Si tampoco existe profiles, crearlo para que el resto de la app funcione
-        if (!profile) {
-          await supabase.from('profiles').upsert({
-            id: user.id, nombre, apellido, cargo, rol: 'individuo', empresa_id: null,
-          }, { onConflict: 'id' })
-        }
-
-        const letras = 'ABCDEFGHJKLMNPQRSTUVWXYZ'
-        const nums   = '23456789'
-        const p1 = Array.from({ length: 4 }, () => letras[Math.floor(Math.random() * letras.length)]).join('')
-        const p2 = Array.from({ length: 4 }, () => nums[Math.floor(Math.random() * nums.length)]).join('')
-        const nuevoTrazaId = `TRZ-${p1}-${p2}`
-        const { data: created } = await supabase.from('personas').insert({
-          user_id:            user.id,
-          nombre,
-          apellido,
-          cargo,
-          tipo_cuenta:        'individual',
-          empleo_activo:      true,
-          traza_id:           nuevoTrazaId,
-          credencial_publica: true,
-        }).select().single()
-        p = created
+        try {
+          const res = await fetch('/api/setup-persona', { method: 'POST' })
+          if (res.ok) {
+            const json = await res.json()
+            if (json.persona) p = json.persona
+            else {
+              // Ya existía, re-leer
+              const { data: refetch } = await supabase.from('personas').select('*').eq('user_id', user.id).maybeSingle()
+              p = refetch
+            }
+          }
+        } catch { /* silencioso */ }
       }
 
       setPersona(p)
@@ -234,7 +213,7 @@ export default function MiTrabajoPage() {
             Para cargar objetivos necesitás tener un perfil activo.
           </p>
         </div>
-        <Button onClick={() => router.push('/onboarding')} variant="primary">
+        <Button onClick={() => router.push('/perfil?setup=1')} variant="primary">
           Completar perfil
         </Button>
       </div>

@@ -97,9 +97,9 @@ export default function PerfilPage() {
       if ((persona as any).empresa_actual_dominio) setEmpDominio((persona as any).empresa_actual_dominio)
       if ((persona as any).supervisor_nombre) setSupNombre((persona as any).supervisor_nombre)
       if ((persona as any).supervisor_email) setSupEmail((persona as any).supervisor_email)
-      // Auto-abrir formulario si viene del onboarding y aún no declaró empresa
+      // Auto-abrir formulario si viene del onboarding o setup y aún no declaró empresa
       const params = new URLSearchParams(window.location.search)
-      if (params.get('onboarding') === '1' && !(persona as any).empresa_actual_nombre) {
+      if ((params.get('onboarding') === '1' || params.get('setup') === '1') && !(persona as any).empresa_actual_nombre) {
         setShowEmpresaForm(true)
         setTimeout(() => {
           document.getElementById('empresa-section')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
