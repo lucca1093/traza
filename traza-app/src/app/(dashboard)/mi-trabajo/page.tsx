@@ -120,66 +120,53 @@ export default function MiTrabajoPage() {
     e.preventDefault()
     if (!persona) return
     setSaving('new')
-    const { data: { user } } = await supabase.auth.getUser()
-    const { data: profile }  = await supabase.from('profiles').select('empresa_id').eq('id', user!.id).maybeSingle()
-    const empresaId = profile?.empresa_id ?? null
 
-    // Si es "con externo", crear primero el grupo
-    let grupoId: string | null = null
-    if (form.con_externo) {
-      const { data: grupo } = await supabase.from('objetivo_grupos').insert({
-        empresa_id:  empresaId,
-        titulo:      form.titulo,
-        descripcion: form.descripcion || null,
-        prioridad:   form.prioridad,
-        categoria:   form.categoria,
-        es_continuo: form.es_continuo,
-        fecha_limite: form.es_continuo ? null : (form.fecha_limite || null),
-        creado_por:  user!.id,
-        tipo:        'externo',
-      }).select().single()
-      grupoId = grupo?.id ?? null
-    }
-
-    const payload = {
-      empresa_id:   empresaId,
-      persona_id:   persona.id,
-      creado_por:   user!.id,
-      titulo:       form.titulo,
-      descripcion:  form.descripcion || null,
-      prioridad:    form.prioridad,
-      categoria:    form.categoria,
-      es_continuo:  form.es_continuo,
-      fecha_limite: form.es_continuo ? null : (form.fecha_limite || null),
-      evidencia_url: form.evidencia_url || null,
-      tipo:         'Personal',
-      estado:       'Pendiente',
-      grupo_id:     grupoId,
-    }
-    const { data: insertado } = await supabase.from('objetivos').insert(payload).select('*, grupo:objetivo_grupos(tipo)').single()
     const eraPrimero = objetivos.length === 0
-    track('objective_created', { categoria: form.categoria, prioridad: form.prioridad, es_primero: eraPrimero })
-    setForm({ titulo: '', descripcion: '', prioridad: 'Media', categoria: 'Resultado', es_continuo: false, fecha_limite: '', evidencia_url: '', con_externo: false })
-    setShowForm(false)
 
-    if (insertado) {
-      // Si el SELECT devolvió el registro (RLS OK), agregarlo al estado directamente
-      setObjetivos(prev => [...prev, insertado as Objetivo].sort((a, b) => {
-        if (!a.fecha_limite) return 1
-        if (!b.fecha_limite) return -1
-        return a.fecha_limite.localeCompare(b.fecha_limite)
-      }))
-    } else {
-      // Fallback: construir el objeto localmente con un id temporal
-      const objLocal = { ...payload, id: `tmp-${Date.now()}`, created_at: new Date().toISOString(), grupo: null } as unknown as Objetivo
-      setObjetivos(prev => [...prev, objLocal])
+    try {
+      const res = await fetch('/api/crear-objetivo', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          persona_id:    persona.id,
+          titulo:        form.titulo,
+          descripcion:   form.descripcion,
+          prioridad:     form.prioridad,
+          categoria:     form.categoria,
+          es_continuo:   form.es_continuo,
+          fecha_limite:  form.fecha_limite,
+          evidencia_url: form.evidencia_url,
+          con_externo:   form.con_externo,
+        }),
+      })
+
+      const json = await res.json()
+
+      if (res.ok && json.objetivo) {
+        track('objective_created', { categoria: form.categoria, prioridad: form.prioridad, es_primero: eraPrimero })
+        setForm({ titulo: '', descripcion: '', prioridad: 'Media', categoria: 'Resultado', es_continuo: false, fecha_limite: '', evidencia_url: '', con_externo: false })
+        setShowForm(false)
+        setObjetivos(prev =>
+          [...prev, json.objetivo as Objetivo].sort((a, b) => {
+            if (!a.fecha_limite) return 1
+            if (!b.fecha_limite) return -1
+            return a.fecha_limite.localeCompare(b.fecha_limite)
+          })
+        )
+        if (eraPrimero) {
+          setPrimerObjCreado(true)
+          setTimeout(() => setPrimerObjCreado(false), 6000)
+        }
+      } else {
+        console.error('Error creando objetivo:', json.error)
+        alert('Error al guardar el objetivo: ' + (json.error ?? 'Error desconocido'))
+      }
+    } catch (err) {
+      console.error('Error de conexión al crear objetivo:', err)
+      alert('Error de conexión. Revisá tu conexión a internet.')
     }
 
     setSaving(null)
-    if (eraPrimero) {
-      setPrimerObjCreado(true)
-      setTimeout(() => setPrimerObjCreado(false), 6000)
-    }
   }
 
   async function updateEstado(id: string, estado: string) {

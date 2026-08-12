@@ -23,12 +23,13 @@ export async function POST() {
     // Verificar que no exista ya una persona
     const { data: existing } = await admin
       .from('personas')
-      .select('id')
+      .select('*')
       .eq('user_id', user.id)
       .maybeSingle()
 
     if (existing) {
-      return NextResponse.json({ ok: true, already_existed: true })
+      // Retornar la persona completa para que el frontend no tenga que re-fetchear
+      return NextResponse.json({ ok: true, already_existed: true, persona: existing })
     }
 
     // Obtener datos del profile o user_metadata
