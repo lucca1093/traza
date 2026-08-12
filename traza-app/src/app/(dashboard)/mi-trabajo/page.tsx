@@ -908,11 +908,26 @@ function ObjetivoCard({ obj, saving, onUpdate, onUpdateAuto, onDelete, autoExpan
   async function addAvance() {
     if (!addingContent.trim() || !addingType) return
     setSavingAvance(true)
-    const { data: { user } } = await supabase.auth.getUser()
-    await supabase.from('objetivo_avances').insert({ empresa_id: (obj as any).empresa_id, objetivo_id: obj.id, persona_id: (obj as any).persona_id, tipo: addingType, contenido: addingContent.trim(), creado_por: user!.id })
-    track('advance_added', { tipo: addingType })
-    setAddingContent(''); setAddingType(null)
-    await loadAvances()
+    try {
+      const res = await fetch('/api/crear-avance', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ objetivo_id: obj.id, tipo: addingType, contenido: addingContent.trim() }),
+      })
+      const json = await res.json()
+      if (!res.ok) {
+        alert('Error al guardar el avance: ' + (json.error ?? 'Error desconocido'))
+        setSavingAvance(false)
+        return
+      }
+      track('advance_added', { tipo: addingType })
+      setAddingContent('')
+      setAddingType(null)
+      setUploadedFileName(null)
+      await loadAvances()
+    } catch (err: any) {
+      alert('Error de conexión al guardar el avance.')
+    }
     setSavingAvance(false)
   }
 
@@ -1081,7 +1096,7 @@ function ObjetivoCard({ obj, saving, onUpdate, onUpdateAuto, onDelete, autoExpan
                   <option>Completado</option>
                 </select>
               </div>
-              <Button size="sm" loading={saving === obj.id} onClick={() => onUpdate(obj.id, estado)}>Guardar</Button>
+              <Button size="sm" loading={saving === obj.id} onClick={() => { onUpdate(obj.id, estado); setExpanded(false) }}>Guardar</Button>
             </div>
 
             {/* Autoevaluación — solo cuando Completado */}
@@ -1203,7 +1218,9 @@ function ObjetivoCard({ obj, saving, onUpdate, onUpdateAuto, onDelete, autoExpan
                             <div>
                               <div className="flex items-start gap-2">
                                 <div className="flex-1 min-w-0">
-                                  {(a.tipo === 'link' || a.tipo === 'archivo')
+                                  {a.tipo === 'archivo'
+                                    ? <a href={a.contenido} target="_blank" rel="noopener noreferrer" className="text-traza-700 hover:underline text-xs flex items-center gap-1"><Paperclip size={11} />{(() => { try { return decodeURIComponent(a.contenido.split('/').pop()?.replace(/^\d+_/, '') ?? 'archivo') } catch { return 'archivo' } })()}</a>
+                                    : a.tipo === 'link'
                                     ? <a href={a.contenido} target="_blank" rel="noopener noreferrer" className="text-traza-700 hover:underline break-all text-xs">{a.contenido}</a>
                                     : <p className="text-sm text-gray-700">{a.contenido}</p>}
                                 </div>
