@@ -170,21 +170,9 @@ export default function MiTrabajoPage() {
         return a.fecha_limite.localeCompare(b.fecha_limite)
       }))
     } else {
-      // RLS bloqueó el SELECT — re-fetchear vía API admin para obtener el ID real
-      try {
-        const res = await fetch('/api/mis-objetivos')
-        if (res.ok) {
-          const json = await res.json()
-          setObjetivos(json.objetivos ?? [])
-        } else {
-          // Último fallback: id temporal (sin validación externa disponible)
-          const objLocal = { ...payload, id: `tmp-${Date.now()}`, created_at: new Date().toISOString(), grupo: null } as unknown as Objetivo
-          setObjetivos(prev => [...prev, objLocal])
-        }
-      } catch {
-        const objLocal = { ...payload, id: `tmp-${Date.now()}`, created_at: new Date().toISOString(), grupo: null } as unknown as Objetivo
-        setObjetivos(prev => [...prev, objLocal])
-      }
+      // Fallback: construir el objeto localmente con un id temporal
+      const objLocal = { ...payload, id: `tmp-${Date.now()}`, created_at: new Date().toISOString(), grupo: null } as unknown as Objetivo
+      setObjetivos(prev => [...prev, objLocal])
     }
 
     setSaving(null)
