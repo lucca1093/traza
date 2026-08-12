@@ -121,7 +121,7 @@ export default async function DashboardPage() {
     }
 
     const persona  = personaActiva
-    const indice   = calcularIndiceTraza(todosObjs, todosAvances)
+    const indice   = calcularIndiceTraza(todosObjs, todosAvances, [], true, true) // esIndependiente=true
     const sinDatos = todosObjs.length === 0
 
     return (

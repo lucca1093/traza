@@ -39,7 +39,9 @@ export function cn(...inputs: ClassValue[]) {
 
 // supervisorVerificado: true (defecto) = peso normal.
 // false = el supervisor NO verificó vínculo → sus validaciones valen ×0.5 (feature 4.5)
-export function calcularIndiceTraza(objetivos: Objetivo[], avances: any[] = [], validacionesExternas: any[] = [], supervisorVerificado: boolean = true): IndiceTraza {
+// esIndependiente: true = profesional sin supervisor. Autoevaluación pesa 1.0 y
+//   alineación arranca en 75 (no hay supervisor con quien comparar).
+export function calcularIndiceTraza(objetivos: Objetivo[], avances: any[] = [], validacionesExternas: any[] = [], supervisorVerificado: boolean = true, esIndependiente: boolean = false): IndiceTraza {
   // Sin objetivos → score 0 (no mostrar valores ficticios)
   if (objetivos.length === 0) {
     return { score: 0, nivel: 'Inicial', badge: 'Sin datos', total: 0, completados: 0, positivos: 0, parciales: 0, negativos: 0, cumplimiento: 0, moduloA: 0, moduloB: 0, moduloC: 0, alineacion: 0, proactividad: 0 }
@@ -69,10 +71,12 @@ export function calcularIndiceTraza(objetivos: Objetivo[], avances: any[] = [], 
   if (conValidacion.length > 0 || validacionesExternas.length > 0) {
     let sumaTotal = 0, pesoTotal = 0
 
+    // Para independientes: autoevaluación pesa 1.0 (es la única validación interna disponible)
+    const pesoAuto = esIndependiente ? 1.0 : 0.5
     conValidacion.forEach(o => {
       if (o.validacion)                 { sumaTotal += supScore[o.validacion] * pesoSupervisor; pesoTotal += pesoSupervisor }
       if ((o as any).validacion_admin)  { sumaTotal += adminScore[(o as any).validacion_admin] * 1.0; pesoTotal += 1.0 }
-      if ((o as any).autoevaluacion)    { sumaTotal += autoScore[(o as any).autoevaluacion] * 0.5; pesoTotal += 0.5 }
+      if ((o as any).autoevaluacion)    { sumaTotal += autoScore[(o as any).autoevaluacion] * pesoAuto; pesoTotal += pesoAuto }
     })
 
     // Validaciones externas — solo las confirmadas cuentan en el score
@@ -122,12 +126,13 @@ export function calcularIndiceTraza(objetivos: Objetivo[], avances: any[] = [], 
   }
 
   // ── Módulo D: Alineación autoevaluación ↔ supervisor (0–100) — peso 10% ──
+  // Para independientes arranca en 75 (no hay supervisor con quien alinearse)
   const val2num: Record<string, number> = {
     'De acuerdo': 2, 'Parcialmente de acuerdo': 1, 'En desacuerdo': 0,
     'Cumplido': 2, 'Parcialmente cumplido': 1, 'No cumplido': 0,
   }
   const conAmbas = objetivos.filter(o => o.validacion && (o as any).autoevaluacion)
-  let alineacion = 50
+  let alineacion = esIndependiente ? 75 : 50
   if (conAmbas.length > 0) {
     const alineados = conAmbas.filter(o => {
       const diff = Math.abs((val2num[o.validacion!] ?? 1) - (val2num[(o as any).autoevaluacion] ?? 1))

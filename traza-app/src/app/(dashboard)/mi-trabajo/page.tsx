@@ -169,20 +169,29 @@ export default function MiTrabajoPage() {
     setSaving(null)
   }
 
-  async function updateEstado(id: string, estado: string) {
+  async function updateEstado(id: string, estado: string, completadoEn?: string) {
     setSaving(id)
-    const updateData: any = { estado }
-    if (estado === 'Completado') updateData.completado_en = new Date().toISOString()
-    await supabase.from('objetivos').update(updateData).eq('id', id)
+    const payload: any = { objetivo_id: id, estado }
+    if (estado === 'Completado') payload.completado_en = completadoEn ?? new Date().toISOString()
+    try {
+      await fetch('/api/actualizar-objetivo', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
+      })
+    } catch { /* silencioso — el estado local igual se actualiza */ }
     setObjetivos(prev => prev.map(o => o.id === id
-      ? { ...o, estado: estado as any, ...(estado === 'Completado' ? { completado_en: updateData.completado_en } : {}) }
+      ? { ...o, estado: estado as any, ...(estado === 'Completado' ? { completado_en: payload.completado_en } : {}) }
       : o
     ))
     setSaving(null)
   }
 
   async function updateAutoevaluacion(id: string, autoevaluacion: string, comentario_empleado: string) {
-    await supabase.from('objetivos').update({ autoevaluacion, comentario_empleado: comentario_empleado || null }).eq('id', id)
+    try {
+      await fetch('/api/actualizar-objetivo', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ objetivo_id: id, autoevaluacion, comentario_empleado: comentario_empleado || null }),
+      })
+    } catch { /* fallback */ }
     setObjetivos(prev => prev.map(o => o.id === id ? { ...o, autoevaluacion: autoevaluacion as any, comentario_empleado } : o))
   }
 
@@ -856,7 +865,7 @@ function CierreSemanal({ personaId }: { personaId: string }) {
 function ObjetivoCard({ obj, saving, onUpdate, onUpdateAuto, onDelete, autoExpand, valExt = [] }: {
   obj: Objetivo
   saving: string | null
-  onUpdate: (id: string, estado: string) => void
+  onUpdate: (id: string, estado: string, completadoEn?: string) => void
   onUpdateAuto: (id: string, auto: string, comentario: string) => void
   onDelete?: (id: string) => void
   autoExpand?: boolean
@@ -879,6 +888,12 @@ function ObjetivoCard({ obj, saving, onUpdate, onUpdateAuto, onDelete, autoExpan
   // Upload de archivos
   const [uploadingFile, setUploadingFile]     = useState(false)
   const [uploadedFileName, setUploadedFileName] = useState<string | null>(null)
+  // Concluir objetivo (independientes)
+  const [showConcluir, setShowConcluir]       = useState(false)
+  const [concluirFecha, setConcluirFecha]     = useState(new Date().toISOString().split('T')[0])
+  const [concluirAuto, setConcluirAuto]       = useState('')
+  const [concluirComentario, setConcluirComentario] = useState('')
+  const [savingConcluir, setSavingConcluir]   = useState(false)
   // Edición de avances
   const [editingAvanceId,  setEditingAvanceId]  = useState<string | null>(null)
   const [editingContent,   setEditingContent]   = useState('')
@@ -999,6 +1014,30 @@ function ObjetivoCard({ obj, saving, onUpdate, onUpdateAuto, onDelete, autoExpan
     setUploadingFile(false)
   }
 
+  async function handleConcluir() {
+    if (!concluirAuto) { alert('Seleccioná tu autoevaluación antes de concluir.'); return }
+    setSavingConcluir(true)
+    try {
+      await fetch('/api/actualizar-objetivo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          objetivo_id: obj.id,
+          estado: 'Completado',
+          completado_en: new Date(concluirFecha + 'T12:00:00').toISOString(),
+          autoevaluacion: concluirAuto,
+          comentario_empleado: concluirComentario || null,
+        }),
+      })
+      onUpdate(obj.id, 'Completado', concluirFecha)
+      setShowConcluir(false)
+      setExpanded(false)
+    } catch {
+      alert('Error de conexión. Intentá de nuevo.')
+    }
+    setSavingConcluir(false)
+  }
+
   async function pedirFeedbackCliente() {
     if (!fbClienteNombre.trim() || !fbClienteEmail.trim()) return
     setFbClienteEnviando(true)
@@ -1087,19 +1126,98 @@ function ObjetivoCard({ obj, saving, onUpdate, onUpdateAuto, onDelete, autoExpan
           {/* Estado */}
           <div className="px-5 py-4 space-y-3">
             {obj.descripcion && <p className="text-sm text-gray-600">{obj.descripcion}</p>}
-            <div className="flex items-end gap-3 flex-wrap">
-              <div className="flex-1 min-w-[160px]">
-                <label className="traza-label">Estado</label>
-                <select className="traza-input" value={estado} onChange={e => setEstado(e.target.value as any)}>
-                  <option>Pendiente</option>
-                  <option>En progreso</option>
-                  <option>Completado</option>
-                </select>
-              </div>
-              <Button size="sm" loading={saving === obj.id} onClick={() => { onUpdate(obj.id, estado); setExpanded(false) }}>Guardar</Button>
-            </div>
 
-            {/* Autoevaluación — solo cuando Completado */}
+            {/* === Independientes: panel "Concluir objetivo" === */}
+            {(obj as any).empresa_id === null && !yaCompletado && (
+              <div>
+                {!showConcluir ? (
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <div className="flex-1 min-w-[160px]">
+                      <label className="traza-label">Estado</label>
+                      <select className="traza-input" value={estado} onChange={e => setEstado(e.target.value as any)}>
+                        <option>Pendiente</option>
+                        <option>En progreso</option>
+                      </select>
+                    </div>
+                    <Button size="sm" loading={saving === obj.id} onClick={() => { onUpdate(obj.id, estado); setExpanded(false) }}>Guardar</Button>
+                    <button
+                      onClick={() => setShowConcluir(true)}
+                      className="flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-xl border-2 border-green-300 text-green-700 bg-green-50 hover:bg-green-100 transition-colors"
+                    >
+                      <CheckCircle2 size={13} /> Concluir objetivo
+                    </button>
+                  </div>
+                ) : (
+                  <div className="rounded-2xl border-2 border-green-200 bg-green-50 p-4 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle2 size={15} className="text-green-600" />
+                        <p className="text-sm font-bold text-green-800">Concluir este objetivo</p>
+                      </div>
+                      <button onClick={() => setShowConcluir(false)} className="text-xs text-gray-400 hover:text-gray-600">Cancelar</button>
+                    </div>
+
+                    <div>
+                      <label className="traza-label">¿Cuándo lo completaste?</label>
+                      <input type="date" className="traza-input"
+                        value={concluirFecha} max={new Date().toISOString().split('T')[0]}
+                        onChange={e => setConcluirFecha(e.target.value)} />
+                    </div>
+
+                    <div>
+                      <label className="traza-label flex items-center gap-1">
+                        <Star size={12} className="text-amber-400" /> ¿Cómo lo evaluás? *
+                      </label>
+                      <div className="grid grid-cols-1 gap-2 mt-1">
+                        {[
+                          { val: 'Cumplido',              label: 'Cumplido',              desc: 'Lograste el objetivo según lo planeado' },
+                          { val: 'Parcialmente cumplido', label: 'Parcialmente cumplido', desc: 'Lo lograste en parte' },
+                          { val: 'No cumplido',           label: 'No cumplido',           desc: 'No llegaste al resultado esperado' },
+                        ].map(opt => (
+                          <label key={opt.val}
+                            className={`flex items-start gap-3 px-3 py-2.5 rounded-xl border cursor-pointer transition-colors ${concluirAuto === opt.val ? 'border-green-500 bg-white font-semibold' : 'border-green-200 bg-white/60 hover:bg-white'}`}>
+                            <input type="radio" value={opt.val} checked={concluirAuto === opt.val}
+                              onChange={e => setConcluirAuto(e.target.value)} className="mt-0.5" />
+                            <div>
+                              <p className="text-sm text-gray-800">{opt.label}</p>
+                              <p className="text-xs text-gray-400">{opt.desc}</p>
+                            </div>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="traza-label">Comentario (opcional)</label>
+                      <textarea className="traza-input text-sm min-h-[60px] resize-none bg-white"
+                        placeholder="¿Algo que quieras agregar sobre cómo fue?"
+                        value={concluirComentario} onChange={e => setConcluirComentario(e.target.value)} />
+                    </div>
+
+                    <Button loading={savingConcluir} onClick={handleConcluir} disabled={!concluirAuto}>
+                      Guardar y concluir objetivo
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* === Empleados de empresa: panel estándar === */}
+            {(obj as any).empresa_id !== null && (
+              <div className="flex items-end gap-3 flex-wrap">
+                <div className="flex-1 min-w-[160px]">
+                  <label className="traza-label">Estado</label>
+                  <select className="traza-input" value={estado} onChange={e => setEstado(e.target.value as any)}>
+                    <option>Pendiente</option>
+                    <option>En progreso</option>
+                    <option>Completado</option>
+                  </select>
+                </div>
+                <Button size="sm" loading={saving === obj.id} onClick={() => { onUpdate(obj.id, estado); setExpanded(false) }}>Guardar</Button>
+              </div>
+            )}
+
+            {/* Autoevaluación — para objetivos ya completados o empleados de empresa */}
             {yaCompletado && (
               <div className="bg-gray-50 rounded-xl p-4 space-y-3">
                 <div className="flex items-center gap-2">

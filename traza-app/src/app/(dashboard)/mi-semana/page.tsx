@@ -112,33 +112,58 @@ export default function MiSemanaPage() {
       setRol(profile?.rol ?? '')
       setNombre(profile?.nombre ?? 'vos')
 
-      if (profile?.rol === 'empleado') {
-        const { data: persona } = await supabase
-          .from('personas').select('id').eq('user_id', user.id).eq('empleo_activo', true).single()
+      if (profile?.rol === 'empleado' || profile?.rol === 'individuo') {
+        // Para individuo: buscar persona sin filtro empleo_activo
+        let persona: any = null
+        if (profile?.rol === 'individuo') {
+          const { data: p } = await supabase
+            .from('personas').select('id').eq('user_id', user.id).maybeSingle()
+          persona = p
+        } else {
+          const { data: p } = await supabase
+            .from('personas').select('id').eq('user_id', user.id).eq('empleo_activo', true).maybeSingle()
+          persona = p
+        }
+
         if (persona) {
           setTienePersona(true)
           setPersonaId(persona.id)
-          setEmpresaId(profile.empresa_id)
-          const { data: obs } = await supabase
-            .from('objetivos').select('*').eq('persona_id', persona.id).not('fecha_limite', 'is', null)
-          setObjetivos(obs ?? [])
-          if ((obs ?? []).length > 0) {
+          setEmpresaId(profile?.empresa_id ?? null)
+
+          // Para individuo, cargar objetivos via API admin (bypasea RLS)
+          let obs: any[] = []
+          if (profile?.rol === 'individuo') {
+            const res = await fetch('/api/mis-objetivos')
+            if (res.ok) {
+              const json = await res.json()
+              obs = (json.objetivos ?? []).filter((o: any) => o.fecha_limite)
+            }
+          } else {
+            const { data } = await supabase
+              .from('objetivos').select('*').eq('persona_id', persona.id).not('fecha_limite', 'is', null)
+            obs = data ?? []
+          }
+          setObjetivos(obs)
+
+          if (obs.length > 0) {
             const { data: av } = await supabase
               .from('objetivo_avances').select('*')
-              .in('objetivo_id', (obs ?? []).map((o: any) => o.id))
+              .in('objetivo_id', obs.map((o: any) => o.id))
             setAvances(av ?? [])
             setRacha(calcularRacha(av ?? []))
           }
-          // Verificar si ya evaluó al supervisor este mes
-          const periodoActual = `${hoy.getFullYear()}-${String(hoy.getMonth()+1).padStart(2,'0')}`
-          const res = await fetch(`/api/evaluar-supervisor?empleadoId=${persona.id}&periodo=${periodoActual}`)
-          const resData = await res.json()
-          if (resData.evaluacion) setEvalYaEnviada(true)
 
-          // Cargar mis 1:1s
-          const res1on1 = await fetch(`/api/1on1?empleadoId=${persona.id}`)
-          const data1on1 = await res1on1.json()
-          setMis1on1(data1on1.reuniones ?? [])
+          // Sección supervisor solo para empleados con empresa
+          if (profile?.rol === 'empleado' && profile?.empresa_id) {
+            const periodoActual = `${hoy.getFullYear()}-${String(hoy.getMonth()+1).padStart(2,'0')}`
+            const res = await fetch(`/api/evaluar-supervisor?empleadoId=${persona.id}&periodo=${periodoActual}`)
+            const resData = await res.json()
+            if (resData.evaluacion) setEvalYaEnviada(true)
+
+            const res1on1 = await fetch(`/api/1on1?empleadoId=${persona.id}`)
+            const data1on1 = await res1on1.json()
+            setMis1on1(data1on1.reuniones ?? [])
+          }
         }
       } else {
         const { data: obs } = await supabase
@@ -207,7 +232,7 @@ export default function MiSemanaPage() {
   const obsSeleccionados = selectedDay ? obsEnFecha(selectedDay) : []
 
   function abrirObj(o: any) {
-    router.push(rol === 'empleado' ? `/mi-trabajo?objetivo=${o.id}` : `/objetivos?objetivo=${o.id}`)
+    router.push((rol === 'empleado' || rol === 'individuo') ? `/mi-trabajo?objetivo=${o.id}` : `/objetivos?objetivo=${o.id}`)
   }
 
   const ASPECTOS_OPCIONES = [
