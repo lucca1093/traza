@@ -785,8 +785,8 @@ function CierreSemanal({ personaId }: { personaId: string }) {
     e.preventDefault()
     setSaving(true)
     const { data: { user } } = await supabase.auth.getUser()
-    const { data: profile }  = await supabase.from('profiles').select('empresa_id').eq('id', user!.id).single()
-    const payload = { empresa_id: profile!.empresa_id, persona_id: personaId, semana, que_avance: form.que_avance || null, que_obstaculos: form.que_obstaculos || null, que_necesito: form.que_necesito || null, creado_por: user!.id }
+    const { data: profile }  = await supabase.from('profiles').select('empresa_id').eq('id', user!.id).maybeSingle()
+    const payload = { empresa_id: profile?.empresa_id ?? null, persona_id: personaId, semana, que_avance: form.que_avance || null, que_obstaculos: form.que_obstaculos || null, que_necesito: form.que_necesito || null, creado_por: user!.id }
     if (cierre) { await supabase.from('cierres_semanales').update(payload).eq('id', cierre.id) }
     else        { await supabase.from('cierres_semanales').insert(payload) }
     const { data } = await supabase.from('cierres_semanales').select('*').eq('persona_id', personaId).eq('semana', semana).maybeSingle()
