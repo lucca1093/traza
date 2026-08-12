@@ -338,7 +338,8 @@ export default function ImprimirPage() {
       }
 
       if (todosObjs.length > 0) {
-        const idx = calcularIndiceTraza(todosObjs, todosAvances, valExtRaw ?? [], persona.supervisor_verificado ?? true)
+        const isInd = !persona.empresa_id
+        const idx = calcularIndiceTraza(todosObjs, todosAvances, valExtRaw ?? [], persona.supervisor_verificado ?? true, isInd)
         try {
           const res = await fetch('/api/narrativa', {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -428,8 +429,9 @@ export default function ImprimirPage() {
      DATA & CALCULATIONS
   ══════════════════════════════════════════════════ */
   const { persona, objetivos, avances, validacionesExternas, reconocimientos, empresas } = data
-  const supVerif = persona.supervisor_verificado ?? true
-  const indice   = calcularIndiceTraza(objetivos, avances, validacionesExternas, supVerif)
+  const supVerif      = persona.supervisor_verificado ?? true
+  const esIndependiente = !persona.empresa_id
+  const indice   = calcularIndiceTraza(objetivos, avances, validacionesExternas, supVerif, esIndependiente)
   const col      = sCol(indice.score)
   const bdg      = mkBadge(indice.nivel)
   const hoy      = new Date().toLocaleDateString('es-AR', { day: '2-digit', month: 'long', year: 'numeric' })
@@ -448,7 +450,12 @@ export default function ImprimirPage() {
   const iCompr  = Math.min(100, Math.round((avances.length / Math.max(objetivos.length, 1)) / 5 * 100))
 
   const fechas   = empresas.map(e => e.persona.fecha_inicio_empleo).filter(Boolean).sort()
-  const fechaMin = fechas[0] ?? null
+  const fechaMinEmpresa = fechas[0] ?? null
+  // For independent users, fall back to earliest objetivo creation date
+  const fechaMinObj = esIndependiente
+    ? [...objetivos.map(o => (o as any).created_at), ...avances.map(a => a.creado_en)].filter(Boolean).sort()[0] ?? null
+    : null
+  const fechaMin = fechaMinEmpresa ?? fechaMinObj
   const antiguedad = fechaMin
     ? (() => {
         const meses = Math.floor((Date.now() - new Date(fechaMin).getTime()) / (1000 * 60 * 60 * 24 * 30.4))
@@ -467,7 +474,10 @@ export default function ImprimirPage() {
   // Fortalezas sustentadas en datos
   const fortalezas: Array<{ text: string; evidence: string }> = []
   if (indice.moduloB >= 80) fortalezas.push({ text: 'Alta capacidad de cumplimiento y gestión de plazos', evidence: `${iCumpl}% tasa de cumplimiento · ${completados.length} objetivos completados` })
-  if (indice.moduloA >= 75) fortalezas.push({ text: 'Resultados consistentemente validados por el management', evidence: `${validados.length} de ${completados.length} completados con validación positiva` })
+  if (indice.moduloA >= 75) fortalezas.push({
+    text: esIndependiente ? 'Alta capacidad de autoevaluación y reflexión crítica' : 'Resultados consistentemente validados por el management',
+    evidence: esIndependiente ? `Módulo de autoevaluación en ${indice.moduloA}/100` : `${validados.length} de ${completados.length} completados con validación positiva`,
+  })
   if (indice.moduloC >= 70) fortalezas.push({ text: 'Proactividad y consistencia en documentación de avances', evidence: `${semanasActivas} semanas activas · ${avances.length} avances registrados` })
   if (iConf >= 80) fortalezas.push({ text: 'Calidad de ejecución — alta tasa de aprobación', evidence: `${iConf}% de validación positiva sobre lo completado` })
   if (reconocimientos.length >= 2) fortalezas.push({ text: 'Reconocimiento formal reiterado por pares y liderazgo', evidence: `${reconocimientos.length} reconocimientos recibidos en TRAZA` })
@@ -477,23 +487,45 @@ export default function ImprimirPage() {
   // Áreas de desarrollo
   const desarrollo: Array<{ text: string; action: string }> = []
   if (indice.moduloC < 50) desarrollo.push({ text: 'Regularidad en documentación semanal de avances', action: 'Establecer ritual semanal de registro en TRAZA' })
-  if (indice.moduloA < 65) desarrollo.push({ text: 'Alineación con expectativas del management', action: 'Aumentar frecuencia de check-ins con el supervisor' })
-  if (indice.alineacion < 60) desarrollo.push({ text: 'Coherencia entre autoevaluación y validación externa', action: 'Solicitar feedback estructurado más frecuente' })
+  if (indice.moduloA < 65) desarrollo.push({
+    text: esIndependiente ? 'Profundidad en la autoevaluación de resultados' : 'Alineación con expectativas del management',
+    action: esIndependiente ? 'Registrar reflexiones cualitativas al completar cada objetivo' : 'Aumentar frecuencia de check-ins con el supervisor',
+  })
+  if (indice.alineacion < 60) desarrollo.push({
+    text: esIndependiente ? 'Consistencia entre expectativas propias y resultados reales' : 'Coherencia entre autoevaluación y validación externa',
+    action: esIndependiente ? 'Definir criterios de éxito claros al crear cada objetivo' : 'Solicitar feedback estructurado más frecuente',
+  })
   if (iCumpl < 70) desarrollo.push({ text: 'Tasa de cierre de objetivos dentro del plazo acordado', action: 'Reforzar planificación y gestión de fechas límite' })
   if (desarrollo.length === 0) desarrollo.push({ text: 'Sin áreas críticas identificadas con los datos actuales', action: 'Mantener consistencia y buscar desafíos de mayor complejidad' })
 
   // Módulos del índice
   const modulos = [
-    { id: 'A', label: 'Validación de Superiores', pct: 35, val: indice.moduloA,      desc: 'Calificaciones de supervisor ponderadas por nivel de confianza verificado' },
-    { id: 'B', label: 'Cumplimiento',             pct: 25, val: indice.moduloB,      desc: 'Objetivos con fecha vencida completados exitosamente sobre el total' },
-    { id: 'C', label: 'Regularidad',              pct: 20, val: indice.moduloC,      desc: 'Constancia semanal de avances registrados en la plataforma' },
-    { id: 'D', label: 'Alineación',               pct: 10, val: indice.alineacion,   desc: 'Coherencia entre autoevaluación del colaborador y validación del supervisor' },
-    { id: 'E', label: 'Proactividad',             pct: 10, val: indice.proactividad, desc: 'Proporción de objetivos propuestos por iniciativa propia del profesional' },
+    {
+      id: 'A',
+      label: esIndependiente ? 'Autoevaluación' : 'Validación de Superiores',
+      pct: 35,
+      val: indice.moduloA,
+      desc: esIndependiente
+        ? 'Calidad de la autoevaluación sobre objetivos completados'
+        : 'Calificaciones de supervisor ponderadas por nivel de confianza verificado',
+    },
+    { id: 'B', label: 'Cumplimiento',  pct: 25, val: indice.moduloB,      desc: 'Objetivos con fecha vencida completados exitosamente sobre el total' },
+    { id: 'C', label: 'Regularidad',   pct: 20, val: indice.moduloC,      desc: 'Constancia semanal de avances registrados en la plataforma' },
+    {
+      id: 'D',
+      label: 'Alineación',
+      pct: 10,
+      val: indice.alineacion,
+      desc: esIndependiente
+        ? 'Coherencia y reflexión entre autoevaluación y avances registrados'
+        : 'Coherencia entre autoevaluación del colaborador y validación del supervisor',
+    },
+    { id: 'E', label: 'Proactividad',  pct: 10, val: indice.proactividad, desc: 'Proporción de objetivos propuestos por iniciativa propia del profesional' },
   ]
 
   // Competencias para radar
   const competencias = [
-    { label: 'Validaciones',  value: indice.moduloA },
+    { label: esIndependiente ? 'Autoevaluación' : 'Validaciones', value: indice.moduloA },
     { label: 'Cumplimiento',  value: indice.moduloB },
     { label: 'Regularidad',   value: indice.moduloC },
     { label: 'Alineación',    value: indice.alineacion },
@@ -669,10 +701,12 @@ export default function ImprimirPage() {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)',
               borderTop: `1px solid ${BRD}`, borderLeft: `1px solid ${BRD}`, marginBottom: 24 }}>
               {[
-                { label: 'Empresas registradas', value: String(empresas.length) },
+                esIndependiente
+                  ? { label: 'Modo',              value: 'Independiente' }
+                  : { label: 'Empresas',          value: String(empresas.length) },
                 { label: 'Objetivos totales',    value: String(objetivos.length) },
                 { label: 'Completados',           value: String(completados.length) },
-                { label: 'Antigüedad en TRAZA',  value: antiguedad ?? `${avances.length} avances` },
+                { label: 'En TRAZA',             value: antiguedad ?? (avances.length > 0 ? `${avances.length} avances` : 'Nuevo') },
               ].map((m, i) => (
                 <div key={i} style={{ padding: '16px 18px', borderRight: `1px solid ${BRD}`, borderBottom: `1px solid ${BRD}` }}>
                   <p style={{ fontSize: 8, color: SUB, fontWeight: 600, letterSpacing: '0.05em',
