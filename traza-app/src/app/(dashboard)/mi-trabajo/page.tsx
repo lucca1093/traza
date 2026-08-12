@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase'
 import Button from '@/components/ui/Button'
 import { detectarDiscrepancia, isVencido, formatFecha, cn } from '@/lib/traza'
 import { track } from '@/lib/posthog'
-import { AlertTriangle, ArrowLeft, MessageSquare, Link2, Paperclip, Plus, CheckCircle2, Star, Share2, Copy, Check, ChevronDown, ChevronUp, Users, Pencil } from 'lucide-react'
+import { AlertTriangle, ArrowLeft, MessageSquare, Link2, Paperclip, Plus, CheckCircle2, Star, Share2, Copy, Check, ChevronDown, ChevronUp, Users, Pencil, Mail, Upload } from 'lucide-react'
 import type { Objetivo, Persona, CategoriaObjetivo } from '@/types'
 
 // Indicador de prioridad como borde lateral — Sapphire Indigo system
@@ -876,6 +876,9 @@ function ObjetivoCard({ obj, saving, onUpdate, onUpdateAuto, onDelete, autoExpan
   const [tokenError, setTokenError]     = useState<string | null>(null)
   const [generando, setGenerando]       = useState(false)
   const [copiado, setCopiado]           = useState(false)
+  // Upload de archivos
+  const [uploadingFile, setUploadingFile]     = useState(false)
+  const [uploadedFileName, setUploadedFileName] = useState<string | null>(null)
   // Edición de avances
   const [editingAvanceId,  setEditingAvanceId]  = useState<string | null>(null)
   const [editingContent,   setEditingContent]   = useState('')
@@ -955,6 +958,30 @@ function ObjetivoCard({ obj, saving, onUpdate, onUpdateAuto, onDelete, autoExpan
     if (!tokenUrl) return
     await navigator.clipboard.writeText(tokenUrl)
     setCopiado(true); setTimeout(() => setCopiado(false), 2500)
+  }
+
+  async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (file.size > 10 * 1024 * 1024) {
+      alert('El archivo no puede superar 10MB')
+      return
+    }
+    setUploadingFile(true)
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) throw new Error('No autorizado')
+      const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_')
+      const path = `${user.id}/${obj.id}/${Date.now()}_${safeName}`
+      const { error } = await supabase.storage.from('evidencias').upload(path, file)
+      if (error) throw error
+      const { data: { publicUrl } } = supabase.storage.from('evidencias').getPublicUrl(path)
+      setAddingContent(publicUrl)
+      setUploadedFileName(file.name)
+    } catch (err: any) {
+      alert('Error al subir el archivo: ' + (err?.message ?? 'Error desconocido'))
+    }
+    setUploadingFile(false)
   }
 
   async function pedirFeedbackCliente() {
@@ -1222,9 +1249,9 @@ function ObjetivoCard({ obj, saving, onUpdate, onUpdateAuto, onDelete, autoExpan
                 {([
                   { type: 'comentario' as const, icon: <MessageSquare size={12} />, label: 'Nota' },
                   { type: 'link'       as const, icon: <Link2 size={12} />,         label: 'Link' },
-                  { type: 'archivo'    as const, icon: <Paperclip size={12} />,     label: 'Archivo' },
+                  { type: 'archivo'    as const, icon: <Upload size={12} />,         label: 'Archivo' },
                 ] as const).map(({ type, icon, label }) => (
-                  <button key={type} onClick={() => { setAddingType(type); setAddingContent('') }}
+                  <button key={type} onClick={() => { setAddingType(type); setAddingContent(''); setUploadedFileName(null) }}
                     className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-lg font-medium transition-all"
                     style={addingType === type
                       ? { backgroundColor: '#3350D0', color: 'white' }
@@ -1256,11 +1283,11 @@ function ObjetivoCard({ obj, saving, onUpdate, onUpdateAuto, onDelete, autoExpan
                   </div>
                 </div>
               )}
-              {(addingType === 'link' || addingType === 'archivo') && (
+              {addingType === 'link' && (
                 <div className="space-y-2">
                   <input autoFocus type="url"
                     className="w-full text-sm rounded-xl border border-gray-200 px-3 py-2.5 focus:outline-none focus:border-gray-400 placeholder-gray-300 bg-gray-50"
-                    placeholder={addingType === 'link' ? 'https://...' : 'Link al archivo o documento'}
+                    placeholder="https://..."
                     value={addingContent} onChange={e => setAddingContent(e.target.value)}
                     onKeyDown={e => { if (e.key === 'Enter') addAvance() }}
                   />
@@ -1270,6 +1297,58 @@ function ObjetivoCard({ obj, saving, onUpdate, onUpdateAuto, onDelete, autoExpan
                       className="text-xs font-semibold px-3 py-1.5 rounded-lg text-white disabled:opacity-40"
                       style={{ backgroundColor: '#3350D0' }}>
                       {savingAvance ? 'Enviando...' : 'Agregar'}
+                    </button>
+                  </div>
+                </div>
+              )}
+              {addingType === 'archivo' && (
+                <div className="space-y-2">
+                  {!addingContent ? (
+                    <label
+                      className="flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-gray-200 p-6 cursor-pointer transition-colors"
+                      style={uploadingFile ? { borderColor: '#3350D0', backgroundColor: '#EDEFFD' } : {}}
+                      onMouseEnter={e => !uploadingFile && ((e.currentTarget as HTMLElement).style.borderColor = '#8899EE')}
+                      onMouseLeave={e => !uploadingFile && ((e.currentTarget as HTMLElement).style.borderColor = '')}
+                    >
+                      <Upload size={20} style={{ color: uploadingFile ? '#3350D0' : '#CBD5E1' }} />
+                      <span className="text-sm font-medium" style={{ color: uploadingFile ? '#3350D0' : '#94A3B8' }}>
+                        {uploadingFile ? 'Subiendo archivo...' : 'Tocá para seleccionar un archivo'}
+                      </span>
+                      <span className="text-xs" style={{ color: '#CBD5E1' }}>PDF, Word, Excel, imagen · Máx. 10MB</span>
+                      <input
+                        type="file"
+                        className="hidden"
+                        disabled={uploadingFile}
+                        accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.gif,.webp,.txt,.csv,.zip"
+                        onChange={handleFileUpload}
+                      />
+                    </label>
+                  ) : (
+                    <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl border border-green-200 bg-green-50">
+                      <CheckCircle2 size={14} className="text-green-600 flex-shrink-0" />
+                      <span className="text-sm text-green-700 font-medium flex-1 min-w-0 truncate">{uploadedFileName}</span>
+                      <button
+                        onClick={() => { setAddingContent(''); setUploadedFileName(null) }}
+                        className="text-xs text-gray-400 hover:text-red-500 flex-shrink-0 transition-colors"
+                      >
+                        Cambiar
+                      </button>
+                    </div>
+                  )}
+                  <div className="flex justify-end gap-2">
+                    <button
+                      onClick={() => { setAddingType(null); setAddingContent(''); setUploadedFileName(null) }}
+                      className="text-xs text-gray-400 hover:text-gray-600 px-3 py-1.5"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      onClick={addAvance}
+                      disabled={!addingContent || uploadingFile || savingAvance}
+                      className="text-xs font-semibold px-3 py-1.5 rounded-lg text-white disabled:opacity-40"
+                      style={{ backgroundColor: '#3350D0' }}
+                    >
+                      {savingAvance ? 'Guardando...' : 'Guardar archivo'}
                     </button>
                   </div>
                 </div>
@@ -1350,17 +1429,42 @@ function ObjetivoCard({ obj, saving, onUpdate, onUpdateAuto, onDelete, autoExpan
                 {tokenError && <p className="text-xs text-red-500 bg-red-50 px-2 py-1 rounded-lg">{tokenError}</p>}
               </div>
             ) : (
-              <div className="rounded-xl p-3" style={{ backgroundColor: '#EDEFFD', border: '1px solid #BBC5F7' }}>
-                <p className="text-xs font-semibold mb-1.5" style={{ color: '#1C2B90' }}>Link listo — mandáselo al evaluador</p>
-                <div className="flex items-center gap-2">
+              <div className="rounded-xl p-3 space-y-2.5" style={{ backgroundColor: '#EDEFFD', border: '1px solid #BBC5F7' }}>
+                <p className="text-xs font-semibold" style={{ color: '#1C2B90' }}>Link listo — compartí con el evaluador</p>
+                {/* Link + copiar */}
+                <div className="flex items-center gap-2 bg-white rounded-lg px-2.5 py-1.5" style={{ border: '1px solid #BBC5F7' }}>
                   <p className="text-xs truncate flex-1 font-mono" style={{ color: '#3350D0' }}>{tokenUrl}</p>
                   <button onClick={copiarUrl}
-                    className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1.5 rounded-lg transition-all flex-shrink-0"
+                    className="flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-md transition-all flex-shrink-0"
                     style={{ backgroundColor: copiado ? '#16a34a' : '#3350D0', color: 'white' }}>
-                    {copiado ? <><Check size={11} /> Copiado</> : <><Copy size={11} /> Copiar</>}
+                    {copiado ? <><Check size={10} /> Copiado</> : <><Copy size={10} /> Copiar</>}
                   </button>
                 </div>
-                <p className="text-xs mt-1.5" style={{ color: '#8899EE' }}>Vence en 7 días · Un solo uso</p>
+                {/* Compartir directo */}
+                <div className="flex gap-2">
+                  <a
+                    href={`https://wa.me/?text=${encodeURIComponent('Hola! Te pido que valides uno de mis objetivos profesionales en TRAZA. Solo toma 2 minutos: ' + tokenUrl)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold py-1.5 rounded-lg text-white transition-opacity hover:opacity-90"
+                    style={{ backgroundColor: '#25D366' }}
+                  >
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
+                      <path d="M12 0C5.373 0 0 5.373 0 12c0 2.134.558 4.133 1.534 5.867L0 24l6.336-1.517A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.893 0-3.667-.523-5.18-1.433l-.372-.22-3.761.9.944-3.658-.242-.388A9.944 9.944 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/>
+                    </svg>
+                    WhatsApp
+                  </a>
+                  <a
+                    href={`mailto:?subject=${encodeURIComponent('Te pido una validación profesional')}&body=${encodeURIComponent('Hola,\n\nTe pido que valides uno de mis objetivos profesionales en TRAZA.\nPodés hacerlo desde este link (tarda menos de 2 minutos):\n\n' + tokenUrl + '\n\n¡Muchas gracias!')}`}
+                    className="flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold py-1.5 rounded-lg text-white transition-opacity hover:opacity-90"
+                    style={{ backgroundColor: '#3350D0' }}
+                  >
+                    <Mail size={11} />
+                    Email
+                  </a>
+                </div>
+                <p className="text-xs" style={{ color: '#8899EE' }}>Vence en 7 días · Un solo uso</p>
               </div>
             )}
 
