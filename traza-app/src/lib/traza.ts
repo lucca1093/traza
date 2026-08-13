@@ -94,13 +94,16 @@ export function calcularIndiceTraza(objetivos: Objetivo[], avances: any[] = [], 
 
   // ── Módulo B: Cumplimiento (0–100) — peso 25% ─────────────
   const hoy = new Date()
-  const vencidos = objetivos.filter(o =>
-    !(o as any).es_continuo && o.fecha_limite && new Date(o.fecha_limite) < hoy
-  )
-  let moduloB = 75
+  const conFecha = objetivos.filter(o => !(o as any).es_continuo && o.fecha_limite)
+  const vencidos = conFecha.filter(o => new Date(o.fecha_limite!) < hoy)
+  let moduloB = 75 // default: sin objetivos con fecha (sin datos suficientes)
   if (vencidos.length > 0) {
+    // Hay vencidos: ratio de completados sobre el total vencido
     const completadosVencidos = vencidos.filter(o => o.estado === 'Completado').length
     moduloB = Math.round((completadosVencidos / vencidos.length) * 100)
+  } else if (conFecha.length > 0) {
+    // Tiene fechas asignadas pero ninguna venció todavía → todo en plazo → 100
+    moduloB = 100
   }
 
   // ── Módulo C: Proactividad — regularidad de avances (0–100) — peso 20% ──

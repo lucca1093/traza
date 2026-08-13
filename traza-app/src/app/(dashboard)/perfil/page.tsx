@@ -771,9 +771,9 @@ export default function PerfilPage() {
             dato: vencidos.length === 0
               ? (data.objetivos.filter(o => o.fecha_limite).length === 0
                   ? 'Todavía no tenés objetivos con fecha de vencimiento asignada'
-                  : 'Todos tus objetivos con fecha están dentro del plazo — sin vencimientos incumplidos')
-              : `Completaste ${completadosVencidos} de ${vencidos.length} objetivo${vencidos.length !== 1 ? 's' : ''} que ya vencieron${vencidos.length - completadosVencidos > 0 ? ` · quedan ${vencidos.length - completadosVencidos} sin completar` : ''}`,
-            motivo: 'Pesa 25% del total. Mide si cerrás lo que prometés en el tiempo acordado. Cada objetivo vencido sin completar reduce directamente este puntaje.',
+                  : 'Todos tus objetivos están dentro del plazo — ninguno venció sin completar')
+              : `Completaste ${completadosVencidos} de ${vencidos.length} objetivo${vencidos.length !== 1 ? 's' : ''} que ya vencieron${vencidos.length - completadosVencidos > 0 ? ` · ${vencidos.length - completadosVencidos} sin completar` : ' · todo en fecha'}`,
+            motivo: 'Pesa 25% del total. Si tenés fechas asignadas y ninguna venció, el módulo es 100. Si algún objetivo vence sin completarse, baja proporcionalmente. Sin fechas asignadas, queda en 75 como valor neutro.',
           },
           {
             letra: 'C',
@@ -791,14 +791,12 @@ export default function PerfilPage() {
             peso: '10%',
             valor: indice.alineacion,
             dato: esInd
-              ? (conAmbos === 0
-                  ? 'Autoevaluá tus objetivos completados para que este módulo empiece a crecer'
-                  : `${conAmbos} objetivo${conAmbos !== 1 ? 's' : ''} autoevaluado${conAmbos !== 1 ? 's' : ''} — puntaje base ${indice.alineacion}/100 (sin supervisor para comparar, es una referencia neutral)`)
+              ? `75/100 fijo — este módulo mide la diferencia entre tu autoevaluación y la de tu supervisor. Como no tenés supervisor, el sistema te asigna 75 por defecto y no cambia. Tu autoevaluación impacta en el Módulo A, no aquí.`
               : (conAmbos === 0
                   ? 'Sin datos todavía — completá la autoevaluación en objetivos que ya tengan validación del manager'
                   : `${conAmbos} objetivo${conAmbos !== 1 ? 's' : ''} con tu autoevaluación y la validación del manager — cuanto más coinciden, mayor es el puntaje`),
             motivo: esInd
-              ? 'Pesa 10%. Para profesionales independientes mide la coherencia entre lo que planificás y lo que efectivamente lográs según tu propia evaluación.'
+              ? 'Pesa 10%. Solo se puede mover si sumás validaciones externas de terceros que comparen con tu autoevaluación. Sin eso, queda en 75.'
               : 'Pesa 10%. Mide si tu percepción de tu trabajo coincide con la de tu manager. Alta alineación indica comunicación fluida y expectativas bien calibradas.',
           },
           {
