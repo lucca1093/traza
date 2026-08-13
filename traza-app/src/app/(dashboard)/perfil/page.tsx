@@ -719,19 +719,30 @@ export default function PerfilPage() {
       {/* Modal info Índice TRAZA */}
       {showInfo && (() => {
         const hoy = new Date()
-        const vencidos = data.objetivos.filter(o => !(o as any).es_continuo && o.fecha_limite && new Date(o.fecha_limite) < hoy)
-        const completadosVencidos = vencidos.filter(o => o.estado === 'Completado').length
+        // Módulo A — para empresa: validaciones de supervisor; para independientes: autoevaluaciones
+        const conAutoeval = data.objetivos.filter(o => (o as any).autoevaluacion)
+        const autoevalPos = conAutoeval.filter(o => ['De acuerdo', 'Muy bien', 'Superado', 'Bien'].includes((o as any).autoevaluacion)).length
         const conValidacion = data.objetivos.filter(o => o.validacion)
         const positivos = conValidacion.filter(o => o.validacion === 'De acuerdo').length
         const parciales = conValidacion.filter(o => o.validacion === 'Parcialmente de acuerdo').length
         const negativos = conValidacion.filter(o => o.validacion === 'En desacuerdo').length
+        // Módulo B — cumplimiento
+        const vencidos = data.objetivos.filter(o => !(o as any).es_continuo && o.fecha_limite && new Date(o.fecha_limite) < hoy)
+        const completadosVencidos = vencidos.filter(o => o.estado === 'Completado').length
+        // Módulo C — regularidad
         const semanas = new Set(data.avances.map(a => {
           const d = new Date(a.creado_en)
           const ys = new Date(d.getFullYear(), 0, 1)
           return `${d.getFullYear()}-W${Math.floor((d.getTime() - ys.getTime()) / (7 * 86400000))}`
         }))
-        const conAmbos = data.objetivos.filter(o => o.validacion && (o as any).autoevaluacion).length
+        // Módulo D — alineación
+        const conAmbos = esInd
+          ? conAutoeval.length  // para independientes cualquier autoevaluación cuenta
+          : data.objetivos.filter(o => o.validacion && (o as any).autoevaluacion).length
+        // Módulo E — proactividad
         const personales = data.objetivos.filter(o => o.tipo === 'Personal').length
+        const totalObjs = data.objetivos.length
+        const pctPersonales = totalObjs > 0 ? Math.round(personales / totalObjs * 100) : 0
 
         const valColor = (v: number) => v >= 75 ? '#16a34a' : v >= 50 ? '#d97706' : '#dc2626'
 
@@ -742,13 +753,15 @@ export default function PerfilPage() {
             peso: '35%',
             valor: indice.moduloA,
             dato: esInd
-              ? `${conValidacion.length > 0 ? `${positivos} autoevaluación${positivos !== 1 ? 'es' : ''} positiva${positivos !== 1 ? 's' : ''}` : 'Sin objetivos autoevaluados todavía'}`
-              : conValidacion.length === 0
-                ? 'Todavía no tenés objetivos validados por tu manager'
-                : `${positivos} positiva${positivos !== 1 ? 's' : ''}${parciales ? ` · ${parciales} parcial${parciales !== 1 ? 'es' : ''}` : ''}${negativos ? ` · ${negativos} negativa${negativos !== 1 ? 's' : ''}` : ''} sobre ${conValidacion.length} evaluado${conValidacion.length !== 1 ? 's' : ''}`,
+              ? (conAutoeval.length === 0
+                  ? 'Todavía no autoevaluaste ningún objetivo — completá uno y puntuate vos mismo'
+                  : `${conAutoeval.length} de ${totalObjs} objetivo${totalObjs !== 1 ? 's' : ''} con autoevaluación · ${autoevalPos} con calificación positiva`)
+              : (conValidacion.length === 0
+                  ? 'Todavía no tenés objetivos validados por tu manager'
+                  : `${positivos} positiva${positivos !== 1 ? 's' : ''}${parciales ? ` · ${parciales} parcial${parciales !== 1 ? 'es' : ''}` : ''}${negativos ? ` · ${negativos} negativa${negativos !== 1 ? 's' : ''}` : ''} sobre ${conValidacion.length} objetivo${conValidacion.length !== 1 ? 's' : ''} evaluado${conValidacion.length !== 1 ? 's' : ''}`),
             motivo: esInd
-              ? 'Pesa 35% porque la calidad de tu autoevaluación es el indicador principal de madurez profesional cuando trabajás de forma independiente.'
-              : 'Pesa 35% porque es la evidencia más objetiva de impacto real — alguien externo a vos confirma que tus resultados son sólidos.',
+              ? 'Pesa 35% del total. Como trabajás de forma independiente, tu autoevaluación es el principal indicador de calidad — por eso tiene el mayor peso del índice.'
+              : 'Pesa 35% del total — es la dimensión más importante porque la validación de tu manager es la evidencia más objetiva de que tus resultados tienen impacto real.',
           },
           {
             letra: 'B',
@@ -756,9 +769,11 @@ export default function PerfilPage() {
             peso: '25%',
             valor: indice.moduloB,
             dato: vencidos.length === 0
-              ? 'Todos tus objetivos están dentro del plazo'
-              : `Completaste ${completadosVencidos} de ${vencidos.length} objetivo${vencidos.length !== 1 ? 's' : ''} vencido${vencidos.length !== 1 ? 's' : ''}`,
-            motivo: 'Pesa 25% porque cumplir en fecha es la señal más directa de confiabilidad. Cada objetivo vencido sin completar baja este módulo.',
+              ? (data.objetivos.filter(o => o.fecha_limite).length === 0
+                  ? 'Todavía no tenés objetivos con fecha de vencimiento asignada'
+                  : 'Todos tus objetivos con fecha están dentro del plazo — sin vencimientos incumplidos')
+              : `Completaste ${completadosVencidos} de ${vencidos.length} objetivo${vencidos.length !== 1 ? 's' : ''} que ya vencieron${vencidos.length - completadosVencidos > 0 ? ` · quedan ${vencidos.length - completadosVencidos} sin completar` : ''}`,
+            motivo: 'Pesa 25% del total. Mide si cerrás lo que prometés en el tiempo acordado. Cada objetivo vencido sin completar reduce directamente este puntaje.',
           },
           {
             letra: 'C',
@@ -766,33 +781,39 @@ export default function PerfilPage() {
             peso: '20%',
             valor: indice.moduloC,
             dato: data.avances.length === 0
-              ? 'Todavía no registraste avances'
+              ? 'Todavía no registraste ningún avance — subí el primero en Mi Trabajo'
               : `${semanas.size} semana${semanas.size !== 1 ? 's' : ''} activa${semanas.size !== 1 ? 's' : ''} · ${data.avances.length} avance${data.avances.length !== 1 ? 's' : ''} registrado${data.avances.length !== 1 ? 's' : ''}`,
-            motivo: 'Pesa 20% porque la constancia semanal demuestra gestión activa del trabajo, no solo resultados finales. Registrar avances de forma regular también le da visibilidad a tu progreso.',
+            motivo: 'Pesa 20% del total. La constancia semanal demuestra que gestionás tu trabajo de forma activa durante el período, no solo al cierre. Más semanas con avances = mayor puntaje.',
           },
           {
             letra: 'D',
             nombre: 'Alineación',
             peso: '10%',
             valor: indice.alineacion,
-            dato: conAmbos === 0
-              ? 'Sin datos suficientes — necesitás objetivos con autoevaluación y validación'
-              : `${conAmbos} objetivo${conAmbos !== 1 ? 's' : ''} con autoevaluación propia y validación${esInd ? '' : ' del manager'}`,
+            dato: esInd
+              ? (conAmbos === 0
+                  ? 'Autoevaluá tus objetivos completados para que este módulo empiece a crecer'
+                  : `${conAmbos} objetivo${conAmbos !== 1 ? 's' : ''} autoevaluado${conAmbos !== 1 ? 's' : ''} — puntaje base ${indice.alineacion}/100 (sin supervisor para comparar, es una referencia neutral)`)
+              : (conAmbos === 0
+                  ? 'Sin datos todavía — completá la autoevaluación en objetivos que ya tengan validación del manager'
+                  : `${conAmbos} objetivo${conAmbos !== 1 ? 's' : ''} con tu autoevaluación y la validación del manager — cuanto más coinciden, mayor es el puntaje`),
             motivo: esInd
-              ? 'Pesa 10% y mide si tus metas planificadas coinciden con lo que efectivamente lograste.'
-              : 'Pesa 10% y mide si tu percepción de tu trabajo coincide con la de tu manager. Alta alineación indica comunicación fluida y expectativas bien calibradas.',
+              ? 'Pesa 10%. Para profesionales independientes mide la coherencia entre lo que planificás y lo que efectivamente lográs según tu propia evaluación.'
+              : 'Pesa 10%. Mide si tu percepción de tu trabajo coincide con la de tu manager. Alta alineación indica comunicación fluida y expectativas bien calibradas.',
           },
           {
             letra: 'E',
             nombre: 'Proactividad',
             peso: '10%',
             valor: indice.proactividad,
-            dato: data.objetivos.length === 0
+            dato: totalObjs === 0
               ? 'Sin objetivos cargados todavía'
               : personales === 0
-                ? `0 de ${data.objetivos.length} objetivos son de iniciativa propia`
-                : `${personales} de ${data.objetivos.length} objetivo${data.objetivos.length !== 1 ? 's' : ''} son propios (necesitás 40%+ para score 100)`,
-            motivo: 'Pesa 10% porque tomar iniciativa más allá de lo asignado indica motivación intrínseca. Los objetivos de tipo "Personal" suman aquí.',
+                ? `Todos tus ${totalObjs} objetivos fueron asignados — cargá al menos uno propio para sumar puntos aquí`
+                : pctPersonales >= 40
+                  ? `${personales} de ${totalObjs} objetivo${totalObjs !== 1 ? 's' : ''} son de iniciativa propia (${pctPersonales}%) — superás el umbral del 40%, módulo al máximo`
+                  : `${personales} de ${totalObjs} objetivo${totalObjs !== 1 ? 's' : ''} son de iniciativa propia (${pctPersonales}%) — alcanzando el 40% llegás a puntaje máximo en este módulo`,
+            motivo: 'Pesa 10%. Mide qué proporción de tus objetivos los elegiste vos mismo vs. los que te asignaron. Con 40% o más de objetivos propios, este módulo llega a 100.',
           },
         ]
 

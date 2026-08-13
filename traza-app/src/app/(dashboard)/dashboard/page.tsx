@@ -140,41 +140,27 @@ export default async function DashboardPage() {
 
         {/* ── Score personal ────────────────────────────────── */}
         <div id="demo-indice-card" className="traza-card overflow-hidden">
-          <CardHeader
-            title="Índice Traza"
-            sub="Tu desempeño profesional verificado"
-            right={
-              <span
-                className="text-xs font-bold px-3 py-1 rounded-full"
-                style={{ backgroundColor: '#EEF2FF', color: '#3350D0' }}
-              >
-                {indice.badge}
-              </span>
-            }
-          />
-          <div className="px-6 py-6 flex items-center gap-8">
+          <div className="px-6 py-6 flex items-center gap-6">
             <div style={{ textAlign: 'center', flexShrink: 0 }}>
-              <p style={{ fontSize: 48, fontWeight: 900, color: sinDatos ? '#CBD5E1' : ScoreColor(indice.score), lineHeight: 1 }}>
+              <p style={{ fontSize: 64, fontWeight: 900, color: sinDatos ? '#CBD5E1' : ScoreColor(indice.score), lineHeight: 1, letterSpacing: '-0.04em' }}>
                 {sinDatos ? '—' : indice.score}
               </p>
-              <p className="text-xs mt-1" style={{ color: '#94A3B8' }}>de 100</p>
+              <p className="text-xs mt-1" style={{ color: '#94A3B8' }}>Índice Traza</p>
             </div>
-            <div className="flex-1 space-y-3">
+            <div className="flex-1">
               {sinDatos ? (
-                <p className="text-sm" style={{ color: '#94A3B8' }}>
-                  Cargá tu primer objetivo para empezar a construir tu índice.
+                <p className="text-sm leading-relaxed" style={{ color: '#94A3B8' }}>
+                  Cargá tu primer objetivo para empezar a construir tu Índice Traza.
                 </p>
               ) : (
                 <>
-                  <div className="flex items-center justify-between text-xs" style={{ color: '#64748B' }}>
-                    <span>Objetivos totales</span><span className="font-bold" style={{ color: '#0F172A' }}>{indice.total}</span>
-                  </div>
-                  <div className="flex items-center justify-between text-xs" style={{ color: '#64748B' }}>
-                    <span>Completados</span><span className="font-bold" style={{ color: '#0F172A' }}>{indice.completados}</span>
-                  </div>
-                  <div className="flex items-center justify-between text-xs" style={{ color: '#64748B' }}>
-                    <span>Validados positivos</span><span className="font-bold" style={{ color: '#16a34a' }}>{indice.positivos}</span>
-                  </div>
+                  <p className="text-sm font-semibold mb-1" style={{ color: '#0F172A' }}>
+                    Nivel {indice.badge}
+                  </p>
+                  <p className="text-xs leading-relaxed" style={{ color: '#64748B' }}>
+                    {indice.completados} de {indice.total} objetivo{indice.total !== 1 ? 's' : ''} completado{indice.completados !== 1 ? 's' : ''}
+                    {indice.cumplimiento > 0 ? ` · ${indice.cumplimiento}% de cumplimiento` : ''}
+                  </p>
                 </>
               )}
             </div>
