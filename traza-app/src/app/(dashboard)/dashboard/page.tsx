@@ -596,43 +596,117 @@ export default async function DashboardPage() {
     .gte('fecha', hace12semanas)
     .order('fecha', { ascending: true })
 
-  function explicarDimension(key: 'A' | 'B' | 'C' | 'D' | 'E', val: number): string {
+  function explicarDimension(key: 'A' | 'B' | 'C' | 'D' | 'E', val: number): {
+    dato: string
+    motivo: string
+    tip?: string
+  } {
+    const hoy = new Date()
+
     if (key === 'A') {
-      if (objs.filter(o => o.validacion).length === 0) return 'Todavía no tenés objetivos validados por el manager'
-      if (val >= 80) return 'Tus objetivos tienen validaciones positivas del manager'
-      if (val >= 50) return 'Algunos objetivos tienen validaciones parciales o negativas'
-      return 'Varios objetivos tienen validaciones negativas del manager'
+      const conValidacion = objs.filter(o => o.validacion)
+      const positivos = conValidacion.filter(o => o.validacion === 'De acuerdo').length
+      const parciales = conValidacion.filter(o => o.validacion === 'Parcialmente de acuerdo').length
+      const negativos = conValidacion.filter(o => o.validacion === 'En desacuerdo').length
+      let dato: string
+      if (conValidacion.length === 0) {
+        dato = 'Todavía no tenés objetivos con validación del manager'
+      } else {
+        dato = `${positivos} positiva${positivos !== 1 ? 's' : ''}`
+        if (parciales > 0) dato += ` · ${parciales} parcial${parciales !== 1 ? 'es' : ''}`
+        if (negativos > 0) dato += ` · ${negativos} negativa${negativos !== 1 ? 's' : ''}`
+        dato += ` sobre ${conValidacion.length} objetivo${conValidacion.length !== 1 ? 's' : ''} evaluado${conValidacion.length !== 1 ? 's' : ''}`
+      }
+      return {
+        dato,
+        motivo: 'Es el peso más alto del Índice (35%) porque la validación de tu manager es la evidencia más objetiva de que tus resultados tienen impacto real. Sin validación externa, el score no puede ser alto.',
+        tip: val < 75 ? 'Pedí a tu manager que valide los objetivos que ya completaste. Cada validación positiva sube considerablemente este módulo.' : undefined,
+      }
     }
+
     if (key === 'B') {
-      const hoy = new Date()
       const vencidos = objs.filter(o => !(o as any).es_continuo && o.fecha_limite && new Date(o.fecha_limite) < hoy)
-      if (vencidos.length === 0) return 'Sin objetivos vencidos — buen cumplimiento de fechas'
-      if (val >= 80) return 'Completás la mayoría de tus objetivos antes del vencimiento'
-      if (val >= 50) return 'Algunos objetivos vencieron sin completarse'
-      return 'Varios objetivos vencieron sin completarse'
+      const completadosVencidos = vencidos.filter(o => o.estado === 'Completado').length
+      const totalConFecha = objs.filter(o => o.fecha_limite).length
+      let dato: string
+      if (vencidos.length === 0 && totalConFecha === 0) {
+        dato = 'Todavía no tenés objetivos con fecha de vencimiento asignada'
+      } else if (vencidos.length === 0) {
+        dato = `Todos tus ${totalConFecha} objetivo${totalConFecha !== 1 ? 's' : ''} con fecha todavía están dentro del plazo`
+      } else {
+        dato = `Completaste ${completadosVencidos} de ${vencidos.length} objetivo${vencidos.length !== 1 ? 's' : ''} que ya vencieron${vencidos.length - completadosVencidos > 0 ? ` · ${vencidos.length - completadosVencidos} sin completar` : ''}`
+      }
+      return {
+        dato,
+        motivo: 'Vale el 25% del Índice porque cumplir en fecha es una señal directa de confiabilidad. Un profesional que cierra lo que prometió, cuando lo prometió, genera más confianza que uno que entrega tarde.',
+        tip: val < 75 ? 'Actualizá el estado de los objetivos que ya terminaste. Si un objetivo venció y lo completaste, marcalo como "Completado" en Mi Trabajo.' : undefined,
+      }
     }
+
     if (key === 'C') {
-      if (!todosAvances?.length) return 'No registraste avances todavía'
-      const hoy = new Date()
-      const ultimoAvance = todosAvances[todosAvances.length - 1]
+      const avs = todosAvances ?? []
+      const semanas = new Set(avs.map(a => {
+        const d = new Date(a.creado_en)
+        const ys = new Date(d.getFullYear(), 0, 1)
+        return `${d.getFullYear()}-W${Math.floor((d.getTime() - ys.getTime()) / (7 * 86400000))}`
+      }))
+      const semanasActivas = semanas.size
+      const ultimoAvance = avs.length > 0 ? avs[avs.length - 1] : null
       const diasSinActividad = ultimoAvance
         ? Math.floor((hoy.getTime() - new Date(ultimoAvance.creado_en).getTime()) / (1000 * 60 * 60 * 24))
-        : 999
-      if (diasSinActividad > 14) return `Hace ${diasSinActividad} días que no registrás avances`
-      if (val >= 80) return 'Registrás avances de forma consistente semana a semana'
-      if (val >= 50) return 'Tu regularidad en el registro de avances es moderada'
-      return 'La regularidad de tus avances puede mejorar'
+        : null
+      let dato: string
+      if (avs.length === 0) {
+        dato = 'Todavía no registraste ningún avance en tus objetivos'
+      } else {
+        dato = `${semanasActivas} semana${semanasActivas !== 1 ? 's' : ''} activa${semanasActivas !== 1 ? 's' : ''} · ${avs.length} avance${avs.length !== 1 ? 's' : ''} registrado${avs.length !== 1 ? 's' : ''}`
+        if (diasSinActividad === null) { /* nada */ }
+        else if (diasSinActividad === 0) dato += ' · último avance hoy'
+        else if (diasSinActividad === 1) dato += ' · último avance ayer'
+        else dato += ` · hace ${diasSinActividad} días sin registrar`
+      }
+      return {
+        dato,
+        motivo: 'Vale el 20% del Índice porque la constancia demuestra que gestionás tu trabajo activamente y no solo al final del período. Subir avances regularmente también le da visibilidad a tu manager.',
+        tip: val < 75 ? 'Intentá subir al menos un avance por semana en cada objetivo activo. No tiene que ser extenso — alcanza con una línea de progreso.' : undefined,
+      }
     }
+
     if (key === 'D') {
-      if (objs.filter(o => o.validacion && (o as any).autoevaluacion).length === 0) return 'Sin suficientes datos para medir alineación'
-      if (val >= 80) return 'Tu autoevaluación coincide con la validación del manager'
-      if (val >= 50) return 'Hay algunas diferencias entre tu autoevaluación y la del manager'
-      return 'Hay discrepancias importantes entre tu autoevaluación y la del manager'
+      const conAmbos = objs.filter(o => o.validacion && (o as any).autoevaluacion).length
+      const conSoloValidacion = objs.filter(o => o.validacion && !(o as any).autoevaluacion).length
+      let dato: string
+      if (conAmbos === 0 && conSoloValidacion === 0) {
+        dato = 'Sin datos todavía — necesitás objetivos con autoevaluación y validación del manager'
+      } else if (conAmbos === 0) {
+        dato = `${conSoloValidacion} objetivo${conSoloValidacion !== 1 ? 's' : ''} con validación del manager, pero sin tu autoevaluación completa`
+      } else {
+        dato = `${conAmbos} objetivo${conAmbos !== 1 ? 's' : ''} con autoevaluación propia y validación del manager`
+      }
+      return {
+        dato,
+        motivo: 'Vale el 10% del Índice y mide si tu percepción de tu propio trabajo coincide con la de tu manager. Alta alineación indica comunicación fluida y expectativas bien calibradas — una señal de madurez profesional.',
+        tip: val < 75 ? 'Completá tu autoevaluación en cada objetivo antes de pedir la validación. Si ya hay validación, todavía podés ingresar tu evaluación desde Mi Trabajo.' : undefined,
+      }
     }
-    if (val >= 80) return 'Tu desempeño mejoró respecto al período anterior'
-    if (val >= 55) return 'Tu desempeño se mantuvo estable'
-    if (val <= 35) return 'Tu desempeño bajó respecto al período anterior'
-    return 'Sin suficientes datos para medir tendencia'
+
+    // E — Proactividad
+    const personales = objs.filter(o => o.tipo === 'Personal').length
+    const total = objs.length
+    let dato: string
+    if (total === 0) {
+      dato = 'Todavía no tenés objetivos cargados'
+    } else if (personales === 0) {
+      dato = `0 de ${total} objetivos son de iniciativa propia — todos fueron asignados`
+    } else {
+      const pct = Math.round(personales / total * 100)
+      dato = `${personales} de ${total} objetivo${total !== 1 ? 's' : ''} son propios (${pct}%) · necesitás 40% o más para score 100`
+    }
+    return {
+      dato,
+      motivo: 'Vale el 10% del Índice porque tomar iniciativa más allá de lo asignado indica motivación intrínseca y ambición de crecimiento. Los mejores profesionales no solo ejecutan — también proponen.',
+      tip: val < 75 ? 'Cargá objetivos de tipo "Personal" que elijas vos mismo — formación, proyectos propios, metas de carrera. No necesitan aprobación del manager.' : undefined,
+    }
   }
 
   const dimensiones = [
@@ -760,20 +834,29 @@ export default async function DashboardPage() {
           </div>
         </div>
 
+        {/* ── Qué es el Índice ── */}
+        <div className="px-6 py-4" style={{ borderBottom: '1px solid #F1F5F9', backgroundColor: '#F8FAFC' }}>
+          <p className="text-xs leading-relaxed" style={{ color: '#475569' }}>
+            El <strong style={{ color: '#1C2B90' }}>Índice Traza</strong> mide tu desempeño profesional en 5 dimensiones independientes, cada una con un peso distinto según su relevancia en la evaluación real de carrera. El score va de <strong style={{ color: '#0F172A' }}>0 a 100</strong> y se actualiza automáticamente cada vez que registrás avances, completás objetivos o recibís validaciones.
+          </p>
+        </div>
+
         <div>
           {dimensiones.map(({ key, label, peso, val }) => {
             const { bg, fill } = BarColors(val)
             const color = val >= 75 ? '#16a34a' : val >= 50 ? '#d97706' : '#dc2626'
+            const exp = explicarDimension(key, val)
             return (
               <div
                 key={key}
-                className="px-6 py-4"
-                style={{ borderBottom: '1px solid #F8FAFC' }}
+                className="px-6 py-5"
+                style={{ borderBottom: '1px solid #F1F5F9' }}
               >
+                {/* Barra + score */}
                 <div className="flex items-center gap-4">
-                  <div className="w-32 flex-shrink-0">
+                  <div className="w-36 flex-shrink-0">
                     <p className="text-sm font-semibold" style={{ color: '#0F172A' }}>{label}</p>
-                    <p className="text-xs" style={{ color: '#94A3B8' }}>{peso}% del score</p>
+                    <p className="text-xs" style={{ color: '#94A3B8' }}>{peso}% del score total</p>
                   </div>
                   <div className="flex-1 h-2 rounded-full" style={{ backgroundColor: bg }}>
                     <div
@@ -781,21 +864,33 @@ export default async function DashboardPage() {
                       style={{ width: `${val}%`, backgroundColor: fill }}
                     />
                   </div>
-                  <div className="w-9 text-right flex-shrink-0">
+                  <div className="w-10 text-right flex-shrink-0">
                     <span
                       className="text-sm font-bold tabular-nums"
                       style={{ color }}
                     >
-                      {val}
+                      {val}<span className="text-xs font-normal" style={{ color: '#CBD5E1' }}>/100</span>
                     </span>
                   </div>
                 </div>
-                <p
-                  className="text-xs mt-1.5"
-                  style={{ color: '#94A3B8', paddingLeft: '9rem' }}
-                >
-                  {explicarDimension(key, val)}
-                </p>
+
+                {/* Explicación detallada */}
+                <div className="mt-3 ml-36 pl-4 space-y-1.5" style={{ borderLeft: '2px solid #E2E8F0' }}>
+                  {/* Dato concreto */}
+                  <p className="text-xs font-semibold" style={{ color: '#334155' }}>
+                    {exp.dato}
+                  </p>
+                  {/* Por qué pondera así */}
+                  <p className="text-xs leading-relaxed" style={{ color: '#64748B' }}>
+                    {exp.motivo}
+                  </p>
+                  {/* Tip de mejora (solo si score < 75) */}
+                  {exp.tip && (
+                    <p className="text-xs font-medium" style={{ color: '#3350D0' }}>
+                      → {exp.tip}
+                    </p>
+                  )}
+                </div>
               </div>
             )
           })}
