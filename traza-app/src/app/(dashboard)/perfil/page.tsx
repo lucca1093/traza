@@ -32,7 +32,8 @@ export default function PerfilPage() {
     persona: Persona | null
     objetivos: Objetivo[]
     avances: any[]
-  }>({ persona: null, objetivos: [], avances: [] })
+    validacionesExternas: any[]
+  }>({ persona: null, objetivos: [], avances: [], validacionesExternas: [] })
 
   useEffect(() => {
     // Detectar modo onboarding desde URL sin useSearchParams (evita Suspense)
@@ -81,16 +82,19 @@ export default function PerfilPage() {
       supabase.from('objetivos').select('*').eq('persona_id', personaId).order('created_at', { ascending: false }),
     ])
     const objs = (obs ?? []) as Objetivo[]
-    // Traer avances para calcular índice autónomo
+    // Traer avances y validaciones externas para calcular índice correctamente
     let avances: any[] = []
+    let validacionesExternas: any[] = []
     if (objs.length > 0) {
-      const { data: av } = await supabase
-        .from('objetivo_avances')
-        .select('*')
-        .in('objetivo_id', objs.map(o => o.id))
+      const objIds = objs.map(o => o.id)
+      const [{ data: av }, { data: valExt }] = await Promise.all([
+        supabase.from('objetivo_avances').select('*').in('objetivo_id', objIds),
+        supabase.from('validaciones_externas').select('*').in('objetivo_id', objIds).eq('confirmado', true),
+      ])
       avances = av ?? []
+      validacionesExternas = valExt ?? []
     }
-    setData({ persona: persona ?? null, objetivos: objs, avances })
+    setData({ persona: persona ?? null, objetivos: objs, avances, validacionesExternas })
     // Precargar datos de empresa actual si existen
     if (persona) {
       if ((persona as any).empresa_actual_nombre) setEmpNombre((persona as any).empresa_actual_nombre)
@@ -198,7 +202,8 @@ export default function PerfilPage() {
 
   const { persona, objetivos } = data
   const supVerificado = (persona as any)?.supervisor_verificado ?? true
-  const indice = calcularIndiceTraza(data.objetivos, data.avances, [], supVerificado)
+  const esInd = profile?.rol === 'individuo' || !profile?.empresa_id
+  const indice = calcularIndiceTraza(data.objetivos, data.avances, data.validacionesExternas, supVerificado, esInd)
 
   const scoreColor = indice.score >= 85 ? '#16a34a' : indice.score >= 65 ? '#3350D0' : indice.score >= 40 ? '#d97706' : '#9ca3af'
   const scoreBg    = indice.score >= 85 ? '#dcfce7' : indice.score >= 65 ? '#EDEFFD' : indice.score >= 40 ? '#fef3c7' : '#F1F5F9'
@@ -339,7 +344,7 @@ export default function PerfilPage() {
           <div className="traza-card p-6">
             <div className="flex items-center justify-between mb-5">
               <div className="flex items-center gap-1.5">
-                <h3 className="font-semibold text-gray-900">Índice TRAZA · empresa actual</h3>
+                <h3 className="font-semibold text-gray-900">Índice TRAZA · {esInd ? 'actual' : 'empresa actual'}</h3>
                 <button
                   onClick={() => setShowInfo(true)}
                   className="p-0.5 rounded-full text-gray-400 hover:text-gray-600 transition-colors"
@@ -359,7 +364,7 @@ export default function PerfilPage() {
               <span className="text-5xl font-bold leading-none" style={{ color: scoreColor }}>{indice.score}</span>
               <div className="pb-1">
                 <span className="text-sm text-gray-400">/100</span>
-                <p className="text-xs text-gray-400 mt-0.5">Empresa actual</p>
+                <p className="text-xs text-gray-400 mt-0.5">{esInd ? 'Actual' : 'Empresa actual'}</p>
               </div>
             </div>
 
@@ -712,52 +717,154 @@ export default function PerfilPage() {
         </>
       )}
       {/* Modal info Índice TRAZA */}
-      {showInfo && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          style={{ backgroundColor: 'rgba(0,0,0,0.4)' }}
-          onClick={() => setShowInfo(false)}>
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 space-y-4"
-            onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between">
-              <h3 className="font-bold text-gray-900">¿Cómo se calcula?</h3>
-              <button onClick={() => setShowInfo(false)} className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors">
-                <X size={16} className="text-gray-500" />
-              </button>
-            </div>
-            <p className="text-sm text-gray-500 leading-relaxed">
-              El Índice Traza es un score de 0 a 100 que refleja tu desempeño profesional en base a 5 dimensiones.
-            </p>
-            <div className="space-y-3">
-              {[
-                { letra: 'A', nombre: 'Resultados validados', peso: '35%', desc: 'Promedio de las validaciones de tus objetivos por supervisor y admin.' },
-                { letra: 'B', nombre: 'Cumplimiento',         peso: '25%', desc: 'Cuántos de tus objetivos con fecha de entrega fueron completados.' },
-                { letra: 'C', nombre: 'Proactividad',         peso: '20%', desc: 'Regularidad con la que registrás avances semana a semana.' },
-                { letra: 'D', nombre: 'Alineación',           peso: '10%', desc: 'Qué tan cerca está tu autoevaluación de la validación del supervisor.' },
-                { letra: 'E', nombre: 'Evolución',            peso: '10%', desc: 'Si tu score mejoró o bajó respecto al período anterior.' },
-              ].map(d => (
-                <div key={d.letra} className="flex gap-3">
-                  <div className="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0 text-xs font-bold text-white"
-                    style={{ backgroundColor: '#3350D0' }}>
-                    {d.letra}
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-gray-800">{d.nombre} <span className="text-gray-400 font-normal">· {d.peso}</span></p>
-                    <p className="text-xs text-gray-500 leading-relaxed">{d.desc}</p>
-                  </div>
+      {showInfo && (() => {
+        const hoy = new Date()
+        const vencidos = data.objetivos.filter(o => !(o as any).es_continuo && o.fecha_limite && new Date(o.fecha_limite) < hoy)
+        const completadosVencidos = vencidos.filter(o => o.estado === 'Completado').length
+        const conValidacion = data.objetivos.filter(o => o.validacion)
+        const positivos = conValidacion.filter(o => o.validacion === 'De acuerdo').length
+        const parciales = conValidacion.filter(o => o.validacion === 'Parcialmente de acuerdo').length
+        const negativos = conValidacion.filter(o => o.validacion === 'En desacuerdo').length
+        const semanas = new Set(data.avances.map(a => {
+          const d = new Date(a.creado_en)
+          const ys = new Date(d.getFullYear(), 0, 1)
+          return `${d.getFullYear()}-W${Math.floor((d.getTime() - ys.getTime()) / (7 * 86400000))}`
+        }))
+        const conAmbos = data.objetivos.filter(o => o.validacion && (o as any).autoevaluacion).length
+        const personales = data.objetivos.filter(o => o.tipo === 'Personal').length
+
+        const valColor = (v: number) => v >= 75 ? '#16a34a' : v >= 50 ? '#d97706' : '#dc2626'
+
+        const dims = [
+          {
+            letra: 'A',
+            nombre: esInd ? 'Autoevaluación' : 'Validación de superiores',
+            peso: '35%',
+            valor: indice.moduloA,
+            dato: esInd
+              ? `${conValidacion.length > 0 ? `${positivos} autoevaluación${positivos !== 1 ? 'es' : ''} positiva${positivos !== 1 ? 's' : ''}` : 'Sin objetivos autoevaluados todavía'}`
+              : conValidacion.length === 0
+                ? 'Todavía no tenés objetivos validados por tu manager'
+                : `${positivos} positiva${positivos !== 1 ? 's' : ''}${parciales ? ` · ${parciales} parcial${parciales !== 1 ? 'es' : ''}` : ''}${negativos ? ` · ${negativos} negativa${negativos !== 1 ? 's' : ''}` : ''} sobre ${conValidacion.length} evaluado${conValidacion.length !== 1 ? 's' : ''}`,
+            motivo: esInd
+              ? 'Pesa 35% porque la calidad de tu autoevaluación es el indicador principal de madurez profesional cuando trabajás de forma independiente.'
+              : 'Pesa 35% porque es la evidencia más objetiva de impacto real — alguien externo a vos confirma que tus resultados son sólidos.',
+          },
+          {
+            letra: 'B',
+            nombre: 'Cumplimiento',
+            peso: '25%',
+            valor: indice.moduloB,
+            dato: vencidos.length === 0
+              ? 'Todos tus objetivos están dentro del plazo'
+              : `Completaste ${completadosVencidos} de ${vencidos.length} objetivo${vencidos.length !== 1 ? 's' : ''} vencido${vencidos.length !== 1 ? 's' : ''}`,
+            motivo: 'Pesa 25% porque cumplir en fecha es la señal más directa de confiabilidad. Cada objetivo vencido sin completar baja este módulo.',
+          },
+          {
+            letra: 'C',
+            nombre: 'Regularidad',
+            peso: '20%',
+            valor: indice.moduloC,
+            dato: data.avances.length === 0
+              ? 'Todavía no registraste avances'
+              : `${semanas.size} semana${semanas.size !== 1 ? 's' : ''} activa${semanas.size !== 1 ? 's' : ''} · ${data.avances.length} avance${data.avances.length !== 1 ? 's' : ''} registrado${data.avances.length !== 1 ? 's' : ''}`,
+            motivo: 'Pesa 20% porque la constancia semanal demuestra gestión activa del trabajo, no solo resultados finales. Registrar avances de forma regular también le da visibilidad a tu progreso.',
+          },
+          {
+            letra: 'D',
+            nombre: 'Alineación',
+            peso: '10%',
+            valor: indice.alineacion,
+            dato: conAmbos === 0
+              ? 'Sin datos suficientes — necesitás objetivos con autoevaluación y validación'
+              : `${conAmbos} objetivo${conAmbos !== 1 ? 's' : ''} con autoevaluación propia y validación${esInd ? '' : ' del manager'}`,
+            motivo: esInd
+              ? 'Pesa 10% y mide si tus metas planificadas coinciden con lo que efectivamente lograste.'
+              : 'Pesa 10% y mide si tu percepción de tu trabajo coincide con la de tu manager. Alta alineación indica comunicación fluida y expectativas bien calibradas.',
+          },
+          {
+            letra: 'E',
+            nombre: 'Proactividad',
+            peso: '10%',
+            valor: indice.proactividad,
+            dato: data.objetivos.length === 0
+              ? 'Sin objetivos cargados todavía'
+              : personales === 0
+                ? `0 de ${data.objetivos.length} objetivos son de iniciativa propia`
+                : `${personales} de ${data.objetivos.length} objetivo${data.objetivos.length !== 1 ? 's' : ''} son propios (necesitás 40%+ para score 100)`,
+            motivo: 'Pesa 10% porque tomar iniciativa más allá de lo asignado indica motivación intrínseca. Los objetivos de tipo "Personal" suman aquí.',
+          },
+        ]
+
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            style={{ backgroundColor: 'rgba(0,0,0,0.45)' }}
+            onClick={() => setShowInfo(false)}>
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden"
+              onClick={e => e.stopPropagation()}>
+
+              {/* Header */}
+              <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: '1px solid #F1F5F9' }}>
+                <div>
+                  <h3 className="font-bold text-gray-900">¿Cómo se calcula el Índice?</h3>
+                  <p className="text-xs text-gray-400 mt-0.5">Score de 0 a 100 · actualizado automáticamente</p>
                 </div>
-              ))}
-            </div>
-            <div className="rounded-xl bg-gray-50 px-4 py-3">
-              <p className="text-xs text-gray-500 leading-relaxed">
-                Los niveles son: <span className="font-semibold text-gray-700">Élite</span> (85+),{' '}
-                <span className="font-semibold text-gray-700">Avanzado</span> (65–84),{' '}
-                <span className="font-semibold text-gray-700">En desarrollo</span> (40–64) e{' '}
-                <span className="font-semibold text-gray-700">Inicial</span> (menos de 40).
-              </p>
+                <button onClick={() => setShowInfo(false)} className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors">
+                  <X size={16} className="text-gray-500" />
+                </button>
+              </div>
+
+              {/* Intro */}
+              <div className="px-6 py-3" style={{ backgroundColor: '#F8FAFC', borderBottom: '1px solid #F1F5F9' }}>
+                <p className="text-xs text-gray-500 leading-relaxed">
+                  El Índice Traza combina 5 dimensiones independientes, cada una con un peso distinto según su relevancia para evaluar desempeño profesional real. Tu score cambia cada vez que completás objetivos, registrás avances o recibís validaciones.
+                </p>
+              </div>
+
+              {/* Dimensiones */}
+              <div className="divide-y divide-gray-50 max-h-96 overflow-y-auto">
+                {dims.map(d => (
+                  <div key={d.letra} className="px-6 py-4">
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0 text-xs font-bold text-white"
+                        style={{ backgroundColor: '#3350D0' }}>
+                        {d.letra}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="text-sm font-semibold text-gray-800">{d.nombre}</p>
+                          <div className="flex items-center gap-1.5 flex-shrink-0">
+                            <span className="text-xs text-gray-400">{d.peso}</span>
+                            <span className="text-sm font-bold tabular-nums" style={{ color: valColor(d.valor) }}>{d.valor}/100</span>
+                          </div>
+                        </div>
+                        {/* Barra de progreso */}
+                        <div className="mt-1 h-1.5 rounded-full bg-gray-100 overflow-hidden">
+                          <div className="h-full rounded-full transition-all" style={{ width: `${d.valor}%`, backgroundColor: valColor(d.valor) }} />
+                        </div>
+                      </div>
+                    </div>
+                    {/* Dato concreto */}
+                    <p className="text-xs font-medium text-gray-700 mb-1 ml-9">{d.dato}</p>
+                    {/* Por qué pesa así */}
+                    <p className="text-xs text-gray-400 leading-relaxed ml-9">{d.motivo}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Footer: niveles */}
+              <div className="px-6 py-3" style={{ borderTop: '1px solid #F1F5F9', backgroundColor: '#F8FAFC' }}>
+                <p className="text-xs text-gray-500">
+                  Niveles: <span className="font-semibold text-green-700">Élite</span> (85+) ·{' '}
+                  <span className="font-semibold text-blue-700">Avanzado</span> (65–84) ·{' '}
+                  <span className="font-semibold text-amber-700">En desarrollo</span> (40–64) ·{' '}
+                  <span className="font-semibold text-gray-500">Inicial</span> (&lt;40)
+                </p>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )
+      })()}
     </div>
   )
 }
