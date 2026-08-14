@@ -20,6 +20,7 @@ export async function middleware(request: NextRequest) {
     || path.startsWith('/api/demo')
     || path.startsWith('/api/validar')
     || path.startsWith('/api/confirmar-validacion')
+    || path.startsWith('/api/feedback-cliente')
     || path.startsWith('/recuperar-contrasena')
     || path.startsWith('/nueva-contrasena')
     || path.startsWith('/politica-de-privacidad')

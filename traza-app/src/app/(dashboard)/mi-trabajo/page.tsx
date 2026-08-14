@@ -904,6 +904,7 @@ function ObjetivoCard({ obj, saving, onUpdate, onUpdateAuto, onDelete, autoExpan
   const [fbClienteEmail,    setFbClienteEmail]    = useState('')
   const [fbClienteEnviando, setFbClienteEnviando] = useState(false)
   const [fbClienteOk,       setFbClienteOk]       = useState(false)
+  const [fbClientesEnviados, setFbClientesEnviados] = useState<{nombre: string, email: string}[]>([])
   const vencido = isVencido(obj.fecha_limite, obj.estado)
 
   useEffect(() => {
@@ -1042,7 +1043,7 @@ function ObjetivoCard({ obj, saving, onUpdate, onUpdateAuto, onDelete, autoExpan
     if (!fbClienteNombre.trim() || !fbClienteEmail.trim()) return
     setFbClienteEnviando(true)
     try {
-      await fetch('/api/feedback-cliente', {
+      const res = await fetch('/api/feedback-cliente', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -1054,8 +1055,12 @@ function ObjetivoCard({ obj, saving, onUpdate, onUpdateAuto, onDelete, autoExpan
           email_cliente:  fbClienteEmail.trim(),
         }),
       })
-      setFbClienteOk(true)
-      setFbClienteShowing(false)
+      if (res.ok) {
+        setFbClientesEnviados(prev => [...prev, { nombre: fbClienteNombre.trim(), email: fbClienteEmail.trim() }])
+        setFbClienteNombre('')
+        setFbClienteEmail('')
+        // NO cerramos el form — el usuario puede enviar a más clientes
+      }
     } catch { /* silenciar */ }
     setFbClienteEnviando(false)
   }
@@ -1599,16 +1604,21 @@ function ObjetivoCard({ obj, saving, onUpdate, onUpdateAuto, onDelete, autoExpan
                     Email
                   </a>
                 </div>
-                <p className="text-xs" style={{ color: '#8899EE' }}>Vence en 7 días · Un solo uso</p>
+                <div className="flex items-center justify-between">
+                  <p className="text-xs" style={{ color: '#8899EE' }}>Vence en 7 días · Un solo uso</p>
+                  <button
+                    onClick={() => setTokenUrl(null)}
+                    className="flex items-center gap-1 text-xs font-medium transition-colors"
+                    style={{ color: '#8899EE' }}
+                  >
+                    ↑ Cerrar
+                  </button>
+                </div>
               </div>
             )}
 
             {/* Pedir feedback de cliente */}
-            {fbClienteOk ? (
-              <p className="text-xs text-green-600 flex items-center gap-1.5">
-                <CheckCircle2 size={12} /> Email enviado al cliente
-              </p>
-            ) : !fbClienteShowing ? (
+            {!fbClienteShowing ? (
               <button
                 onClick={() => setFbClienteShowing(true)}
                 className="flex items-center gap-1.5 text-xs font-medium text-gray-400 hover:text-traza-700 transition-colors"
@@ -1618,7 +1628,25 @@ function ObjetivoCard({ obj, saving, onUpdate, onUpdateAuto, onDelete, autoExpan
               </button>
             ) : (
               <div className="space-y-2">
-                <p className="text-xs font-semibold text-gray-500">Opinión de cliente</p>
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-semibold text-gray-500">Opinión de cliente</p>
+                  <button
+                    onClick={() => { setFbClienteShowing(false); setFbClienteNombre(''); setFbClienteEmail('') }}
+                    className="text-xs text-gray-400 hover:text-gray-600"
+                  >
+                    ↑ Cerrar
+                  </button>
+                </div>
+                {/* Lista de clientes ya invitados */}
+                {fbClientesEnviados.length > 0 && (
+                  <div className="space-y-1">
+                    {fbClientesEnviados.map((c, i) => (
+                      <p key={i} className="text-xs flex items-center gap-1.5" style={{ color: '#16a34a' }}>
+                        <CheckCircle2 size={11} /> {c.nombre} <span style={{ color: '#94A3B8' }}>({c.email})</span>
+                      </p>
+                    ))}
+                  </div>
+                )}
                 <input
                   type="text"
                   value={fbClienteNombre}
@@ -1633,22 +1661,14 @@ function ObjetivoCard({ obj, saving, onUpdate, onUpdateAuto, onDelete, autoExpan
                   placeholder="Email del cliente"
                   className="w-full text-xs border border-gray-200 rounded-xl px-3 py-2 focus:outline-none"
                 />
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => { setFbClienteShowing(false); setFbClienteNombre(''); setFbClienteEmail('') }}
-                    className="text-xs text-gray-400 hover:text-gray-600 px-3 py-1.5"
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    onClick={pedirFeedbackCliente}
-                    disabled={!fbClienteNombre.trim() || !fbClienteEmail.trim() || fbClienteEnviando}
-                    className="text-xs font-semibold px-3 py-1.5 rounded-lg text-white disabled:opacity-40"
-                    style={{ backgroundColor: '#3350D0' }}
-                  >
-                    {fbClienteEnviando ? 'Enviando...' : 'Enviar pedido'}
-                  </button>
-                </div>
+                <button
+                  onClick={pedirFeedbackCliente}
+                  disabled={!fbClienteNombre.trim() || !fbClienteEmail.trim() || fbClienteEnviando}
+                  className="w-full text-xs font-semibold px-3 py-1.5 rounded-lg text-white disabled:opacity-40"
+                  style={{ backgroundColor: '#3350D0' }}
+                >
+                  {fbClienteEnviando ? 'Enviando...' : fbClientesEnviados.length > 0 ? 'Enviar a otro cliente' : 'Enviar pedido'}
+                </button>
               </div>
             )}
           </div>

@@ -48,36 +48,41 @@ export async function POST(req: NextRequest) {
       const nombreEmpleado = persona ? `${persona.nombre} ${persona.apellido}` : 'tu colaborador'
 
       const fromEmail = process.env.RESEND_FROM_EMAIL ?? 'TRAZA <noreply@traza.app>'
-      await resend.emails.send({
-        from:    fromEmail,
-        to:      email_cliente,
-        subject: `${nombreEmpleado} quiere saber tu opinión`,
-        text:    `Hola${nombre_cliente ? ` ${nombre_cliente}` : ''},\n\n${nombreEmpleado} te pide tu opinión sobre:\n"${objetivo?.titulo ?? 'un objetivo'}"\n\nSolo toma 1 minuto:\n${enlace}\n\nEl link expira en 30 días.\n\n— TRAZA`,
-        html: `
-          <div style="font-family:Arial,sans-serif;max-width:520px;margin:0 auto;color:#0F172A">
-            <div style="background:#1C2B90;padding:24px 32px;border-radius:12px 12px 0 0">
-              <span style="color:white;font-size:22px;font-weight:900;letter-spacing:-0.5px">traza</span>
-            </div>
-            <div style="background:#F8FAFC;padding:32px;border:1px solid #E2E8F0;border-top:none;border-radius:0 0 12px 12px">
-              <h2 style="margin:0 0 16px;font-size:18px;font-weight:700">Hola${nombre_cliente ? `, ${nombre_cliente}` : ''}.</h2>
-              <p style="color:#475569;line-height:1.6;margin:0 0 16px">
-                <strong>${nombreEmpleado}</strong> te solicita tu opinión sobre el siguiente objetivo:
-              </p>
-              <div style="background:white;border:1px solid #E2E8F0;border-radius:12px;padding:16px;margin:0 0 24px">
-                <p style="margin:0;font-weight:600;color:#0F172A">${objetivo?.titulo ?? 'Objetivo'}</p>
+      try {
+        await resend.emails.send({
+          from:    fromEmail,
+          to:      email_cliente,
+          subject: `${nombreEmpleado} quiere saber tu opinión`,
+          text:    `Hola${nombre_cliente ? ` ${nombre_cliente}` : ''},\n\n${nombreEmpleado} te pide tu opinión sobre:\n"${objetivo?.titulo ?? 'un objetivo'}"\n\nSolo toma 1 minuto:\n${enlace}\n\nEl link expira en 30 días.\n\n— TRAZA`,
+          html: `
+            <div style="font-family:Arial,sans-serif;max-width:520px;margin:0 auto;color:#0F172A">
+              <div style="background:#1C2B90;padding:24px 32px;border-radius:12px 12px 0 0">
+                <span style="color:white;font-size:22px;font-weight:900;letter-spacing:-0.5px">traza</span>
               </div>
-              <a href="${enlace}"
-                style="display:inline-block;background:#3350D0;color:white;padding:12px 28px;border-radius:10px;font-weight:700;text-decoration:none;font-size:15px">
-                Dar mi opinión →
-              </a>
-              <p style="color:#94A3B8;font-size:12px;margin-top:24px">
-                Solo toma 1 minuto. Tu feedback ayuda a construir un historial profesional verificado.
-                <br>Este link es personal y expira en 30 días.
-              </p>
+              <div style="background:#F8FAFC;padding:32px;border:1px solid #E2E8F0;border-top:none;border-radius:0 0 12px 12px">
+                <h2 style="margin:0 0 16px;font-size:18px;font-weight:700">Hola${nombre_cliente ? `, ${nombre_cliente}` : ''}.</h2>
+                <p style="color:#475569;line-height:1.6;margin:0 0 16px">
+                  <strong>${nombreEmpleado}</strong> te solicita tu opinión sobre el siguiente objetivo:
+                </p>
+                <div style="background:white;border:1px solid #E2E8F0;border-radius:12px;padding:16px;margin:0 0 24px">
+                  <p style="margin:0;font-weight:600;color:#0F172A">${objetivo?.titulo ?? 'Objetivo'}</p>
+                </div>
+                <a href="${enlace}"
+                  style="display:inline-block;background:#3350D0;color:white;padding:12px 28px;border-radius:10px;font-weight:700;text-decoration:none;font-size:15px">
+                  Dar mi opinión →
+                </a>
+                <p style="color:#94A3B8;font-size:12px;margin-top:24px">
+                  Solo toma 1 minuto. Tu feedback ayuda a construir un historial profesional verificado.
+                  <br>Este link es personal y expira en 30 días.
+                </p>
+              </div>
             </div>
-          </div>
-        `,
-      })
+          `,
+        })
+      } catch (emailErr) {
+        // El email falló pero el registro ya está en DB — no romper el flujo
+        console.error('feedback-cliente: error enviando email:', emailErr)
+      }
 
       return NextResponse.json({ ok: true })
     }
