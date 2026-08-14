@@ -48,6 +48,7 @@ export async function POST(req: NextRequest) {
       const nombreEmpleado = persona ? `${persona.nombre} ${persona.apellido}` : 'tu colaborador'
 
       const fromEmail = process.env.RESEND_FROM_EMAIL ?? 'TRAZA <noreply@traza.app>'
+      let emailEnviado = false
       try {
         await resend.emails.send({
           from:    fromEmail,
@@ -79,12 +80,13 @@ export async function POST(req: NextRequest) {
             </div>
           `,
         })
+        emailEnviado = true
       } catch (emailErr) {
         // El email falló pero el registro ya está en DB — no romper el flujo
         console.error('feedback-cliente: error enviando email:', emailErr)
       }
 
-      return NextResponse.json({ ok: true })
+      return NextResponse.json({ ok: true, emailEnviado })
     }
 
     /* ── Cliente responde feedback ───────────────────────── */

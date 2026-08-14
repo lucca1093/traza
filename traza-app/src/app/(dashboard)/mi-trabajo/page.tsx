@@ -899,12 +899,13 @@ function ObjetivoCard({ obj, saving, onUpdate, onUpdateAuto, onDelete, autoExpan
   const [editingContent,   setEditingContent]   = useState('')
   const [savingEdit,       setSavingEdit]       = useState(false)
   // Feedback de cliente (feature 4.1)
-  const [fbClienteShowing,  setFbClienteShowing]  = useState(false)
-  const [fbClienteNombre,   setFbClienteNombre]   = useState('')
-  const [fbClienteEmail,    setFbClienteEmail]    = useState('')
-  const [fbClienteEnviando, setFbClienteEnviando] = useState(false)
-  const [fbClienteOk,       setFbClienteOk]       = useState(false)
-  const [fbClientesEnviados, setFbClientesEnviados] = useState<{nombre: string, email: string}[]>([])
+  const [fbClienteShowing,   setFbClienteShowing]   = useState(false)
+  const [fbClienteNombre,    setFbClienteNombre]    = useState('')
+  const [fbClienteEmail,     setFbClienteEmail]     = useState('')
+  const [fbClienteEnviando,  setFbClienteEnviando]  = useState(false)
+  const [fbClienteOk,        setFbClienteOk]        = useState(false)
+  const [fbClientesEnviados, setFbClientesEnviados] = useState<{nombre: string, email: string, emailEnviado?: boolean}[]>([])
+  const [feedbacksCliente,   setFeedbacksCliente]   = useState<any[]>([])
   const vencido = isVencido(obj.fecha_limite, obj.estado)
 
   useEffect(() => {
@@ -917,8 +918,12 @@ function ObjetivoCard({ obj, saving, onUpdate, onUpdateAuto, onDelete, autoExpan
   useEffect(() => { if (expanded) loadAvances() }, [expanded])
 
   async function loadAvances() {
-    const { data } = await supabase.from('objetivo_avances').select('*').eq('objetivo_id', obj.id).order('creado_en', { ascending: true })
-    setAvances(data ?? [])
+    const [{ data: avs }, { data: fbs }] = await Promise.all([
+      supabase.from('objetivo_avances').select('*').eq('objetivo_id', obj.id).order('creado_en', { ascending: true }),
+      supabase.from('feedback_cliente').select('*').eq('objetivo_id', obj.id).order('created_at', { ascending: false }),
+    ])
+    setAvances(avs ?? [])
+    setFeedbacksCliente(fbs ?? [])
   }
 
   async function addAvance() {
@@ -1056,7 +1061,12 @@ function ObjetivoCard({ obj, saving, onUpdate, onUpdateAuto, onDelete, autoExpan
         }),
       })
       if (res.ok) {
-        setFbClientesEnviados(prev => [...prev, { nombre: fbClienteNombre.trim(), email: fbClienteEmail.trim() }])
+        const data = await res.json()
+        setFbClientesEnviados(prev => [...prev, {
+          nombre: fbClienteNombre.trim(),
+          email: fbClienteEmail.trim(),
+          emailEnviado: data.emailEnviado ?? false,
+        }])
         setFbClienteNombre('')
         setFbClienteEmail('')
         // NO cerramos el form — el usuario puede enviar a más clientes
@@ -1618,56 +1628,102 @@ function ObjetivoCard({ obj, saving, onUpdate, onUpdateAuto, onDelete, autoExpan
             )}
 
             {/* Pedir feedback de cliente */}
+            {/* Opiniones ya registradas en DB (respuestas recibidas) */}
+            {feedbacksCliente.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-xs font-semibold" style={{ color: '#475569' }}>Opiniones de clientes</p>
+                {feedbacksCliente.map((fb: any) => (
+                  <div key={fb.id} className="rounded-xl p-3 space-y-1.5" style={{ background: '#F8FAFC', border: '1px solid #E2E8F0' }}>
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs font-semibold" style={{ color: '#0F172A' }}>{fb.nombre_cliente}</p>
+                      <p className="text-xs" style={{ color: '#94A3B8' }}>
+                        {new Date(fb.created_at).toLocaleDateString('es-AR', { day: '2-digit', month: 'short' })}
+                      </p>
+                    </div>
+                    <p className="text-xs" style={{ color: '#64748B' }}>{fb.email_cliente}</p>
+                    {fb.confirmado ? (
+                      <div className="space-y-1 pt-1 border-t border-gray-100">
+                        <div className="flex items-center gap-1">
+                          {[1,2,3,4,5].map(n => (
+                            <span key={n} style={{ color: n <= (fb.puntuacion ?? 0) ? '#F59E0B' : '#E2E8F0', fontSize: 14 }}>★</span>
+                          ))}
+                          <span className="text-xs font-semibold ml-1" style={{ color: '#0F172A' }}>{fb.puntuacion}/5</span>
+                        </div>
+                        {fb.comentario && <p className="text-xs italic" style={{ color: '#475569' }}>"{fb.comentario}"</p>}
+                      </div>
+                    ) : (
+                      <p className="text-xs flex items-center gap-1 pt-1" style={{ color: '#F59E0B' }}>
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+                        Invitación enviada · Esperando respuesta
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+
             {!fbClienteShowing ? (
               <button
                 onClick={() => setFbClienteShowing(true)}
                 className="flex items-center gap-1.5 text-xs font-medium text-gray-400 hover:text-traza-700 transition-colors"
               >
                 <Users size={12} />
-                Pedir opinión a un cliente
+                {feedbacksCliente.length > 0 ? 'Pedir opinión a otro cliente' : 'Pedir opinión a un cliente'}
               </button>
             ) : (
-              <div className="space-y-2">
+              <div className="rounded-xl p-3 space-y-2.5" style={{ background: '#F8FAFC', border: '1px solid #E2E8F0' }}>
                 <div className="flex items-center justify-between">
-                  <p className="text-xs font-semibold text-gray-500">Opinión de cliente</p>
+                  <p className="text-xs font-semibold" style={{ color: '#0F172A' }}>
+                    {feedbacksCliente.length + fbClientesEnviados.length > 0 ? 'Invitar a otro cliente' : 'Pedir opinión a un cliente'}
+                  </p>
                   <button
                     onClick={() => { setFbClienteShowing(false); setFbClienteNombre(''); setFbClienteEmail('') }}
-                    className="text-xs text-gray-400 hover:text-gray-600"
+                    className="text-xs transition-colors"
+                    style={{ color: '#94A3B8' }}
                   >
                     ↑ Cerrar
                   </button>
                 </div>
-                {/* Lista de clientes ya invitados */}
+
+                {/* Enviados en esta sesión */}
                 {fbClientesEnviados.length > 0 && (
-                  <div className="space-y-1">
+                  <div className="space-y-1.5 pb-2 border-b border-gray-100">
                     {fbClientesEnviados.map((c, i) => (
-                      <p key={i} className="text-xs flex items-center gap-1.5" style={{ color: '#16a34a' }}>
-                        <CheckCircle2 size={11} /> {c.nombre} <span style={{ color: '#94A3B8' }}>({c.email})</span>
-                      </p>
+                      <div key={i} className="flex items-center justify-between">
+                        <div className="flex items-center gap-1.5">
+                          <CheckCircle2 size={11} style={{ color: '#16a34a', flexShrink: 0 }} />
+                          <span className="text-xs font-medium" style={{ color: '#0F172A' }}>{c.nombre}</span>
+                          <span className="text-xs" style={{ color: '#94A3B8' }}>{c.email}</span>
+                        </div>
+                        <span className="text-xs font-medium" style={{ color: c.emailEnviado ? '#16a34a' : '#F59E0B' }}>
+                          {c.emailEnviado ? 'Enviado' : 'Sin email'}
+                        </span>
+                      </div>
                     ))}
                   </div>
                 )}
+
                 <input
                   type="text"
                   value={fbClienteNombre}
                   onChange={e => setFbClienteNombre(e.target.value)}
                   placeholder="Nombre del cliente"
-                  className="w-full text-xs border border-gray-200 rounded-xl px-3 py-2 focus:outline-none"
+                  className="w-full text-xs border border-gray-200 rounded-xl px-3 py-2 focus:outline-none bg-white"
                 />
                 <input
                   type="email"
                   value={fbClienteEmail}
                   onChange={e => setFbClienteEmail(e.target.value)}
                   placeholder="Email del cliente"
-                  className="w-full text-xs border border-gray-200 rounded-xl px-3 py-2 focus:outline-none"
+                  className="w-full text-xs border border-gray-200 rounded-xl px-3 py-2 focus:outline-none bg-white"
                 />
                 <button
                   onClick={pedirFeedbackCliente}
                   disabled={!fbClienteNombre.trim() || !fbClienteEmail.trim() || fbClienteEnviando}
-                  className="w-full text-xs font-semibold px-3 py-1.5 rounded-lg text-white disabled:opacity-40"
+                  className="w-full text-xs font-semibold px-3 py-2 rounded-xl text-white disabled:opacity-40 transition-opacity"
                   style={{ backgroundColor: '#3350D0' }}
                 >
-                  {fbClienteEnviando ? 'Enviando...' : fbClientesEnviados.length > 0 ? 'Enviar a otro cliente' : 'Enviar pedido'}
+                  {fbClienteEnviando ? 'Enviando...' : 'Enviar invitación →'}
                 </button>
               </div>
             )}
