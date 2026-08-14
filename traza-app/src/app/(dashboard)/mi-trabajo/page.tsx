@@ -1062,14 +1062,19 @@ function ObjetivoCard({ obj, saving, onUpdate, onUpdateAuto, onDelete, autoExpan
       })
       if (res.ok) {
         const data = await res.json()
-        setFbClientesEnviados(prev => [...prev, {
-          nombre: fbClienteNombre.trim(),
-          email: fbClienteEmail.trim(),
-          emailEnviado: data.emailEnviado ?? false,
-        }])
+        // Agregar al historial visible (feedbacksCliente) inmediatamente sin esperar reload
+        setFeedbacksCliente(prev => [{
+          id: `tmp-${Date.now()}`,
+          nombre_cliente: fbClienteNombre.trim(),
+          email_cliente:  fbClienteEmail.trim(),
+          created_at:     new Date().toISOString(),
+          confirmado:     false,
+          puntuacion:     null,
+          comentario:     null,
+          _emailEnviado:  data.emailEnviado ?? false,
+        }, ...prev])
         setFbClienteNombre('')
         setFbClienteEmail('')
-        // NO cerramos el form — el usuario puede enviar a más clientes
       }
     } catch { /* silenciar */ }
     setFbClienteEnviando(false)
@@ -1652,9 +1657,11 @@ function ObjetivoCard({ obj, saving, onUpdate, onUpdateAuto, onDelete, autoExpan
                         {fb.comentario && <p className="text-xs italic" style={{ color: '#475569' }}>"{fb.comentario}"</p>}
                       </div>
                     ) : (
-                      <p className="text-xs flex items-center gap-1 pt-1" style={{ color: '#F59E0B' }}>
+                      <p className="text-xs flex items-center gap-1 pt-1" style={{ color: fb._emailEnviado === false ? '#EF4444' : '#F59E0B' }}>
                         <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
-                        Invitación enviada · Esperando respuesta
+                        {fb._emailEnviado === false
+                          ? 'Email no enviado · verificar configuración'
+                          : 'Invitación enviada · Esperando respuesta'}
                       </p>
                     )}
                   </div>
@@ -1684,24 +1691,6 @@ function ObjetivoCard({ obj, saving, onUpdate, onUpdateAuto, onDelete, autoExpan
                     ↑ Cerrar
                   </button>
                 </div>
-
-                {/* Enviados en esta sesión */}
-                {fbClientesEnviados.length > 0 && (
-                  <div className="space-y-1.5 pb-2 border-b border-gray-100">
-                    {fbClientesEnviados.map((c, i) => (
-                      <div key={i} className="flex items-center justify-between">
-                        <div className="flex items-center gap-1.5">
-                          <CheckCircle2 size={11} style={{ color: '#16a34a', flexShrink: 0 }} />
-                          <span className="text-xs font-medium" style={{ color: '#0F172A' }}>{c.nombre}</span>
-                          <span className="text-xs" style={{ color: '#94A3B8' }}>{c.email}</span>
-                        </div>
-                        <span className="text-xs font-medium" style={{ color: c.emailEnviado ? '#16a34a' : '#F59E0B' }}>
-                          {c.emailEnviado ? 'Enviado' : 'Sin email'}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                )}
 
                 <input
                   type="text"
