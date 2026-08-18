@@ -925,6 +925,10 @@ function ObjetivoCard({ obj, saving, onUpdate, onUpdateAuto, onDelete, autoExpan
     ])
     setAvances(avs ?? [])
     setFeedbacksCliente(fbs ?? [])
+    // Si viene de notificación, abrir todos los feedbacks automáticamente
+    if (autoExpand && fbs && fbs.length > 0) {
+      setExpandedFbs(new Set(fbs.map((fb: any) => fb.id)))
+    }
   }
 
   async function addAvance() {
