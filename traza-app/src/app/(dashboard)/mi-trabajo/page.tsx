@@ -1062,6 +1062,7 @@ function ObjetivoCard({ obj, saving, onUpdate, onUpdateAuto, onDelete, autoExpan
       })
       if (res.ok) {
         const data = await res.json()
+        if (data.emailError) console.error('Email error:', data.emailError)
         // Agregar al historial visible (feedbacksCliente) inmediatamente sin esperar reload
         setFeedbacksCliente(prev => [{
           id: `tmp-${Date.now()}`,
