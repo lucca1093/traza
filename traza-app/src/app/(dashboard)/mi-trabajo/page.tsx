@@ -904,6 +904,7 @@ function ObjetivoCard({ obj, saving, onUpdate, onUpdateAuto, onDelete, autoExpan
   const [fbClienteEmail,     setFbClienteEmail]     = useState('')
   const [fbClienteEnviando,  setFbClienteEnviando]  = useState(false)
   const [fbClienteOk,        setFbClienteOk]        = useState(false)
+  const [expandedFbs,        setExpandedFbs]        = useState<Set<string>>(new Set())
   const [fbClientesEnviados, setFbClientesEnviados] = useState<{nombre: string, email: string, emailEnviado?: boolean}[]>([])
   const [feedbacksCliente,   setFeedbacksCliente]   = useState<any[]>([])
   const vencido = isVencido(obj.fecha_limite, obj.estado)
@@ -1633,40 +1634,73 @@ function ObjetivoCard({ obj, saving, onUpdate, onUpdateAuto, onDelete, autoExpan
               </div>
             )}
 
-            {/* Pedir feedback de cliente */}
-            {/* Opiniones ya registradas en DB (respuestas recibidas) */}
+            {/* Opiniones de clientes — acordeón */}
             {feedbacksCliente.length > 0 && (
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <p className="text-xs font-semibold" style={{ color: '#475569' }}>Opiniones de clientes</p>
-                {feedbacksCliente.map((fb: any) => (
-                  <div key={fb.id} className="rounded-xl p-3 space-y-1.5" style={{ background: '#F8FAFC', border: '1px solid #E2E8F0' }}>
-                    <div className="flex items-center justify-between">
-                      <p className="text-xs font-semibold" style={{ color: '#0F172A' }}>{fb.nombre_cliente}</p>
-                      <p className="text-xs" style={{ color: '#94A3B8' }}>
-                        {new Date(fb.created_at).toLocaleDateString('es-AR', { day: '2-digit', month: 'short' })}
-                      </p>
-                    </div>
-                    <p className="text-xs" style={{ color: '#64748B' }}>{fb.email_cliente}</p>
-                    {fb.confirmado ? (
-                      <div className="space-y-1 pt-1 border-t border-gray-100">
-                        <div className="flex items-center gap-1">
-                          {[1,2,3,4,5].map(n => (
-                            <span key={n} style={{ color: n <= (fb.puntuacion ?? 0) ? '#F59E0B' : '#E2E8F0', fontSize: 14 }}>★</span>
-                          ))}
-                          <span className="text-xs font-semibold ml-1" style={{ color: '#0F172A' }}>{fb.puntuacion}/5</span>
+                {feedbacksCliente.map((fb: any) => {
+                  const isOpen = expandedFbs.has(fb.id)
+                  const toggle = () => setExpandedFbs(prev => {
+                    const next = new Set(prev)
+                    isOpen ? next.delete(fb.id) : next.add(fb.id)
+                    return next
+                  })
+                  return (
+                    <div key={fb.id} className="rounded-xl overflow-hidden" style={{ border: '1px solid #E2E8F0' }}>
+                      {/* Fila siempre visible — clickeable */}
+                      <button
+                        onClick={toggle}
+                        className="w-full flex items-center justify-between px-3 py-2.5 transition-colors hover:bg-gray-50"
+                        style={{ background: 'white' }}
+                      >
+                        <div className="flex items-center gap-2 min-w-0">
+                          {fb.confirmado ? (
+                            <div className="flex items-center gap-0.5">
+                              {[1,2,3,4,5].map(n => (
+                                <span key={n} style={{ color: n <= (fb.puntuacion ?? 0) ? '#64748B' : '#E2E8F0', fontSize: 11 }}>★</span>
+                              ))}
+                            </div>
+                          ) : (
+                            <span className="text-xs" style={{ color: '#94A3B8' }}>···</span>
+                          )}
+                          <span className="text-xs font-medium truncate" style={{ color: '#0F172A' }}>{fb.nombre_cliente}</span>
                         </div>
-                        {fb.comentario && <p className="text-xs italic" style={{ color: '#475569' }}>"{fb.comentario}"</p>}
-                      </div>
-                    ) : (
-                      <p className="text-xs flex items-center gap-1 pt-1" style={{ color: fb._emailEnviado === false ? '#EF4444' : '#F59E0B' }}>
-                        <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
-                        {fb._emailEnviado === false
-                          ? 'Email no enviado · verificar configuración'
-                          : 'Invitación enviada · Esperando respuesta'}
-                      </p>
-                    )}
-                  </div>
-                ))}
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          <span className="text-xs" style={{ color: '#94A3B8' }}>
+                            {new Date(fb.created_at).toLocaleDateString('es-AR', { day: '2-digit', month: 'short' })}
+                          </span>
+                          <ChevronDown size={12} className="transition-transform" style={{ color: '#94A3B8', transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
+                        </div>
+                      </button>
+
+                      {/* Detalle expandido */}
+                      {isOpen && (
+                        <div className="px-3 pb-3 pt-1 space-y-1.5" style={{ borderTop: '1px solid #F1F5F9', background: '#FAFAFA' }}>
+                          <p className="text-xs" style={{ color: '#64748B' }}>{fb.email_cliente}</p>
+                          {fb.confirmado ? (
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-1">
+                                {[1,2,3,4,5].map(n => (
+                                  <span key={n} style={{ color: n <= (fb.puntuacion ?? 0) ? '#64748B' : '#E2E8F0', fontSize: 13 }}>★</span>
+                                ))}
+                                <span className="text-xs font-semibold ml-1" style={{ color: '#0F172A' }}>{fb.puntuacion}/5</span>
+                              </div>
+                              {fb.comentario && (
+                                <p className="text-xs italic" style={{ color: '#475569' }}>"{fb.comentario}"</p>
+                              )}
+                            </div>
+                          ) : (
+                            <p className="text-xs" style={{ color: fb._emailEnviado === false ? '#EF4444' : '#94A3B8' }}>
+                              {fb._emailEnviado === false
+                                ? 'Email no enviado · verificar configuración'
+                                : 'Invitación enviada · Esperando respuesta'}
+                            </p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
               </div>
             )}
 

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { Bell, CheckCircle2, X } from 'lucide-react'
 
@@ -28,7 +29,16 @@ export default function NotificationBell({ userId }: { userId: string }) {
   const [notifs, setNotifs]   = useState<Notificacion[]>([])
   const [open, setOpen]       = useState(false)
   const [personaId, setPersonaId] = useState<string | null>(null)
-  const ref = useRef<HTMLDivElement>(null)
+  const ref    = useRef<HTMLDivElement>(null)
+  const router = useRouter()
+
+  function handleClickNotif(n: Notificacion) {
+    marcarLeida(n.id)
+    setOpen(false)
+    if (n.objetivo_id) {
+      router.push(`/mi-trabajo?objetivo=${n.objetivo_id}`)
+    }
+  }
 
   useEffect(() => {
     async function init() {
@@ -155,11 +165,15 @@ export default function NotificationBell({ userId }: { userId: string }) {
               notifs.map(n => (
                 <div
                   key={n.id}
+                  onClick={() => handleClickNotif(n)}
                   className="flex gap-3 px-4 py-3 transition-colors"
                   style={{
                     backgroundColor: n.leida ? 'transparent' : 'rgba(51,80,208,0.04)',
                     borderBottom: '1px solid #F8FAFC',
+                    cursor: n.objetivo_id ? 'pointer' : 'default',
                   }}
+                  onMouseEnter={e => { if (n.objetivo_id) (e.currentTarget as HTMLElement).style.backgroundColor = n.leida ? '#F8FAFC' : 'rgba(51,80,208,0.08)' }}
+                  onMouseLeave={e => { if (n.objetivo_id) (e.currentTarget as HTMLElement).style.backgroundColor = n.leida ? 'transparent' : 'rgba(51,80,208,0.04)' }}
                 >
                   <div className="flex-shrink-0 mt-0.5">
                     <CheckCircle2
@@ -173,7 +187,7 @@ export default function NotificationBell({ userId }: { userId: string }) {
                   </div>
                   {!n.leida && (
                     <button
-                      onClick={() => marcarLeida(n.id)}
+                      onClick={e => { e.stopPropagation(); marcarLeida(n.id) }}
                       className="flex-shrink-0 mt-0.5 transition-colors"
                       style={{ color: '#CBD5E1' }}
                       onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = '#64748B'}
