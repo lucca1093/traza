@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
     const unitPrice = PRECIOS[plan]?.[period]
     if (!unitPrice) return NextResponse.json({ error: 'Plan inválido' }, { status: 400 })
 
-    const origin = req.headers.get('origin') ?? 'https://traza-three.vercel.app'
+    const origin = req.headers.get('origin') ?? 'https://trazaid.com'
     const preference = new Preference(client)
 
     const response = await preference.create({

@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
 
     const admin = createAdminClient()
     const token = generarToken()
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://traza-three.vercel.app'
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://trazaid.com'
 
     // Guardar datos en personas
     const { error } = await admin

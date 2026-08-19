@@ -5,7 +5,7 @@ import PostHogProvider from '@/components/PostHogProvider'
 import PWAInstall from '@/components/PWAInstall'
 import { Suspense } from 'react'
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://traza-three.vercel.app'
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://trazaid.com'
 
 export const metadata: Metadata = {
   title: {

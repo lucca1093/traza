@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
       }
 
       const token = generarToken()
-      const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://traza-three.vercel.app'
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://trazaid.com'
 
       // Traer datos del objetivo y del empleado
       const [{ data: objetivo }, { data: persona }] = await Promise.all([

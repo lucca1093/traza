@@ -72,7 +72,7 @@ export default async function CredencialTrazaPage({ params }: { params: { trazaI
             Esta persona eligió mantener su credencial TRAZA privada.
             Si la conocés, podés pedirle que la comparta directamente.
           </p>
-          <p className="text-xs text-gray-300 mt-6 font-mono">traza-three.vercel.app · Performance Intelligence</p>
+          <p className="text-xs text-gray-300 mt-6 font-mono">trazaid.com · Performance Intelligence</p>
         </div>
       </div>
     )
@@ -664,7 +664,7 @@ Las 3 oraciones deben cubrir: (1) quién es y dónde trabaja hoy, (2) su evoluci
           </div>
           <p className="text-xs text-gray-400">Actualizada el {ahora}</p>
           <p className="text-xs text-gray-400 font-mono tracking-wide mt-0.5">
-            traza-three.vercel.app/p/{personaActual.traza_id}
+            trazaid.com/p/{personaActual.traza_id}
           </p>
           <p className="text-xs mt-2 text-center max-w-xs text-gray-400 leading-relaxed">
             Esta credencial refleja datos reales validados por supervisores a lo largo de toda la trayectoria profesional.

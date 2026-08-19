@@ -315,7 +315,7 @@ export default function ImprimirPage() {
             })
           }
           // Use a temporary hidden div to let QRCode.js render, then extract data URL
-          const url = `https://traza-three.vercel.app/p/${persona.traza_id}`
+          const url = `https://trazaid.com/p/${persona.traza_id}`
           const tmp = document.createElement('div')
           tmp.style.cssText = 'position:absolute;left:-9999px;width:80px;height:80px'
           document.body.appendChild(tmp)
@@ -746,7 +746,7 @@ export default function ImprimirPage() {
                       textTransform: 'uppercase', marginBottom: 4, fontFamily: FB }}>ID de verificación</p>
                     <p style={{ fontSize: 17, fontWeight: 800, color: B,
                       letterSpacing: '0.06em', fontFamily: FD }}>{persona.traza_id}</p>
-                    <p style={{ fontSize: 8.5, color: SUB, marginTop: 3 }}>traza-three.vercel.app/p/{persona.traza_id}</p>
+                    <p style={{ fontSize: 8.5, color: SUB, marginTop: 3 }}>trazaid.com/p/{persona.traza_id}</p>
                   </>
                 ) : (
                   <p style={{ fontSize: 9, color: SUB }}>Generado el {hoy}</p>
@@ -986,7 +986,7 @@ export default function ImprimirPage() {
           </h2>
           <p style={{ fontSize: 11, color: MUT, marginBottom: 32 }}>
             {objetivos.length} objetivo{objetivos.length !== 1 ? 's' : ''} en {empresas.length} empresa{empresas.length !== 1 ? 's' : ''}.
-            Todos los datos son auditables en traza-three.vercel.app{persona.traza_id ? `/p/${persona.traza_id}` : ''}.
+            Todos los datos son auditables en trazaid.com{persona.traza_id ? `/p/${persona.traza_id}` : ''}.
           </p>
 
           {/* Timeline (multi-empresa) */}
@@ -1481,7 +1481,7 @@ export default function ImprimirPage() {
               </div>
               <div>
                 <p style={{ fontSize: 12, fontWeight: 800, color: B, fontFamily: FD }}>traza · Performance Intelligence</p>
-                <p style={{ fontSize: 8.5, color: SUB }}>El estándar verificado de desempeño profesional · traza-three.vercel.app</p>
+                <p style={{ fontSize: 8.5, color: SUB }}>El estándar verificado de desempeño profesional · trazaid.com</p>
               </div>
             </div>
             <div style={{ textAlign: 'right' }}>

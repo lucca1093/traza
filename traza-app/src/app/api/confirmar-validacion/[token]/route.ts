@@ -5,7 +5,7 @@ export async function GET(
   _request: NextRequest,
   { params }: { params: { token: string } }
 ) {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://traza-three.vercel.app'
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://trazaid.com'
   const { token } = params
 
   try {

@@ -107,7 +107,7 @@ export async function POST(
     if (process.env.RESEND_API_KEY) {
       try {
         const resend = new Resend(process.env.RESEND_API_KEY)
-        const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://traza-three.vercel.app'
+        const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://trazaid.com'
         const urlConfirmacion = `${baseUrl}/api/confirmar-validacion/${tokenConfirmacion}`
         const tituloObjetivo = (tokenData.objetivo as any)?.titulo ?? 'un objetivo'
 
