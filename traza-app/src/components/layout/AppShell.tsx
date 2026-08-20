@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Menu } from 'lucide-react'
 import Sidebar from './Sidebar'
 import NotificationBell from './NotificationBell'
+import GlobalSearch from './GlobalSearch'
 import DemoTour from '@/components/DemoTour'
 import type { Profile } from '@/types'
 
@@ -82,8 +83,9 @@ export default function AppShell({ profile, empresaNombre, userId, children }: A
             </button>
           </div>
 
-          {/* Right: notifications + user chip */}
+          {/* Right: search + notifications + user chip */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <GlobalSearch userId={userId} />
             <NotificationBell userId={userId} />
 
             {/* User chip */}

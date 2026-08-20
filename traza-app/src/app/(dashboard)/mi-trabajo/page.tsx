@@ -574,7 +574,8 @@ export default function MiTrabajoPage() {
                   onUpdate={updateEstado} onUpdateAuto={updateAutoevaluacion}
                   onDelete={obj.tipo === 'Personal' ? deleteObjetivo : undefined}
                   autoExpand={obj.id === objetivoDestacado}
-                  valExt={valExtMap[obj.id] ?? []} />
+                  valExt={valExtMap[obj.id] ?? []}
+                  personaNombre={persona ? `${persona.nombre} ${persona.apellido ?? ''}`.trim() : ''} />
               ))}
             </div>
           )}
@@ -862,7 +863,7 @@ function CierreSemanal({ personaId }: { personaId: string }) {
 }
 
 // ── ObjetivoCard ──────────────────────────────────────────────
-function ObjetivoCard({ obj, saving, onUpdate, onUpdateAuto, onDelete, autoExpand, valExt = [] }: {
+function ObjetivoCard({ obj, saving, onUpdate, onUpdateAuto, onDelete, autoExpand, valExt = [], personaNombre = '' }: {
   obj: Objetivo
   saving: string | null
   onUpdate: (id: string, estado: string, completadoEn?: string) => void
@@ -870,6 +871,7 @@ function ObjetivoCard({ obj, saving, onUpdate, onUpdateAuto, onDelete, autoExpan
   onDelete?: (id: string) => void
   autoExpand?: boolean
   valExt?: any[]
+  personaNombre?: string
 }) {
   const [expanded, setExpanded]         = useState(autoExpand ?? false)
   const [estado, setEstado]             = useState(obj.estado)
@@ -885,6 +887,10 @@ function ObjetivoCard({ obj, saving, onUpdate, onUpdateAuto, onDelete, autoExpan
   const [tokenError, setTokenError]     = useState<string | null>(null)
   const [generando, setGenerando]       = useState(false)
   const [copiado, setCopiado]           = useState(false)
+  const [emailValidar, setEmailValidar] = useState('')
+  const [enviandoValidar, setEnviandoValidar] = useState(false)
+  const [validarEnviado, setValidarEnviado]   = useState(false)
+  const [validarError, setValidarError]       = useState<string | null>(null)
   // Upload de archivos
   const [uploadingFile, setUploadingFile]     = useState(false)
   const [uploadedFileName, setUploadedFileName] = useState<string | null>(null)
@@ -905,6 +911,8 @@ function ObjetivoCard({ obj, saving, onUpdate, onUpdateAuto, onDelete, autoExpan
   const [fbClienteEnviando,  setFbClienteEnviando]  = useState(false)
   const [fbClienteOk,        setFbClienteOk]        = useState(false)
   const [expandedFbs,        setExpandedFbs]        = useState<Set<string>>(new Set())
+  const [reenviando,         setReenviando]         = useState<string | null>(null)
+  const [sinActividad,       setSinActividad]       = useState(false)
   const [fbClientesEnviados, setFbClientesEnviados] = useState<{nombre: string, email: string, emailEnviado?: boolean}[]>([])
   const [feedbacksCliente,   setFeedbacksCliente]   = useState<any[]>([])
   const vencido = isVencido(obj.fecha_limite, obj.estado)
@@ -928,6 +936,32 @@ function ObjetivoCard({ obj, saving, onUpdate, onUpdateAuto, onDelete, autoExpan
     // Si viene de notificación, abrir todos los feedbacks automáticamente
     if (autoExpand && fbs && fbs.length > 0) {
       setExpandedFbs(new Set(fbs.map((fb: any) => fb.id)))
+    }
+    // Indicador de sin actividad: objetivo activo sin avances en 7+ días
+    if (avs && avs.length > 0 && (obj.estado as string) === 'en_progreso') {
+      const ultimo = new Date(avs[avs.length - 1].creado_en)
+      const dias   = (Date.now() - ultimo.getTime()) / 86400000
+      setSinActividad(dias >= 7)
+    }
+  }
+
+  async function reenviarFb(nombreCliente: string, emailCliente: string, fbId: string) {
+    setReenviando(fbId)
+    try {
+      await fetch('/api/feedback-cliente', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({
+          action:         'solicitar',
+          objetivo_id:    obj.id,
+          persona_id:     obj.persona_id,
+          empresa_id:     (obj as any).empresa_id ?? null,
+          nombre_cliente: nombreCliente,
+          email_cliente:  emailCliente,
+        }),
+      })
+    } finally {
+      setReenviando(null)
     }
   }
 
@@ -999,6 +1033,35 @@ function ObjetivoCard({ obj, saving, onUpdate, onUpdateAuto, onDelete, autoExpan
     if (!tokenUrl) return
     await navigator.clipboard.writeText(tokenUrl)
     setCopiado(true); setTimeout(() => setCopiado(false), 2500)
+  }
+
+  async function enviarValidacion() {
+    if (!emailValidar.trim() || !tokenUrl) return
+    setEnviandoValidar(true); setValidarError(null); setValidarEnviado(false)
+    try {
+      const res = await fetch('/api/enviar-validacion', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: emailValidar.trim(),
+          url: tokenUrl,
+          tituloObjetivo: obj.titulo,
+          nombreRemitente: personaNombre || undefined,
+        }),
+      })
+      const data = await res.json()
+      if (res.ok) {
+        setValidarEnviado(true)
+        setEmailValidar('')
+        setTimeout(() => setValidarEnviado(false), 4000)
+      } else {
+        setValidarError(data.error ?? `Error ${res.status}`)
+      }
+    } catch (e: any) {
+      setValidarError(e?.message ?? 'Error de conexión')
+    } finally {
+      setEnviandoValidar(false)
+    }
   }
 
   async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
@@ -1128,6 +1191,9 @@ function ObjetivoCard({ obj, saving, onUpdate, onUpdateAuto, onDelete, autoExpan
               <span className="flex items-center gap-1 text-xs text-red-500 font-medium">
                 <AlertTriangle size={11} /> Vencido
               </span>
+            )}
+            {sinActividad && !vencido && (
+              <span className="text-xs font-medium" style={{ color: '#F59E0B' }}>· Sin actividad reciente</span>
             )}
             {!vencido && estadoLabel && (
               <span className="text-xs text-gray-400">{estadoLabel}</span>
@@ -1607,7 +1673,7 @@ function ObjetivoCard({ obj, saving, onUpdate, onUpdateAuto, onDelete, autoExpan
                     href={`https://wa.me/?text=${encodeURIComponent('Hola! Te pido que valides uno de mis objetivos profesionales en TRAZA. Solo toma 2 minutos: ' + tokenUrl)}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold py-1.5 rounded-lg text-white transition-opacity hover:opacity-90"
+                    className="flex items-center justify-center gap-1.5 text-xs font-semibold py-1.5 px-3 rounded-lg text-white transition-opacity hover:opacity-90 flex-shrink-0"
                     style={{ backgroundColor: '#25D366' }}
                   >
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
@@ -1616,15 +1682,42 @@ function ObjetivoCard({ obj, saving, onUpdate, onUpdateAuto, onDelete, autoExpan
                     </svg>
                     WhatsApp
                   </a>
-                  <a
-                    href={`mailto:?subject=${encodeURIComponent('Te pido una validación profesional')}&body=${encodeURIComponent('Hola,\n\nTe pido que valides uno de mis objetivos profesionales en TRAZA.\nPodés hacerlo desde este link (tarda menos de 2 minutos):\n\n' + tokenUrl + '\n\n¡Muchas gracias!')}`}
-                    className="flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold py-1.5 rounded-lg text-white transition-opacity hover:opacity-90"
-                    style={{ backgroundColor: '#3350D0' }}
-                  >
-                    <Mail size={11} />
-                    Email
-                  </a>
+                  {/* Email directo via Resend */}
+                  <div className="flex-1 flex items-center gap-1.5 bg-white rounded-lg overflow-hidden" style={{ border: '1px solid #BBC5F7' }}>
+                    <Mail size={11} style={{ color: '#8899EE', marginLeft: 8, flexShrink: 0 }} />
+                    <input
+                      type="email"
+                      value={emailValidar}
+                      onChange={e => { setEmailValidar(e.target.value); setValidarError(null) }}
+                      onKeyDown={e => e.key === 'Enter' && enviarValidacion()}
+                      placeholder="email del evaluador"
+                      style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', fontSize: 11.5, color: '#1a1a1a', fontFamily: 'inherit', minWidth: 0 }}
+                    />
+                    <button
+                      onClick={enviarValidacion}
+                      disabled={enviandoValidar || !emailValidar.trim()}
+                      style={{
+                        background: validarEnviado ? '#16a34a' : '#3350D0',
+                        color: 'white',
+                        border: 'none',
+                        padding: '6px 10px',
+                        fontSize: 11,
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        flexShrink: 0,
+                        opacity: enviandoValidar || !emailValidar.trim() ? 0.5 : 1,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 4,
+                      }}
+                    >
+                      {validarEnviado ? <><Check size={10} /> Enviado</> : enviandoValidar ? 'Enviando…' : 'Enviar'}
+                    </button>
+                  </div>
                 </div>
+                {validarError && (
+                  <p className="text-xs text-red-500">{validarError}</p>
+                )}
                 <div className="flex items-center justify-between">
                   <p className="text-xs" style={{ color: '#8899EE' }}>Vence en 7 días · Un solo uso</p>
                   <button
@@ -1694,11 +1787,19 @@ function ObjetivoCard({ obj, saving, onUpdate, onUpdateAuto, onDelete, autoExpan
                               )}
                             </div>
                           ) : (
-                            <p className="text-xs" style={{ color: fb._emailEnviado === false ? '#EF4444' : '#94A3B8' }}>
-                              {fb._emailEnviado === false
-                                ? 'Email no enviado · verificar configuración'
-                                : 'Invitación enviada · Esperando respuesta'}
-                            </p>
+                            <div className="flex items-center justify-between gap-2">
+                              <p className="text-xs" style={{ color: '#94A3B8' }}>Esperando respuesta</p>
+                              <button
+                                onClick={() => reenviarFb(fb.nombre_cliente, fb.email_cliente, fb.id)}
+                                disabled={reenviando === fb.id}
+                                className="text-xs font-medium px-2 py-1 rounded-lg transition-colors disabled:opacity-50"
+                                style={{ background: '#F1F5F9', color: '#475569' }}
+                                onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#E2E8F0'}
+                                onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = '#F1F5F9'}
+                              >
+                                {reenviando === fb.id ? 'Enviando…' : 'Reenviar'}
+                              </button>
+                            </div>
                           )}
                         </div>
                       )}
