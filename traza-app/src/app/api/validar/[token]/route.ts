@@ -111,7 +111,7 @@ export async function POST(
         const urlConfirmacion = `${baseUrl}/api/confirmar-validacion/${tokenConfirmacion}`
         const tituloObjetivo = (tokenData.objetivo as any)?.titulo ?? 'un objetivo'
 
-        const fromEmail = process.env.RESEND_FROM_EMAIL ?? 'TRAZA <lucca@trazaid.com>'
+        const fromEmail = process.env.RESEND_FROM_EMAIL ?? 'TRAZA <hola@trazaid.com>'
         await resend.emails.send({
           from:     fromEmail,
           reply_to: fromEmail,

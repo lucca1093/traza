@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
       const enlace = `${baseUrl}/feedback-cliente/${token}`
       const nombreEmpleado = persona ? `${persona.nombre} ${persona.apellido}` : 'tu colaborador'
 
-      const fromEmail = process.env.RESEND_FROM_EMAIL ?? 'TRAZA <lucca@trazaid.com>'
+      const fromEmail = process.env.RESEND_FROM_EMAIL ?? 'TRAZA <hola@trazaid.com>'
       let emailEnviado = false
       try {
         await resend.emails.send({
