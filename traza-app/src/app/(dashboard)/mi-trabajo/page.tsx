@@ -913,6 +913,8 @@ function ObjetivoCard({ obj, saving, onUpdate, onUpdateAuto, onDelete, autoExpan
   const [expandedFbs,        setExpandedFbs]        = useState<Set<string>>(new Set())
   const [reenviando,         setReenviando]         = useState<string | null>(null)
   const [sinActividad,       setSinActividad]       = useState(false)
+  const [showFbSection,      setShowFbSection]      = useState(false)
+  const [showValExtSection,  setShowValExtSection]  = useState(false)
   const [fbClientesEnviados, setFbClientesEnviados] = useState<{nombre: string, email: string, emailEnviado?: boolean}[]>([])
   const [feedbacksCliente,   setFeedbacksCliente]   = useState<any[]>([])
   const vencido = isVencido(obj.fecha_limite, obj.estado)
@@ -936,6 +938,7 @@ function ObjetivoCard({ obj, saving, onUpdate, onUpdateAuto, onDelete, autoExpan
     // Si viene de notificación, abrir todos los feedbacks automáticamente
     if (autoExpand && fbs && fbs.length > 0) {
       setExpandedFbs(new Set(fbs.map((fb: any) => fb.id)))
+      setShowFbSection(true)
     }
     // Indicador de sin actividad: objetivo activo sin avances en 7+ días
     if (avs && avs.length > 0 && (obj.estado as string) === 'en_progreso') {
@@ -1610,36 +1613,48 @@ function ObjetivoCard({ obj, saving, onUpdate, onUpdateAuto, onDelete, autoExpan
             </div>
           )}
 
-          {/* Validaciones externas recibidas */}
+          {/* Validaciones externas — acordeón colapsable */}
           {valExt.length > 0 && (
-            <div className="px-5 pb-4">
-              <div className="rounded-xl border border-gray-100 px-4 py-3 space-y-2">
-                <p className="text-xs font-semibold text-gray-400">Validaciones externas ({valExt.length})</p>
-                {valExt.map((v: any, i: number) => {
-                  const color = v.calificacion === 'De acuerdo' ? '#15803d' : v.calificacion === 'Parcialmente de acuerdo' ? '#b45309' : '#b91c1c'
-                  const nivelLabel = v.nivel_confianza === 'corporativo' ? '🏢 Corporativo' : v.nivel_confianza === 'personal' ? '👤 Personal' : '—'
-                  return (
-                    <div key={i} className="flex items-start gap-3 py-1.5 border-t border-gray-50 first:border-0">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-xs font-semibold text-gray-700">{v.nombre || 'Anónimo'}</span>
-                          <span className="text-xs text-gray-400">{nivelLabel}</span>
-                          <span className="text-xs font-medium" style={{ color }}>{v.calificacion}</span>
-                          {v.confirmado === false && (
-                            <span className="text-xs text-amber-500 font-medium">· Pendiente de confirmación</span>
+            <div className="px-5 pb-2">
+              <button
+                onClick={() => setShowValExtSection(v => !v)}
+                className="w-full flex items-center justify-between py-2 transition-colors"
+                style={{ color: '#64748B' }}
+              >
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-semibold" style={{ color: '#475569' }}>Validaciones externas</span>
+                  <span className="text-xs font-bold px-1.5 py-0.5 rounded-md" style={{ background: '#F1F5F9', color: '#64748B' }}>{valExt.length}</span>
+                </div>
+                <ChevronDown size={13} style={{ color: '#94A3B8', transform: showValExtSection ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }} />
+              </button>
+              {showValExtSection && (
+                <div className="rounded-xl border border-gray-100 divide-y divide-gray-50 mb-2">
+                  {valExt.map((v: any, i: number) => {
+                    const color = v.calificacion === 'De acuerdo' ? '#15803d' : v.calificacion === 'Parcialmente de acuerdo' ? '#b45309' : '#b91c1c'
+                    const nivelLabel = v.nivel_confianza === 'corporativo' ? '🏢 Corp.' : v.nivel_confianza === 'personal' ? '👤 Personal' : ''
+                    return (
+                      <div key={i} className="flex items-start gap-3 px-3 py-2.5">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-xs font-semibold text-gray-700">{v.nombre || 'Anónimo'}</span>
+                            {nivelLabel && <span className="text-xs text-gray-400">{nivelLabel}</span>}
+                            <span className="text-xs font-medium" style={{ color }}>{v.calificacion}</span>
+                            {v.confirmado === false && (
+                              <span className="text-xs text-amber-500 font-medium">· Pendiente</span>
+                            )}
+                          </div>
+                          {v.comentario?.trim() && (
+                            <p className="text-xs text-gray-500 mt-0.5 italic">"{v.comentario}"</p>
                           )}
                         </div>
-                        {v.comentario?.trim() && (
-                          <p className="text-xs text-gray-500 mt-0.5 italic">"{v.comentario}"</p>
-                        )}
+                        <span className="text-xs text-gray-300 flex-shrink-0 mt-0.5">
+                          {new Date(v.created_at).toLocaleDateString('es-AR', { day: '2-digit', month: 'short' })}
+                        </span>
                       </div>
-                      <span className="text-xs text-gray-300 flex-shrink-0">
-                        {new Date(v.created_at).toLocaleDateString('es-AR', { day: '2-digit', month: 'short' })}
-                      </span>
-                    </div>
-                  )
-                })}
-              </div>
+                    )
+                  })}
+                </div>
+              )}
             </div>
           )}
 
@@ -1731,11 +1746,20 @@ function ObjetivoCard({ obj, saving, onUpdate, onUpdateAuto, onDelete, autoExpan
               </div>
             )}
 
-            {/* Opiniones de clientes — acordeón */}
+            {/* Opiniones de clientes — acordeón colapsable */}
             {feedbacksCliente.length > 0 && (
               <div className="space-y-1.5">
-                <p className="text-xs font-semibold" style={{ color: '#475569' }}>Opiniones de clientes</p>
-                {feedbacksCliente.map((fb: any) => {
+                <button
+                  onClick={() => setShowFbSection(v => !v)}
+                  className="w-full flex items-center justify-between transition-colors"
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-semibold" style={{ color: '#475569' }}>Opiniones de clientes</span>
+                    <span className="text-xs font-bold px-1.5 py-0.5 rounded-md" style={{ background: '#F1F5F9', color: '#64748B' }}>{feedbacksCliente.length}</span>
+                  </div>
+                  <ChevronDown size={13} style={{ color: '#94A3B8', transform: showFbSection ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }} />
+                </button>
+                {showFbSection && feedbacksCliente.map((fb: any) => {
                   const isOpen = expandedFbs.has(fb.id)
                   const toggle = () => setExpandedFbs(prev => {
                     const next = new Set(prev)

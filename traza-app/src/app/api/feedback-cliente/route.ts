@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createAdminClient } from '@/lib/supabase-server'
+import { createAdminClient, createClient } from '@/lib/supabase-server'
 import { Resend } from 'resend'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
@@ -21,6 +21,10 @@ export async function POST(req: NextRequest) {
 
     /* ── Solicitar feedback al cliente ─────────────────── */
     if (action === 'solicitar') {
+      // Obtener usuario autenticado para reply_to
+      const { data: { user } } = await createClient().auth.getUser()
+      const replyTo = user?.email ?? undefined
+
       const { objetivo_id, persona_id, empresa_id, nombre_cliente, email_cliente } = body
       if (!objetivo_id || !persona_id || !nombre_cliente || !email_cliente) {
         return NextResponse.json({ error: 'Faltan campos requeridos' }, { status: 400 })
@@ -48,32 +52,26 @@ export async function POST(req: NextRequest) {
       const nombreEmpleado = persona ? `${persona.nombre} ${persona.apellido}` : 'tu colaborador'
 
       const fromEmail = process.env.RESEND_FROM_EMAIL ?? 'TRAZA <hola@trazaid.com>'
-      let emailEnviado = false
-      try {
-        await resend.emails.send({
-          from:     fromEmail,
-          reply_to: fromEmail,
-          to:       email_cliente,
-          subject:  `${nombre_cliente ? `${nombre_cliente}, ` : ''}¿podés darle tu opinión a ${nombreEmpleado}?`,
-          text:     `Hola${nombre_cliente ? ` ${nombre_cliente}` : ''},\n\n${nombreEmpleado} te pidió que dejes tu opinión sobre:\n"${objetivo?.titulo ?? 'un objetivo'}"\n\nSolo toma 1 minuto:\n${enlace}\n\nSi no lo conocés o no querés responder, ignorá este mensaje.\n\n${nombreEmpleado}`,
-          html: `<div style="font-family:Georgia,serif;max-width:480px;margin:0 auto;color:#1a1a1a;font-size:15px;line-height:1.7;">
+
+      await resend.emails.send({
+        from:     fromEmail,
+        reply_to: replyTo,
+        to:       email_cliente,
+        subject:  `${nombre_cliente ? `${nombre_cliente}, ` : ''}¿podés darle tu opinión a ${nombreEmpleado}?`,
+        text:     `Hola${nombre_cliente ? ` ${nombre_cliente}` : ''},\n\n${nombreEmpleado} te pidió que dejes tu opinión sobre:\n"${objetivo?.titulo ?? 'un objetivo'}"\n\nSolo toma 1 minuto:\n${enlace}\n\nSi no lo conocés o no querés responder, ignorá este mensaje.\n\nTRAZA`,
+        html: `<div style="font-family:Georgia,serif;max-width:480px;margin:0 auto;color:#1a1a1a;font-size:15px;line-height:1.7;">
 <p>Hola${nombre_cliente ? ` ${nombre_cliente}` : ''},</p>
 <p>${nombreEmpleado} te pidió que dejes tu opinión sobre el trabajo que hizo en:</p>
 <p style="margin:20px 0;padding:12px 16px;border-left:3px solid #ccc;color:#333;font-style:italic;">${objetivo?.titulo ?? 'un objetivo'}</p>
 <p>Si tenés 1 minuto, podés responder acá:</p>
 <p><a href="${enlace}" style="color:#1C2B90;">${enlace}</a></p>
 <p>Si no lo conocés o no querés responder, ignorá este mensaje.</p>
-<p style="margin-top:32px;color:#555;">${nombreEmpleado}</p>
+<p style="margin-top:32px;color:#555;">TRAZA</p>
 <p style="margin-top:24px;font-size:12px;color:#999;">Este link expira en 30 días.</p>
 </div>`,
-        })
-        emailEnviado = true
-      } catch (emailErr: any) {
-        console.error('feedback-cliente: error enviando email:', emailErr?.message ?? emailErr)
-        return NextResponse.json({ ok: true, emailEnviado: false, emailError: emailErr?.message ?? 'Error desconocido' })
-      }
+      })
 
-      return NextResponse.json({ ok: true, emailEnviado })
+      return NextResponse.json({ ok: true, emailEnviado: true })
     }
 
     /* ── Cliente responde feedback ───────────────────────── */
